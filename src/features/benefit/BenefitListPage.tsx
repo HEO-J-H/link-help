@@ -60,6 +60,8 @@ export function BenefitListPage() {
   const [showEnded, setShowEnded] = useState(false);
   const [memberId, setMemberId] = useState(state.members[0]?.id ?? '');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  /** Portal / 종합 안내 행(복지로 메인, 시·도 총괄 안내 등) — 기본 숨김 */
+  const [showPortalRows, setShowPortalRows] = useState(false);
 
   useEffect(() => {
     if (state.members.length === 0) return;
@@ -73,10 +75,11 @@ export function BenefitListPage() {
     const visibility = showEnded
       ? textFiltered
       : textFiltered.filter((w) => !isWelfareEffectivelyExpired(w));
+    const noPortals = showPortalRows ? visibility : visibility.filter((w) => !w.hide_from_main_list);
     return sortPopular
-      ? [...visibility].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
-      : sortWelfareForDiscovery(visibility);
-  }, [list, q, sortPopular, showEnded]);
+      ? [...noPortals].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
+      : sortWelfareForDiscovery(noPortals);
+  }, [list, q, sortPopular, showEnded, showPortalRows]);
 
   const filtered = useMemo(
     () => filterRowsForMemberView(sortedBase, memberId, state.welfareTracking, statusFilter),
@@ -173,6 +176,15 @@ export function BenefitListPage() {
             onChange={(e) => setShowEnded(e.target.checked)}
           />
           <label htmlFor="show-ended">종료·기간 만료 항목 보기</label>
+        </span>
+        <span className="field-row" style={{ marginBottom: 0 }}>
+          <input
+            id="show-portals"
+            type="checkbox"
+            checked={showPortalRows}
+            onChange={(e) => setShowPortalRows(e.target.checked)}
+          />
+          <label htmlFor="show-portals">포털·종합 안내 항목 포함</label>
         </span>
       </div>
       <div className="stack">

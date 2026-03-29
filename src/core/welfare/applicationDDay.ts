@@ -33,13 +33,17 @@ export function getApplicationDDay(w: WelfareRecord, now: Date = new Date()): Ap
   }
 
   const p = (w.period || '').trim();
+  // Bundled rows often omit period for standing programs — not "failed to verify"
+  if (!p) {
+    return { urgency: 'ongoing', daysLeft: null, label: '상시·연중' };
+  }
   if (/상시|연중\s*모집|수시\s*접수|별도\s*공고|상시\s*운영|연중\s*접수/i.test(p)) {
     return { urgency: 'ongoing', daysLeft: null, label: '상시' };
   }
 
   const end = parsePeriodEndDate(w.period);
   if (!end) {
-    return { urgency: 'unknown', daysLeft: null, label: '기간확인' };
+    return { urgency: 'unknown', daysLeft: null, label: '공고문 확인' };
   }
 
   const daysLeft = calendarDaysUntil(now, end);

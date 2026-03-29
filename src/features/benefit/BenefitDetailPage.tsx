@@ -120,24 +120,31 @@ export function BenefitDetailPage() {
             </a>
           )}
         </div>
+        <p className="muted benefit-external-hint" style={{ margin: '14px 0 0', fontSize: '0.9rem', lineHeight: 1.6 }}>
+          위 버튼은 <strong>해당 기관 웹사이트</strong>로만 연결됩니다. 공고 전문·접수 양식·정확한 서류 목록·마감일은{' '}
+          <strong>사이트 안 검색·메뉴</strong>에서 확인해야 합니다. 이 앱의 본문은 요약이며 법적 효력이 없습니다.
+        </p>
       </div>
 
       <div className="card">
         <p>{w.description}</p>
+        {w.required_documents?.trim() && (
+          <>
+            <p style={{ marginTop: 14, marginBottom: 6 }}>
+              <strong>신청 서류(참고)</strong>
+            </p>
+            <pre className="benefit-docs-block">{w.required_documents.trim()}</pre>
+          </>
+        )}
         <p style={{ marginTop: 12 }}>
           <strong>혜택</strong> {w.benefit}
         </p>
         <p>
-          <strong>기간</strong> {w.period}
+          <strong>기간</strong>{' '}
+          {w.period?.trim()
+            ? w.period
+            : '이 카탈로그에는 날짜 범위가 없습니다. 상시·연중 사업이거나 공고문에만 기재된 경우가 많습니다. 기관 사이트에서 확인하세요.'}
         </p>
-        {w.required_documents?.trim() && (
-          <p style={{ marginTop: 12 }}>
-            <strong>신청 서류</strong>
-          </p>
-        )}
-        {w.required_documents?.trim() && (
-          <pre className="benefit-docs-block">{w.required_documents.trim()}</pre>
-        )}
         <p>
           <strong>지역</strong> {w.region.join(', ')}
         </p>

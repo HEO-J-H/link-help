@@ -65,6 +65,10 @@ export function normalizeImportedWelfare(raw: unknown): WelfareRecord | null {
   }
   base.catalog_origin = isOrigin(o.catalog_origin) ? o.catalog_origin : 'import';
 
+  if (typeof o.hide_from_main_list === 'boolean') {
+    base.hide_from_main_list = o.hide_from_main_list;
+  }
+
   return base;
 }
 

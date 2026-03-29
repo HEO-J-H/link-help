@@ -43,4 +43,9 @@ export interface WelfareRecord {
   ai_confidence?: number;
   /** How this row entered the merged catalog. */
   catalog_origin?: WelfareCatalogOrigin;
+  /**
+   * Portal / aggregate notice rows: hidden from default 혜택 list unless user opts in.
+   * Does not affect search or 숨은 복지·혜택찾기 results.
+   */
+  hide_from_main_list?: boolean;
 }

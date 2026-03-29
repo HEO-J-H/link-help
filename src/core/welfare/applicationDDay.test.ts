@@ -72,4 +72,18 @@ describe('getApplicationDDay', () => {
     expect(d.urgency).toBe('ongoing');
     expect(d.label).toBe('상시');
   });
+
+  it('empty period means standing program (not 기간확인)', () => {
+    const w = row({ id: '1', title: 't', period: '' });
+    const d = getApplicationDDay(w);
+    expect(d.urgency).toBe('ongoing');
+    expect(d.label).toBe('상시·연중');
+  });
+
+  it('non-empty but unparseable period', () => {
+    const w = row({ id: '1', title: 't', period: '별도 공지' });
+    const d = getApplicationDDay(w);
+    expect(d.urgency).toBe('unknown');
+    expect(d.label).toBe('공고문 확인');
+  });
 });
