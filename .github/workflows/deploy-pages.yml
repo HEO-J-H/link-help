@@ -1,12 +1,16 @@
-# Publish dist/ to GitHub Pages (requires repo Settings → Pages → Source: GitHub Actions).
+# Publishes dist/ in two ways (pick ONE in repo Settings → Pages):
+# - Source: GitHub Actions → deploy job (artifact).
+# - Source: Deploy from branch → Branch "gh-pages" / folder "/" → push-gh-pages job.
+# If Source is "main" / root, GitHub serves dev index.html (/src/main.tsx) → blank page.
 name: Deploy GitHub Pages
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -28,6 +32,10 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: link-help-dist
+          path: dist
 
   deploy:
     needs: build
@@ -38,3 +46,19 @@ jobs:
     steps:
       - uses: actions/deploy-pages@v4
         id: deployment
+
+  # Lets Pages work when Settings → Pages uses branch "gh-pages" (not main root).
+  push-gh-pages:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: link-help-dist
+          path: dist
+      - uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
