@@ -20,6 +20,7 @@
 - **원격 API**: 베이스 URL 설정 시 `GET /welfare`로 원격 복지를 불러와 로컬 JSON과 병합
 - **Web Push**: `injectManifest` SW가 `push` 이벤트를 알림으로 표시. 설정에서 구독 시 `POST /push/subscribe` 호출
 - 데모 서버: `npm run server:demo` → `server/README.md` 참고
+- 설정에서 **서비스 안내**, **이용약관**, **개인정보 처리 안내**, **면책** 화면으로 이동 가능 (상용 전 법무 검토 권장)
 
 ## 기술 스택
 

@@ -11,6 +11,10 @@ import { RecommendPage } from '@/features/dashboard/RecommendPage';
 import { TimelinePage } from '@/features/timeline/TimelinePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
+import { AboutPage } from '@/features/about/AboutPage';
+import { TermsPage } from '@/features/legal/TermsPage';
+import { PrivacyPage } from '@/features/legal/PrivacyPage';
+import { DisclaimerPage } from '@/features/legal/DisclaimerPage';
 
 export default function App() {
   return (
@@ -28,6 +32,10 @@ export default function App() {
               <Route path="/timeline" element={<TimelinePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/legal/terms" element={<TermsPage />} />
+              <Route path="/legal/privacy" element={<PrivacyPage />} />
+              <Route path="/legal/disclaimer" element={<DisclaimerPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>

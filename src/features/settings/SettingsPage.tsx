@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
 import { initialFamilyState } from '@/core/family/familyManager';
@@ -222,6 +223,24 @@ export function SettingsPage() {
         빌드 후 서비스 워커가 앱과 <code>welfare-db</code> JSON을 캐시해 오프라인에서도 열 수 있습니다.
         복지 원본은 <code>public/welfare-db</code>입니다.
       </p>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '28px 0 10px' }}>안내 및 법적 고지</h2>
+      <div className="card">
+        <ul style={{ margin: 0, paddingLeft: '1.2rem', lineHeight: 1.7 }}>
+          <li>
+            <Link to="/about">서비스 안내 · 데이터 저장 위치 · 향후 계획</Link>
+          </li>
+          <li>
+            <Link to="/legal/disclaimer">면책 · 복지 정보 정확성</Link>
+          </li>
+          <li>
+            <Link to="/legal/privacy">개인정보 처리 안내</Link>
+          </li>
+          <li>
+            <Link to="/legal/terms">이용약관</Link>
+          </li>
+        </ul>
+      </div>
     </div>
   );
 }

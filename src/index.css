@@ -100,6 +100,47 @@ button {
   margin: 0 0 16px;
 }
 
+.legal-article {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  font-size: 0.95rem;
+}
+
+.legal-article section {
+  margin-bottom: 18px;
+}
+
+.legal-article section:last-child {
+  margin-bottom: 0;
+}
+
+.legal-article h2 {
+  font-size: 1rem;
+  margin: 0 0 8px;
+  color: var(--color-text);
+}
+
+.legal-article p {
+  margin: 0 0 8px;
+  color: var(--color-muted);
+}
+
+.legal-article p:last-child {
+  margin-bottom: 0;
+}
+
+.legal-article ul {
+  margin: 0;
+  padding-left: 1.2rem;
+  color: var(--color-muted);
+}
+
+.legal-article li {
+  margin-bottom: 6px;
+}
+
 .bottom-nav {
   position: fixed;
   left: 0;
