@@ -58,7 +58,7 @@ npm run preview:lan
 - `src/core` — 저장소, 가족 도우미, 필터, 복지 로더
 - `src/features` — 화면(가족·혜택·추천·설정)
 - `src/components/layout` — 하단 네비게이션
-- `public/welfare-db` — 복지·태그·지역·메타 JSON
+- `public/welfare-db` — 복지·태그·지역·메타 JSON(전국·경기·용인 등 **공식 안내 기준** 요약, 출처는 `docs/data-sources.md`)
 - `src/sw.ts` — Workbox 프리캐시·내비게이션 폴백·`welfare-db` 런타임 캐시
 - `server/` — (선택·레거시) 예전 HTTP API 예시
 - `data/sample` — 샘플보내기 JSON

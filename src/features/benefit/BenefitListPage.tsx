@@ -46,7 +46,7 @@ export function BenefitListPage() {
             checked={sortPopular}
             onChange={(e) => setSortPopular(e.target.checked)}
           />
-          <label htmlFor="sort-pop">인기도(샘플) 순 정렬</label>
+          <label htmlFor="sort-pop">인기도(참고) 순 정렬</label>
         </span>
         <span className="field-row" style={{ marginBottom: 0 }}>
           <input

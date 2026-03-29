@@ -108,7 +108,7 @@ export function BenefitDetailPage() {
         </p>
         {typeof w.popularity === 'number' && (
           <p className="muted" style={{ marginTop: 8 }}>
-            인기도(샘플) {w.popularity}
+            인기도(참고) {w.popularity}
           </p>
         )}
         <p className="muted" style={{ marginTop: 12 }}>

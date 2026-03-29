@@ -9,7 +9,7 @@ const WELFARE_FILES = [
   'welfare-db/welfare/yongin.json',
 ];
 
-/** Static JSON shipped with the app (sample / seed). */
+/** Static JSON shipped with the app (curated from public agency references; see docs/data-sources.md). */
 export async function loadBundledWelfare(): Promise<WelfareRecord[]> {
   const chunks = await Promise.all(
     WELFARE_FILES.map(async (rel) => {

@@ -25,7 +25,7 @@ export function AboutPage() {
           브라우저에 저장되며, 닫으면 비워질 수 있으니 필요하면 설정에서 JSON으로 백업하세요.
         </p>
         <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
-          복지 샘플은 앱에 포함된 JSON이며, 스마트 매칭·로컬 가져오기로 쌓인 항목은 기본적으로 이 기기
+          번들 복지 데이터는 공개 기관 안내를 요약한 JSON이며, 스마트 매칭·로컬 가져오기로 쌓인 항목은 기본적으로 이 기기
           IndexedDB에만 둡니다. <strong>선택적으로</strong> 설정에 공용 API URL을 넣고 동의하면 공고 분석·목록
           동기화·복지 메타 기여만 해당 서버로 갈 수 있습니다(가족 프로필은 전송하지 않음).
         </p>

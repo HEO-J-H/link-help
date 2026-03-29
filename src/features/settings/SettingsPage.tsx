@@ -82,7 +82,7 @@ export function SettingsPage() {
   const clearWelfare = async () => {
     if (
       !window.confirm(
-        '이 기기에 쌓인 복지 누적(스마트 매칭·파일 가져오기)을 모두 지울까요? 앱에 포함된 번들 샘플은 그대로입니다.'
+        '이 기기에 쌓인 복지 누적(스마트 매칭·파일 가져오기)을 모두 지울까요? 앱에 포함된 번들 JSON은 그대로입니다.'
       )
     ) {
       return;
@@ -267,7 +267,7 @@ export function SettingsPage() {
         <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
           <code>WelfareRecord</code> 객체의 <strong>JSON 배열</strong> 파일을 불러오면{' '}
           <code>link-help-welfare-cache</code>(IndexedDB)에 합쳐지고, 번들 샘플과 통합 목록으로
-          표시됩니다. 서버로 전송되지 않습니다. 형식은{' '}
+          표시됩니다(번들 JSON과 병합). 서버로 전송되지 않습니다. 형식은{' '}
           <code>docs/schemas/welfare-record.example.json</code> 참고.
         </p>
         <button
@@ -427,7 +427,7 @@ export function SettingsPage() {
 
       <p className="muted" style={{ marginTop: 24, fontSize: '0.85rem' }}>
         빌드 후 서비스 워커가 앱과 <code>welfare-db</code> JSON을 캐시해 오프라인에서도 열 수 있습니다.
-        복지 샘플은 <code>public/welfare-db</code>에 있습니다.
+        번들 복지 JSON은 <code>public/welfare-db</code>에 있습니다.
       </p>
 
       <h2 style={{ fontSize: '1.1rem', margin: '28px 0 10px' }}>안내 및 법적 고지</h2>

@@ -32,7 +32,7 @@ export function FamilyPage() {
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>가구 기본 — 지역·소득</h2>
         <p className="field-hint" style={{ marginTop: 0 }}>
           시·도와 시·군·구를 고르면 복지 태그(예: 경기도, 용인시)가 둘 다 잡힙니다. 테스트할 때는{' '}
-          <strong>경기도 → 용인시</strong>처럼 샘플 DB와 맞춰 보세요.
+          <strong>경기도 → 용인시</strong>처럼 번들 복지 데이터와 맞춰 보세요.
         </p>
         <HouseholdFormFields
           catalog={catalog}

@@ -57,7 +57,7 @@ export function TimelinePage() {
     <div>
       <h1 className="page-title">타임라인</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        앞으로 도래하는 나이(만 50·55·60…)를 기준으로, 그때의 조건에 맞는 샘플 혜택을 미리 봅니다. 이미{' '}
+        앞으로 도래하는 나이(만 50·55·60…)를 기준으로, 그때의 조건에 맞는 참고용 혜택을 미리 봅니다. 이미{' '}
         <strong>종료된</strong> 항목은 제외합니다(혜택 탭에서 &quot;종료·기간 만료 항목 보기&quot;로 참고 가능).
       </p>
 
@@ -110,7 +110,7 @@ export function TimelinePage() {
             </h2>
             {items.length === 0 ? (
               <p className="muted" style={{ margin: 0 }}>
-                이 나이대에 맞는 샘플 항목이 없습니다. 복지 DB에 태그를 추가하면 여기에 나타납니다.
+                이 나이대에 맞는 항목이 없습니다. 복지 DB에 태그를 추가하면 여기에 나타납니다.
               </p>
             ) : (
               <ul style={{ margin: 0, paddingLeft: 18 }}>
