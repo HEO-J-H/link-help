@@ -1,6 +1,6 @@
 /**
- * Link-Help production API — SQLite persistence for push subscriptions & welfare rows.
- * Run: cd server && npm install && copy .env.example .env (edit keys) && npm start
+ * Link-Help API — SQLite welfare catalog, optional Web Push, AI analyze + crowd contribute.
+ * Run: cd server && npm install && copy .env.example .env (edit) && npm start
  */
 import dotenv from 'dotenv';
 import fs from 'node:fs';
@@ -12,6 +12,8 @@ import { DatabaseSync } from 'node:sqlite';
 import webpush from 'web-push';
 import crypto from 'node:crypto';
 import { runSmartMatch } from './smartMatchCore.mjs';
+import { parseContributionPayload } from './contributeValidate.mjs';
+import { analyzeNoticeToRecord } from './analyzeNotice.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -22,12 +24,28 @@ const VAPID_PUBLIC = process.env.VAPID_PUBLIC_KEY;
 const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY;
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:admin@link-help.local';
 
-if (!VAPID_PUBLIC?.trim() || !VAPID_PRIVATE?.trim()) {
-  console.error('[link-help-api] Set VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY in server/.env');
-  process.exit(1);
+const PUSH_ENABLED = Boolean(VAPID_PUBLIC?.trim() && VAPID_PRIVATE?.trim());
+if (PUSH_ENABLED) {
+  webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC.trim(), VAPID_PRIVATE.trim());
+} else {
+  console.warn('[link-help-api] Web Push disabled (set VAPID_PUBLIC_KEY + VAPID_PRIVATE_KEY to enable).');
 }
 
-webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC.trim(), VAPID_PRIVATE.trim());
+const API_SHARED_TOKEN = process.env.API_SHARED_TOKEN?.trim();
+
+function requireApiToken(req, res, next) {
+  if (!API_SHARED_TOKEN) return next();
+  const auth = req.get('Authorization');
+  const headerTok = req.get('X-Link-Help-Api-Token');
+  const ok = auth === `Bearer ${API_SHARED_TOKEN}` || headerTok === API_SHARED_TOKEN;
+  if (!ok) {
+    return res.status(401).json({
+      error: 'unauthorized',
+      hint: 'Send Authorization: Bearer <API_SHARED_TOKEN> or X-Link-Help-Api-Token',
+    });
+  }
+  next();
+}
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -102,11 +120,31 @@ function seedWelfareFromPublic(db) {
   console.log(`[link-help-api] Seeded ${after.c} welfare rows from public/welfare-db/welfare`);
 }
 
+/** @param {DatabaseSync} db */
+function upsertWelfareItem(db, record) {
+  const existing = db.prepare('SELECT payload FROM welfare_items WHERE id = ?').get(record.id);
+  if (existing) {
+    try {
+      const old = JSON.parse(existing.payload);
+      const nt = Date.parse(record.updated_at) || 0;
+      const ot = Date.parse(old.updated_at || '') || 0;
+      if (nt > 0 && ot > 0 && nt < ot) return false;
+    } catch {
+      /* replace */
+    }
+  }
+  db.prepare('INSERT OR REPLACE INTO welfare_items (id, payload) VALUES (?, ?)').run(
+    record.id,
+    JSON.stringify(record)
+  );
+  return true;
+}
+
 const db = openDb();
 seedWelfareFromPublic(db);
 
 const app = express();
-app.use(express.json({ limit: '512kb' }));
+app.use(express.json({ limit: '2mb' }));
 
 const corsRaw = process.env.CORS_ORIGIN?.trim();
 if (corsRaw) {
@@ -115,7 +153,7 @@ if (corsRaw) {
     cors({
       origin: origins.length === 1 ? origins[0] : origins,
       methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'X-Link-Help-Admin'],
+      allowedHeaders: ['Content-Type', 'X-Link-Help-Admin', 'X-Link-Help-Api-Token', 'Authorization'],
     })
   );
 } else {
@@ -126,7 +164,7 @@ if (corsRaw) {
     cors({
       origin: true,
       methods: ['GET', 'POST', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'X-Link-Help-Admin'],
+      allowedHeaders: ['Content-Type', 'X-Link-Help-Admin', 'X-Link-Help-Api-Token', 'Authorization'],
     })
   );
 }
@@ -134,13 +172,57 @@ if (corsRaw) {
 app.get('/health', (_req, res) => {
   const subs = db.prepare('SELECT COUNT(*) AS c FROM push_subscriptions').get();
   const wf = db.prepare('SELECT COUNT(*) AS c FROM welfare_items').get();
-  res.json({ ok: true, subscriptions: subs.c, welfare_rows: wf.c });
+  res.json({
+    ok: true,
+    subscriptions: subs.c,
+    welfare_rows: wf.c,
+    push_enabled: PUSH_ENABLED,
+    api_token_required: Boolean(API_SHARED_TOKEN),
+    openai_configured: Boolean(process.env.OPENAI_API_KEY?.trim()),
+  });
 });
 
 app.get('/welfare', (_req, res) => {
   const rows = db.prepare('SELECT payload FROM welfare_items ORDER BY id').all();
   const items = rows.map((r) => JSON.parse(r.payload));
   res.json(items);
+});
+
+/**
+ * POST body: { text: string } — notice raw text → one WelfareRecord (OpenAI if key set, else heuristic).
+ */
+app.post('/welfare/analyze', requireApiToken, async (req, res) => {
+  try {
+    const { record, analysis_source } = await analyzeNoticeToRecord(req.body?.text, process.env);
+    res.json({ ok: true, record, analysis_source });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'analyze_failed';
+    if (msg === 'empty_text') return res.status(400).json({ error: msg });
+    console.error('[link-help-api] /welfare/analyze', e);
+    res.status(500).json({ error: msg });
+  }
+});
+
+/**
+ * POST body: { records: WelfareRecord[] } — merge into public SQLite catalog (no user PII).
+ */
+app.post('/welfare/contribute', requireApiToken, (req, res) => {
+  try {
+    const rows = parseContributionPayload(req.body);
+    let accepted = 0;
+    let skipped = 0;
+    for (const r of rows) {
+      if (upsertWelfareItem(db, r)) accepted += 1;
+      else skipped += 1;
+    }
+    res.json({ ok: true, accepted, skipped, total: rows.length });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'bad_request';
+    if (msg === 'records_must_be_array') return res.status(400).json({ error: msg });
+    if (msg === 'too_many_records') return res.status(400).json({ error: msg });
+    if (msg === 'no_valid_records') return res.status(400).json({ error: msg });
+    res.status(400).json({ error: msg });
+  }
 });
 
 /**
@@ -213,6 +295,9 @@ app.post('/smart-match', (req, res) => {
 });
 
 app.post('/push/subscribe', (req, res) => {
+  if (!PUSH_ENABLED) {
+    return res.status(503).json({ error: 'push_disabled', hint: 'Set VAPID keys in server/.env' });
+  }
   const sub = req.body?.subscription;
   if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) {
     return res.status(400).json({ error: 'invalid subscription' });
@@ -225,6 +310,9 @@ app.post('/push/subscribe', (req, res) => {
 });
 
 app.post('/push/send', async (req, res) => {
+  if (!PUSH_ENABLED) {
+    return res.status(503).json({ error: 'push_disabled' });
+  }
   const secret = process.env.ADMIN_PUSH_SECRET?.trim();
   if (secret && req.get('X-Link-Help-Admin') !== secret) {
     return res.status(401).json({ error: 'unauthorized' });
@@ -256,8 +344,13 @@ app.use((_req, res) => {
 app.listen(PORT, () => {
   console.log(`[link-help-api] http://localhost:${PORT}`);
   console.log(
-    '[link-help-api] GET /health  GET /welfare  POST /smart-match  POST /push/subscribe  POST /push/send'
+    '[link-help-api] GET /health  GET /welfare  POST /welfare/analyze  POST /welfare/contribute  POST /smart-match  POST /push/*'
   );
+  if (API_SHARED_TOKEN) {
+    console.log('[link-help-api] API_SHARED_TOKEN set — /welfare/analyze and /welfare/contribute require auth');
+  } else {
+    console.warn('[link-help-api] API_SHARED_TOKEN unset — analyze/contribute are open (set token for production)');
+  }
   if (process.env.ADMIN_PUSH_SECRET) {
     console.log('[link-help-api] POST /push/send requires header X-Link-Help-Admin');
   }

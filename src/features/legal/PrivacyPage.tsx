@@ -30,6 +30,11 @@ export function PrivacyPage() {
             저장되어 번들 샘플과 통합 목록으로 합쳐집니다. 브라우저에서 사이트 데이터를 지우면 함께
             삭제됩니다.
           </li>
+          <li>
+            <strong>공용 복지 API(선택):</strong> 설정에 API URL을 직접 넣은 경우에만, 공고문 분석·공용
+            목록 가져오기·기여 동의 하의 복지 메타 전송이 <strong>해당 서버</strong>로 나갑니다. 가족
+            프로필·이름 등은 보내지 않습니다. 토큰은 sessionStorage 세션 JSON에만 저장됩니다.
+          </li>
         </ul>
       </section>
       <section>

@@ -25,6 +25,13 @@ function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   return {
     browserNotifications:
       typeof o.browserNotifications === 'boolean' ? o.browserNotifications : base.browserNotifications,
+    linkHelpApiBaseUrl:
+      typeof o.linkHelpApiBaseUrl === 'string' ? o.linkHelpApiBaseUrl : base.linkHelpApiBaseUrl,
+    linkHelpApiToken: typeof o.linkHelpApiToken === 'string' ? o.linkHelpApiToken : base.linkHelpApiToken,
+    welfareContributeConsent:
+      typeof o.welfareContributeConsent === 'boolean'
+        ? o.welfareContributeConsent
+        : base.welfareContributeConsent,
   };
 }
 

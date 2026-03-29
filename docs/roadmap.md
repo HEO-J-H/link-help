@@ -15,12 +15,12 @@
 - **설정**: 복지 `WelfareRecord[]` JSON 파일 가져오기·누적 캐시 비우기 (`normalizeWelfareImport.ts`)
 - **`WelfareRecord` 확장 필드** + **`docs/catalog-pipeline.md`**(공고→AI→공용 DB 설계)·예시 JSON
 - **혜택 상세**: `source_url`, 카탈로그 메타(출처 유형·스키마·AI 신뢰도·dedupe_key) 표시
-- (선택) **`server/`** 레거시 실험: Express·SQLite·`POST /smart-match` 등 — **정적 웹앱 동작에 필수 아님**
+- **`server/link-help-api`**: `GET /welfare`, `POST /welfare/analyze`, `POST /welfare/contribute`, OpenAI 선택, `API_SHARED_TOKEN` 선택, VAPID 선택(없으면 Push 비활성)
+- **앱 연동**: 설정(API URL·토큰·동의)·`linkHelpServer.ts`·스마트 매칭 결과 서버 기여
 
 ## Backlog (not implemented)
 
-- **호스티드 AI 분석 서버** + **공용 복지 DB** 적재·검수·중복 제거(클라이언트는 `docs/catalog-pipeline.md` 계약만 반영)
-- **앱 → 서버 기여 UX**: 매칭/검색 결과를 공용 DB에 보내는 흐름(동의·스팸·검수 필요)
+- **운영 검수 큐**·스팸 방지·속도 제한·감사 로그
 - **회원·클라우드 동기화**: 의도적으로 범위 밖
 - **공식 복지 API** 실시간 연동·검수 프로세스
 - **관리자 화면**·역할·감사 로그

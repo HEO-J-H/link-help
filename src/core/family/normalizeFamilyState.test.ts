@@ -7,6 +7,8 @@ describe('normalizeFamilyState', () => {
     const out = normalizeFamilyState({ members: [], reminders: [], appSettings: {} });
     expect(out.members).toEqual([]);
     expect(out.reminders).toEqual([]);
+    expect(out.appSettings.linkHelpApiBaseUrl).toBe('');
+    expect(out.appSettings.welfareContributeConsent).toBe(false);
   });
 
   it('returns empty session when input is invalid', () => {

@@ -24,7 +24,7 @@
 
 ## Server (`server/`)
 
-- Optional / legacy sample (Express + SQLite) may remain in the repo for experiments; **not required** for the static app.
+- Optional **self-hosted** API: SQLite welfare catalog, `GET /welfare`, `POST /welfare/analyze`, `POST /welfare/contribute`, optional Web Push (`server/README.md`). The static app works without it; **Settings** stores API base URL + token + contribute consent, and `src/core/api/linkHelpServer.ts` performs fetches.
 
 ## Matching & helpers
 

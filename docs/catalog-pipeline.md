@@ -80,4 +80,17 @@
 - **설정 화면**에서 이용자가 `WelfareRecord[]` JSON 파일을 고르면 같은 IndexedDB에 **upsert**되어 통합 목록에 합쳐집니다(서버 없음).
 - 향후 공용 DB는 **주기적으로 정적 JSON을 생성**해 `welfare-db`와 병합하거나, **별도 엔드포인트**로 내려받도록 확장할 수 있습니다.
 
+## 호스티드 API (`server/`)
+
+| 메서드 | 경로 | 설명 |
+|--------|------|------|
+| `GET` | `/health` | 상태, `welfare_rows`, `push_enabled`, `api_token_required`, `openai_configured` |
+| `GET` | `/welfare` | SQLite `welfare_items` 전체 JSON 배열 (공개 읽기) |
+| `POST` | `/welfare/analyze` | Body `{ "text": "공고문…" }` → 한 건 `WelfareRecord` (OpenAI 또는 휴리스틱) |
+| `POST` | `/welfare/contribute` | Body `{ "records": [ … ] }` → 공용 DB upsert (최대 80건) |
+
+`API_SHARED_TOKEN`이 설정되면 `analyze`/`contribute`에 `Authorization: Bearer …` 또는 `X-Link-Help-Api-Token` 필요.
+
+클라이언트는 **설정**에 API URL·토큰·기여 동의를 두고, `src/core/api/linkHelpServer.ts`로 호출합니다. **스마트** 탭에서 매칭 결과만 기여할 수 있습니다.
+
 JSON 예시 파일: `docs/schemas/welfare-record.example.json`.

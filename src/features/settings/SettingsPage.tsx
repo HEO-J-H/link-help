@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
@@ -6,12 +6,24 @@ import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportIm
 import { emptySessionFamilyState } from '@/core/family/familyManager';
 import { clearWelfareCache, upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { parseWelfareImportJson } from '@/core/welfare/normalizeWelfareImport';
+import {
+  analyzeNoticeOnServer,
+  contributeRecords,
+  fetchPublicCatalog,
+} from '@/core/api/linkHelpServer';
+import type { WelfareRecord } from '@/types/benefit';
 
 export function SettingsPage() {
   const { state, setState } = useFamily();
   const { refreshWelfareCatalog } = useWelfare();
   const fileRef = useRef<HTMLInputElement>(null);
   const welfareFileRef = useRef<HTMLInputElement>(null);
+  const [noticeText, setNoticeText] = useState('');
+  const [analyzed, setAnalyzed] = useState<WelfareRecord | null>(null);
+  const [analyzeSource, setAnalyzeSource] = useState<string | null>(null);
+  const [analyzeBusy, setAnalyzeBusy] = useState(false);
+  const [pullBusy, setPullBusy] = useState(false);
+  const [contribBusy, setContribBusy] = useState(false);
 
   const download = () => {
     const blob = new Blob([exportFamilyJson(state)], { type: 'application/json' });
@@ -111,6 +123,78 @@ export function SettingsPage() {
     });
   };
 
+  const apiBase = state.appSettings.linkHelpApiBaseUrl.trim();
+  const apiToken = state.appSettings.linkHelpApiToken;
+
+  const pullPublicCatalog = async () => {
+    if (!apiBase) {
+      alert('API 기본 URL을 입력하세요.');
+      return;
+    }
+    setPullBusy(true);
+    try {
+      const rows = await fetchPublicCatalog(apiBase);
+      await upsertWelfareRecords(rows);
+      refreshWelfareCatalog();
+      alert(`서버에서 ${rows.length}건을 받아 이 기기 카탈로그에 합쳤습니다.`);
+    } catch {
+      alert('공용 목록을 가져오지 못했습니다. URL·CORS·서버 상태를 확인하세요.');
+    } finally {
+      setPullBusy(false);
+    }
+  };
+
+  const runServerAnalyze = async () => {
+    if (!apiBase) {
+      alert('API 기본 URL을 입력하세요.');
+      return;
+    }
+    if (!noticeText.trim()) {
+      alert('공고문 본문을 입력하세요.');
+      return;
+    }
+    setAnalyzeBusy(true);
+    setAnalyzed(null);
+    setAnalyzeSource(null);
+    try {
+      const out = await analyzeNoticeOnServer(apiBase, noticeText, apiToken);
+      setAnalyzed(out.record);
+      setAnalyzeSource(out.analysis_source);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '분석 요청에 실패했습니다.');
+    } finally {
+      setAnalyzeBusy(false);
+    }
+  };
+
+  const saveAnalyzedLocal = async () => {
+    if (!analyzed) return;
+    try {
+      await upsertWelfareRecords([analyzed]);
+      refreshWelfareCatalog();
+      alert('이 기기 IndexedDB에 저장했습니다.');
+    } catch {
+      alert('로컬 저장에 실패했습니다.');
+    }
+  };
+
+  const contributeAnalyzed = async () => {
+    if (!analyzed || !apiBase) return;
+    if (!state.appSettings.welfareContributeConsent) {
+      alert('기여 동의에 체크한 뒤 다시 시도하세요.');
+      return;
+    }
+    setContribBusy(true);
+    try {
+      const r = await contributeRecords(apiBase, [analyzed], apiToken);
+      alert(`서버 공용 DB에 ${r.accepted}건 반영(건너뜀 ${r.skipped}).`);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '기여에 실패했습니다.');
+    } finally {
+      setContribBusy(false);
+    }
+  };
+
   return (
     <div>
       <h1 className="page-title">설정</h1>
@@ -204,6 +288,135 @@ export function SettingsPage() {
         <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={clearWelfare}>
           복지 누적 캐시 비우기
         </button>
+      </div>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '28px 0 10px' }}>공용 복지 API (호스팅 시)</h2>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+          직접 띄운 <code>link-help-api</code>(<code>server/</code>) 주소를 넣으면 공용 복지 DB와 연동할 수
+          있습니다. <strong>가족·프로필은 전송하지 않습니다.</strong> 서버 실행법은{' '}
+          <code>server/README.md</code> 참고.
+        </p>
+        <div className="field">
+          <label htmlFor="api-base">API 기본 URL (슬래시 없이)</label>
+          <input
+            id="api-base"
+            value={state.appSettings.linkHelpApiBaseUrl}
+            onChange={(e) =>
+              setState({
+                ...state,
+                appSettings: { ...state.appSettings, linkHelpApiBaseUrl: e.target.value },
+              })
+            }
+            placeholder="http://localhost:8787"
+            autoComplete="off"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="api-token">API 토큰 (선택, 서버에 API_SHARED_TOKEN 설정 시)</label>
+          <input
+            id="api-token"
+            type="password"
+            value={state.appSettings.linkHelpApiToken}
+            onChange={(e) =>
+              setState({
+                ...state,
+                appSettings: { ...state.appSettings, linkHelpApiToken: e.target.value },
+              })
+            }
+            placeholder="Bearer로 전송됩니다"
+            autoComplete="off"
+          />
+        </div>
+        <div className="field-row" style={{ marginBottom: 12 }}>
+          <input
+            id="contrib-consent"
+            type="checkbox"
+            className="input-checkbox"
+            checked={state.appSettings.welfareContributeConsent}
+            onChange={() =>
+              setState({
+                ...state,
+                appSettings: {
+                  ...state.appSettings,
+                  welfareContributeConsent: !state.appSettings.welfareContributeConsent,
+                },
+              })
+            }
+          />
+          <label htmlFor="contrib-consent">
+            복지 메타(JSON)를 공용 DB에 보내는 것에 동의합니다. (PII·가족 데이터 제외)
+          </label>
+        </div>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ width: '100%', marginBottom: 10 }}
+          onClick={pullPublicCatalog}
+          disabled={pullBusy || !apiBase}
+        >
+          {pullBusy ? '가져오는 중…' : '서버에서 공용 목록 가져오기 (GET /welfare)'}
+        </button>
+        <div className="field">
+          <label htmlFor="notice-paste">공고문 전문 (AI 분석용)</label>
+          <textarea
+            id="notice-paste"
+            rows={5}
+            value={noticeText}
+            onChange={(e) => setNoticeText(e.target.value)}
+            placeholder="공고 본문을 붙여넣으세요. OPENAI_API_KEY가 있으면 서버에서 LLM 구조화, 없으면 휴리스틱 요약입니다."
+            style={{ width: '100%', minHeight: 100 }}
+          />
+        </div>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ width: '100%', marginBottom: 10 }}
+          onClick={runServerAnalyze}
+          disabled={analyzeBusy || !apiBase}
+        >
+          {analyzeBusy ? '분석 중…' : '서버에서 공고 분석 (POST /welfare/analyze)'}
+        </button>
+        {analyzeSource && (
+          <p className="muted" style={{ marginTop: 0, fontSize: '0.88rem' }}>
+            분석 엔진: {analyzeSource === 'openai' ? 'OpenAI' : '휴리스틱(로컬 규칙)'}
+          </p>
+        )}
+        {analyzed && (
+          <>
+            <pre
+              style={{
+                margin: '12px 0',
+                padding: 12,
+                fontSize: '0.78rem',
+                overflow: 'auto',
+                maxHeight: 220,
+                background: 'var(--color-surface-muted, #f4f6f4)',
+                borderRadius: 8,
+                border: '1px solid var(--color-border)',
+              }}
+            >
+              {JSON.stringify(analyzed, null, 2)}
+            </pre>
+            <button
+              type="button"
+              className="btn secondary"
+              style={{ width: '100%', marginBottom: 10 }}
+              onClick={saveAnalyzedLocal}
+            >
+              분석 결과를 이 기기에만 저장
+            </button>
+            <button
+              type="button"
+              className="btn"
+              style={{ width: '100%' }}
+              onClick={contributeAnalyzed}
+              disabled={contribBusy || !state.appSettings.welfareContributeConsent}
+            >
+              {contribBusy ? '전송 중…' : '분석 결과를 서버 공용 DB에 기여'}
+            </button>
+          </>
+        )}
       </div>
 
       <p className="muted" style={{ marginTop: 24, fontSize: '0.85rem' }}>

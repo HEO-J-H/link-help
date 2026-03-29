@@ -6,6 +6,7 @@ import { profileToDerivedTags } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/core/filter/smartMatchEngine';
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
+import { contributeRecords } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
 
 const STAGES = [
@@ -44,6 +45,8 @@ export function SmartSearchPage() {
   const [results, setResults] = useState<SmartMatchedWelfare[]>([]);
   const [foundCount, setFoundCount] = useState<number | null>(null);
   const [persistNote, setPersistNote] = useState<string | null>(null);
+  const [contribBusy, setContribBusy] = useState(false);
+  const [contribNote, setContribNote] = useState<string | null>(null);
 
   const member = useMemo(
     () => state.members.find((m) => m.id === memberId) ?? state.members[0],
@@ -63,6 +66,7 @@ export function SmartSearchPage() {
     setResults([]);
     setFoundCount(null);
     setPersistNote(null);
+    setContribNote(null);
     setProgress(0);
     setStageIndex(0);
     setStatusLine(STAGES[0].label);
@@ -148,8 +152,8 @@ export function SmartSearchPage() {
         <strong>기본 프로필 태그</strong> + <strong>추가 포함</strong>(예: 자동차) + <strong>추가 제외</strong>(예:
         차상위, 장애인)를 조합해 통합 카탈로그에서 찾습니다. 핵심은 붙여넣기가 아니라{' '}
         <strong>이 조건으로 스캔·매칭</strong>하는 흐름입니다. 매칭으로 걸린 항목은{' '}
-        <strong>이 기기 IndexedDB</strong>에 쌓여 다음 로드부터 같은 목록에 합쳐지며, 외부 서버로는 보내지
-        않습니다.
+        <strong>이 기기 IndexedDB</strong>에 쌓입니다. 설정에서 공용 API를 넣고 기여에 동의한 경우에만, 매칭
+        결과(복지 메타만)를 서버로 보낼 수 있습니다.
       </p>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.85rem' }}>
         통합 카탈로그 <strong>{list.length}</strong>건 로드됨 (번들 JSON + 로컬 누적).
@@ -229,6 +233,51 @@ export function SmartSearchPage() {
         </p>
       )}
       {!running && persistNote && <p className="muted" style={{ marginBottom: 12 }}>{persistNote}</p>}
+
+      {!running &&
+        results.length > 0 &&
+        state.appSettings.linkHelpApiBaseUrl.trim() &&
+        state.appSettings.welfareContributeConsent && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <p style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+              아래 버튼은 <strong>매칭된 복지 항목 JSON만</strong> 공용 DB(
+              <code>POST /welfare/contribute</code>)로 보냅니다. 가족 프로필은 포함되지 않습니다.
+            </p>
+            <button
+              type="button"
+              className="btn secondary"
+              style={{ width: '100%' }}
+              disabled={contribBusy}
+              onClick={async () => {
+                const base = state.appSettings.linkHelpApiBaseUrl.trim();
+                setContribBusy(true);
+                setContribNote(null);
+                try {
+                  const r = await contributeRecords(
+                    base,
+                    results.map(toPersistable),
+                    state.appSettings.linkHelpApiToken
+                  );
+                  setContribNote(`서버 반영: ${r.accepted}건, 건너뜀 ${r.skipped}건.`);
+                } catch (e) {
+                  setContribNote(e instanceof Error ? e.message : '기여 실패');
+                } finally {
+                  setContribBusy(false);
+                }
+              }}
+            >
+              {contribBusy ? '서버로 보내는 중…' : `이 ${results.length}건을 공용 DB에 기여`}
+            </button>
+            {contribNote && (
+              <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.88rem' }}>
+                {contribNote}
+              </p>
+            )}
+            <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.85rem' }}>
+              API 주소·토큰·동의는 <Link to="/settings">설정</Link>에서 바꿀 수 있습니다.
+            </p>
+          </div>
+        )}
 
       <div className="stack">
         {results.map((w) => (
