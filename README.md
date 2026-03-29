@@ -12,7 +12,7 @@
 - 구성원별 추천(프로필에서 파생한 태그와 복지 항목 태그 교차)
 - 가족 데이터 JSON보내기 / 불러오기 / 초기화
 - 하단 탭: 가족 · 혜택 · 추천 · 타임라인 · 알림 · 설정
-- PWA: `manifest.json` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
+- PWA: Vite가 생성하는 `manifest.webmanifest` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
 - 타임라인: 만 50·55·60… 도래 시점별 추천 미리보기
 - 알림: 복지 기반 예약 목록, 브라우저 알림(설정에서 허용)
 - 추천 점수: 태그 자카드 일치율(%) 표시, 혜택 목록 인기도(샘플) 정렬
@@ -77,6 +77,20 @@ npm run preview:lan
 - `src/sw.ts` — Workbox + Web Push / 알림 클릭
 - `server/` — 운영 HTTP API (`/welfare`, `/push/*`, SQLite)
 - `data/sample` — 샘플보내기 JSON
+
+## GitHub Pages (`https://<user>.github.io/link-help/`)
+
+프로젝트 사이트는 **저장소 이름이 URL 경로**가 됩니다. 배포할 때는 반드시 **`base`를 `/link-help/`**로 빌드해야 JS·복지 JSON·라우팅이 맞습니다.
+
+```bash
+npm run build:gh
+```
+
+`dist/` 내용을 Pages에 올립니다. SPA 직접 주소(예: `…/link-help/settings`)는 **`404.html`**이 `index.html`과 같아야 하므로, `build:gh`가 빌드 후 `dist/404.html`을 자동으로 복사합니다.
+
+**자동 배포(선택):** 저장소 **Settings → Pages → Build and deployment → Source: GitHub Actions**로 바꾼 뒤, `main`에 푸시하면 `.github/workflows/deploy-pages.yml`이 `build:gh` 결과를 게시합니다.
+
+**한계:** GitHub Pages는 **정적 파일만** 제공합니다. `npm run server` API는 여기서 돌아가지 않습니다. 배포본에서 원격 복지·푸시를 쓰려면 **별도 서버 URL**을 설정에 넣어야 합니다.
 
 ## 라이선스
 

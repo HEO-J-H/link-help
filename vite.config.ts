@@ -8,8 +8,24 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/icon.svg', 'manifest.json'],
-      manifest: false,
+      includeAssets: ['icons/icon.svg'],
+      manifest: {
+        name: 'Link-Help — 복지·혜택 알림',
+        short_name: 'LinkHelp',
+        description: '로컬 기반 가족 복지·혜택 알림',
+        display: 'standalone',
+        background_color: '#f4f7f5',
+        theme_color: '#1a5f4a',
+        lang: 'ko',
+        icons: [
+          {
+            src: 'icons/icon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml',
+            purpose: 'any maskable',
+          },
+        ],
+      },
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',

@@ -1,9 +1,12 @@
+import { publicAsset } from '@/utils/publicAsset';
+
 /**
  * Client-side tag hints from pasted text (no server).
  * Matches known tags from welfare-db vocabulary when they appear as substrings.
  */
+
 export async function loadTagVocabulary(): Promise<string[]> {
-  const res = await fetch('/welfare-db/tags/tags.json');
+  const res = await fetch(publicAsset('welfare-db/tags/tags.json'));
   if (!res.ok) return [];
   const data = (await res.json()) as { tags?: string[] };
   return Array.isArray(data.tags) ? data.tags : [];

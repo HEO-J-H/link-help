@@ -79,6 +79,11 @@ npm run dev`}
           앱 <Link to="/settings">설정</Link>에서 <strong>「로컬 API 주소 넣기」</strong>를 누르거나, API 베이스
           URL에 <code>{LOCAL_DEV_API_BASE}</code>를 입력합니다.
         </p>
+        <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
+          GitHub Pages 등 <strong>웹에만</strong> 올린 주소에서는 앱·복지 JSON은 동작하지만, API는 별도
+          서버를 두고 설정에 그 URL을 넣어야 합니다. 저장소에서는 <code>npm run build:gh</code>로 배포용
+          빌드를 만듭니다.
+        </p>
       </section>
 
       <div className="card" style={{ marginBottom: 14 }}>

@@ -7,14 +7,16 @@ declare const self: ServiceWorkerGlobalScope & {
   __WB_MANIFEST: (string | { url: string; revision: string | null })[];
 };
 
+const BASE = import.meta.env.BASE_URL || '/';
+
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-const navigationHandler = createHandlerBoundToURL('/index.html');
+const navigationHandler = createHandlerBoundToURL(`${BASE}index.html`);
 registerRoute(new NavigationRoute(navigationHandler));
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/welfare-db/'),
+  ({ url }) => url.pathname.includes('/welfare-db/'),
   new StaleWhileRevalidate({
     cacheName: 'welfare-db',
     plugins: [],
@@ -31,19 +33,20 @@ self.addEventListener('push', (event: PushEvent) => {
   } catch {
     body = event.data?.text() ?? '';
   }
+  const iconUrl = `${BASE}icons/icon.svg`;
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: '/icons/icon.svg',
-      badge: '/icons/icon.svg',
-      data: { url: '/' },
+      icon: iconUrl,
+      badge: iconUrl,
+      data: { url: BASE },
     })
   );
 });
 
 self.addEventListener('notificationclick', (event: NotificationEvent) => {
   event.notification.close();
-  const url = (event.notification.data as { url?: string } | undefined)?.url ?? '/';
+  const url = (event.notification.data as { url?: string } | undefined)?.url ?? BASE;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const c of clientList) {
