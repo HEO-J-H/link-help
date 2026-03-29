@@ -1,10 +1,21 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
+import { suggestTagsFromText } from '@/core/ai/suggestTags';
+import type { Reminder } from '@/types/reminder';
+import { makeId } from '@/utils/uid';
 
 export function BenefitDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { list, loading } = useWelfare();
+  const { state, setState } = useFamily();
   const w = list.find((x) => x.id === id);
+
+  const [remindAt, setRemindAt] = useState('');
+  const [paste, setPaste] = useState('');
+  const [suggested, setSuggested] = useState<string[]>([]);
+  const [suggestBusy, setSuggestBusy] = useState(false);
 
   if (loading) return <p className="muted">불러오는 중…</p>;
   if (!w) {
@@ -15,6 +26,41 @@ export function BenefitDetailPage() {
       </div>
     );
   }
+
+  const addReminder = () => {
+    if (!remindAt) {
+      alert('알림 날짜·시간을 선택하세요.');
+      return;
+    }
+    const fireAt = new Date(remindAt);
+    if (Number.isNaN(fireAt.getTime())) {
+      alert('날짜 형식을 확인하세요.');
+      return;
+    }
+    const r: Reminder = {
+      id: makeId('rem'),
+      kind: 'benefit',
+      title: `복지 알림: ${w.title}`,
+      body: w.period || w.benefit,
+      fireAt: fireAt.toISOString(),
+      refId: w.id,
+      createdAt: new Date().toISOString(),
+    };
+    setState({ ...state, reminders: [...state.reminders, r] });
+    setRemindAt('');
+    alert('알림 목록에 추가했습니다.');
+  };
+
+  const runSuggest = async () => {
+    setSuggestBusy(true);
+    setSuggested([]);
+    try {
+      const tags = await suggestTagsFromText(`${w.title}\n${w.description}\n${paste}`);
+      setSuggested(tags);
+    } finally {
+      setSuggestBusy(false);
+    }
+  };
 
   return (
     <div>
@@ -36,6 +82,11 @@ export function BenefitDetailPage() {
         <p>
           <strong>태그</strong> {w.tags.join(', ')}
         </p>
+        {typeof w.popularity === 'number' && (
+          <p className="muted" style={{ marginTop: 8 }}>
+            인기도(샘플) {w.popularity}
+          </p>
+        )}
         <p className="muted" style={{ marginTop: 12 }}>
           출처: {w.source}
         </p>
@@ -44,6 +95,50 @@ export function BenefitDetailPage() {
             <a href={w.apply_url} target="_blank" rel="noreferrer">
               신청·안내 링크
             </a>
+          </p>
+        )}
+      </div>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>알림 예약</h2>
+      <div className="card">
+        <p className="muted" style={{ marginTop: 0 }}>
+          선택한 시각에 브라우저 알림(허용 시)과 알림 탭 목록을 사용합니다.
+        </p>
+        <div className="field">
+          <label htmlFor="ben-rem">알림 시각</label>
+          <input
+            id="ben-rem"
+            type="datetime-local"
+            value={remindAt}
+            onChange={(e) => setRemindAt(e.target.value)}
+          />
+        </div>
+        <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={addReminder}>
+          알림 추가
+        </button>
+        <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
+          <Link to="/notifications">알림 목록 보기</Link>
+        </p>
+      </div>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>태그 힌트 (로컬)</h2>
+      <div className="card">
+        <p className="muted" style={{ marginTop: 0 }}>
+          공고문을 붙여넣으면 DB에 있는 태그 목록과 문자열을 맞춰 제안합니다. 서버·AI 없이 동작합니다.
+        </p>
+        <textarea
+          rows={4}
+          placeholder="추가 공고문 (선택)"
+          value={paste}
+          onChange={(e) => setPaste(e.target.value)}
+          style={{ width: '100%', minHeight: 88, marginBottom: 10 }}
+        />
+        <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={runSuggest} disabled={suggestBusy}>
+          {suggestBusy ? '분석 중…' : '태그 제안'}
+        </button>
+        {suggested.length > 0 && (
+          <p style={{ marginTop: 12, marginBottom: 0 }}>
+            제안: {suggested.join(', ')}
           </p>
         )}
       </div>

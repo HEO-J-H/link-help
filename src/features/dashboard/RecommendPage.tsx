@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
-import { recommendForProfile } from '@/core/filter/filterEngine';
+import { recommendScoredForProfile } from '@/core/filter/filterEngine';
 
 export function RecommendPage() {
   const { state } = useFamily();
@@ -19,7 +19,7 @@ export function RecommendPage() {
   const member = state.members.find((m) => m.id === memberId) ?? state.members[0];
   const recs = useMemo(() => {
     if (!member) return [];
-    return recommendForProfile(list, member.profile);
+    return recommendScoredForProfile(list, member.profile);
   }, [list, member]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
@@ -57,7 +57,12 @@ export function RecommendPage() {
         {recs.map((w) => (
           <Link key={w.id} to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="card">
-              <h3>{w.title}</h3>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                <h3 style={{ margin: 0 }}>{w.title}</h3>
+                <span className="score-pill" title="프로필 태그와의 일치 정도(자카드)">
+                  {Math.round(w.matchScore * 100)}%
+                </span>
+              </div>
               <p>{w.benefit}</p>
               <p className="muted" style={{ marginTop: 6 }}>
                 {w.tags.join(' · ')}

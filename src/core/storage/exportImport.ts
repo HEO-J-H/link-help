@@ -1,7 +1,8 @@
 import type { FamilyState } from '@/types/family';
+import { normalizeFamilyState } from '@/core/family/normalizeFamilyState';
 
 export function exportFamilyJson(state: FamilyState): string {
-  return JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), ...state }, null, 2);
+  return JSON.stringify({ version: 2, exportedAt: new Date().toISOString(), ...state }, null, 2);
 }
 
 export function parseFamilyImportJson(text: string): FamilyState {
@@ -9,5 +10,5 @@ export function parseFamilyImportJson(text: string): FamilyState {
   if (!data || !Array.isArray(data.members)) {
     throw new Error('Invalid family export file');
   }
-  return { members: data.members as FamilyState['members'] };
+  return normalizeFamilyState(data);
 }

@@ -65,26 +65,47 @@ button {
   left: 0;
   right: 0;
   bottom: 0;
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   background: var(--color-surface);
   border-top: 1px solid var(--color-border);
   padding-bottom: env(safe-area-inset-bottom, 0);
   z-index: 20;
+  scrollbar-width: none;
+}
+
+.bottom-nav::-webkit-scrollbar {
+  display: none;
 }
 
 .bottom-nav a {
+  flex: 1 0 12.5%;
+  min-width: 52px;
+  max-width: 88px;
   min-height: var(--tap-min);
   display: flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   color: var(--color-muted);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 600;
   text-align: center;
-  line-height: 1.2;
+  line-height: 1.15;
   padding: 4px 2px;
+}
+
+.score-pill {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #e3f0ea;
+  color: var(--color-primary);
+  flex-shrink: 0;
 }
 
 .bottom-nav a.active {

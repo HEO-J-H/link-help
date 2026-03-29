@@ -18,6 +18,12 @@ export function BottomNav() {
       <NavLink to="/timeline" className={linkClass}>
         타임라인
       </NavLink>
+      <NavLink to="/insurance" className={linkClass}>
+        보험
+      </NavLink>
+      <NavLink to="/notifications" className={linkClass}>
+        알림
+      </NavLink>
       <NavLink to="/settings" className={linkClass}>
         설정
       </NavLink>

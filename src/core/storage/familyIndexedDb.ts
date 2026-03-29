@@ -1,4 +1,5 @@
 import type { FamilyState } from '@/types/family';
+import { normalizeFamilyState } from '@/core/family/normalizeFamilyState';
 import { FAMILY_STORAGE_KEY } from './localStorageKeys';
 import { loadFamilyFromStorage } from './localStorage';
 import { initialFamilyState } from '@/core/family/familyManager';
@@ -47,7 +48,7 @@ export async function loadFamilyFromIndexedDb(): Promise<FamilyState | null> {
   if (!raw || typeof raw !== 'object' || !Array.isArray((raw as FamilyState).members)) {
     return null;
   }
-  return raw as FamilyState;
+  return normalizeFamilyState(raw);
 }
 
 export async function saveFamilyToIndexedDb(state: FamilyState): Promise<void> {
@@ -67,13 +68,14 @@ export async function loadFamilyWithMigration(): Promise<FamilyState> {
 
   const fromLs = loadFamilyFromStorage();
   if (fromLs) {
-    await saveFamilyToIndexedDb(fromLs);
+    const normalized = normalizeFamilyState(fromLs);
+    await saveFamilyToIndexedDb(normalized);
     try {
       localStorage.removeItem(FAMILY_STORAGE_KEY);
     } catch {
       /* ignore */
     }
-    return fromLs;
+    return normalized;
   }
 
   return initialFamilyState();

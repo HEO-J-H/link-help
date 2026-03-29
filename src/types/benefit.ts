@@ -16,5 +16,8 @@ export interface WelfareRecord {
   created_at: string;
   updated_at: string;
   source: string;
+  /** Computed match score (0–1) when recommending */
   score?: number;
+  /** Static popularity hint for sorting (0–100) */
+  popularity?: number;
 }

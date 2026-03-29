@@ -14,6 +14,7 @@ import { loadFamilyWithMigration, saveFamilyToIndexedDb } from '@/core/storage/f
 type FamilyContextValue = {
   state: FamilyState;
   setState: (s: FamilyState) => void;
+  updateState: (fn: (prev: FamilyState) => FamilyState) => void;
   addMember: (name: string) => void;
   updateMember: (id: string, patch: Partial<FamilyMember>) => void;
   removeMember: (id: string) => void;
@@ -49,10 +50,18 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   const setState = useCallback((s: FamilyState) => setStateInternal(s), []);
 
+  const updateState = useCallback((fn: (prev: FamilyState) => FamilyState) => {
+    setStateInternal((prev) => {
+      if (!prev) return prev;
+      return fn(prev);
+    });
+  }, []);
+
   const addMember = useCallback((name: string) => {
     setStateInternal((prev) => {
       const base = prev ?? initialFamilyState();
       return {
+        ...base,
         members: [...base.members, createMember({ displayName: name, relationship: 'other' })],
       };
     });
@@ -62,6 +71,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     setStateInternal((prev) => {
       if (!prev) return prev;
       return {
+        ...prev,
         members: prev.members.map((m) =>
           m.id === id ? { ...m, ...patch, profile: patch.profile ? { ...m.profile, ...patch.profile } : m.profile } : m
         ),
@@ -73,15 +83,19 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     setStateInternal((prev) => {
       if (!prev) return prev;
       const next = prev.members.filter((m) => m.id !== id);
-      if (next.length === 0) return { members: [createMember({ displayName: '본인', relationship: 'self' })] };
-      return { members: next };
+      if (next.length === 0) return initialFamilyState();
+      return {
+        ...prev,
+        members: next,
+        insurancePolicies: prev.insurancePolicies.filter((p) => p.memberId !== id),
+      };
     });
   }, []);
 
   const value = useMemo(() => {
     if (!state) return null;
-    return { state, setState, addMember, updateMember, removeMember };
-  }, [state, setState, addMember, updateMember, removeMember]);
+    return { state, setState, updateState, addMember, updateMember, removeMember };
+  }, [state, setState, updateState, addMember, updateMember, removeMember]);
 
   if (!hydrated || !value) {
     return (

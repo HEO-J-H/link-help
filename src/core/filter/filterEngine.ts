@@ -31,6 +31,16 @@ export function memberExcludeTags(p: MemberProfile): Set<string> {
   return new Set(p.extraExcludeTags.map((t) => t.trim()).filter(Boolean));
 }
 
+function jaccardMatchScore(derived: Set<string>, welfareTags: string[]): number {
+  if (derived.size === 0 || welfareTags.length === 0) return 0;
+  let inter = 0;
+  for (const t of welfareTags) {
+    if (derived.has(t)) inter += 1;
+  }
+  const union = new Set<string>([...derived, ...welfareTags]).size;
+  return union === 0 ? 0 : Math.round((inter / union) * 1000) / 1000;
+}
+
 function recommendFromDerived(
   list: WelfareRecord[],
   derived: Set<string>,
@@ -45,6 +55,29 @@ function recommendFromDerived(
   });
 }
 
+export type ScoredWelfare = WelfareRecord & { matchScore: number };
+
+/** Matched items with Jaccard-based score, sorted by score then popularity. */
+export function recommendScoredForProfile(
+  list: WelfareRecord[],
+  profile: MemberProfile
+): ScoredWelfare[] {
+  const derived = new Set(profileToDerivedTags(profile));
+  const exclude = memberExcludeTags(profile);
+  if (derived.size === 0) return [];
+  const base = recommendFromDerived(list, derived, exclude);
+  return base
+    .map((w) => ({
+      ...w,
+      matchScore: jaccardMatchScore(derived, w.tags),
+    }))
+    .sort((a, b) => {
+      const d = b.matchScore - a.matchScore;
+      if (d !== 0) return d;
+      return (b.popularity ?? 0) - (a.popularity ?? 0);
+    });
+}
+
 /**
  * Match when welfare shares at least one tag with derived tags,
  * and none of welfare.tags are in the member exclude set.
@@ -53,7 +86,7 @@ export function recommendForProfile(
   list: WelfareRecord[],
   profile: MemberProfile
 ): WelfareRecord[] {
-  return recommendFromDerived(list, new Set(profileToDerivedTags(profile)), memberExcludeTags(profile));
+  return recommendScoredForProfile(list, profile).map(({ matchScore: _score, ...w }) => w);
 }
 
 /** Recommend as if the member were `ageYears` years old (timeline). */

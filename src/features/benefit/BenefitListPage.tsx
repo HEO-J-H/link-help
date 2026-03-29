@@ -6,7 +6,12 @@ import { filterWelfareByText } from '@/core/filter/filterEngine';
 export function BenefitListPage() {
   const { list, loading, error } = useWelfare();
   const [q, setQ] = useState('');
-  const filtered = useMemo(() => filterWelfareByText(list, q), [list, q]);
+  const [sortPopular, setSortPopular] = useState(false);
+  const filtered = useMemo(() => {
+    const base = filterWelfareByText(list, q);
+    if (!sortPopular) return base;
+    return [...base].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+  }, [list, q, sortPopular]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -22,6 +27,15 @@ export function BenefitListPage() {
         onChange={(e) => setQ(e.target.value)}
         aria-label="혜택 검색"
       />
+      <div className="field-row" style={{ marginBottom: 12 }}>
+        <input
+          id="sort-pop"
+          type="checkbox"
+          checked={sortPopular}
+          onChange={(e) => setSortPopular(e.target.checked)}
+        />
+        <label htmlFor="sort-pop">인기도(샘플) 순 정렬</label>
+      </div>
       <div className="stack">
         {filtered.map((w) => (
           <Link key={w.id} to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -32,6 +46,11 @@ export function BenefitListPage() {
               </p>
               <p className="muted" style={{ marginTop: 6 }}>
                 {w.tags.join(' · ')}
+                {typeof w.popularity === 'number' && (
+                  <span className="score-pill" style={{ marginLeft: 8 }}>
+                    인기 {w.popularity}
+                  </span>
+                )}
               </p>
             </div>
           </Link>
