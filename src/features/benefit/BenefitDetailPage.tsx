@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
@@ -10,6 +10,7 @@ import { isWelfareEffectivelyExpired, parseApplicationPeriodRange } from '@/core
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 import { formatDatetimeLocalValue } from '@/utils/format';
 import type { WelfareCatalogOrigin } from '@/types/benefit';
+import { WelfareStatusControls } from '@/components/WelfareStatusControls';
 
 function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
   if (!origin) return null;
@@ -31,6 +32,22 @@ export function BenefitDetailPage() {
   const [paste, setPaste] = useState('');
   const [suggested, setSuggested] = useState<string[]>([]);
   const [suggestBusy, setSuggestBusy] = useState(false);
+
+  const defaultTrackMemberId = useMemo(
+    () => state.members.find((m) => m.relationship === 'self')?.id ?? state.members[0]?.id ?? '',
+    [state.members]
+  );
+  const [trackMemberId, setTrackMemberId] = useState(defaultTrackMemberId);
+
+  useEffect(() => {
+    if (!trackMemberId && defaultTrackMemberId) setTrackMemberId(defaultTrackMemberId);
+  }, [defaultTrackMemberId, trackMemberId]);
+
+  useEffect(() => {
+    if (!state.members.some((m) => m.id === trackMemberId)) {
+      setTrackMemberId(defaultTrackMemberId);
+    }
+  }, [state.members, trackMemberId, defaultTrackMemberId]);
 
   useEffect(() => {
     if (!w) return;
@@ -168,6 +185,33 @@ export function BenefitDetailPage() {
               신청·안내 링크
             </a>
           </p>
+        )}
+      </div>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>진행 상태</h2>
+      <div className="card">
+        {state.members.length === 0 ? (
+          <p className="muted" style={{ marginTop: 0 }}>
+            <Link to="/">가족</Link>에서 구성원을 추가하면 신청 중·제외·나중에 볼게요를 남길 수 있습니다.
+          </p>
+        ) : (
+          <>
+            <div className="field">
+              <label htmlFor="ben-track-member">기준 구성원</label>
+              <select
+                id="ben-track-member"
+                value={trackMemberId}
+                onChange={(e) => setTrackMemberId(e.target.value)}
+              >
+                {state.members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <WelfareStatusControls welfare={w} memberId={trackMemberId} />
+          </>
         )}
       </div>
 

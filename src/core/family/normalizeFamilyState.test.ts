@@ -10,6 +10,7 @@ describe('normalizeFamilyState', () => {
     expect(out.reminders).toEqual([]);
     expect(out.appSettings.linkHelpApiBaseUrl).toBe('');
     expect(out.appSettings.welfareContributeConsent).toBe(false);
+    expect(out.welfareTracking).toEqual([]);
   });
 
   it('returns empty session when input is invalid', () => {
@@ -34,6 +35,7 @@ describe('normalizeFamilyState', () => {
     const norm = normalizeFamilyState(null);
     expect(norm.members).toEqual(empty.members);
     expect(norm.reminders).toEqual(empty.reminders);
+    expect(norm.welfareTracking).toEqual(empty.welfareTracking);
   });
 
   it('fills memberColor by index when missing (legacy JSON)', () => {

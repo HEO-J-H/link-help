@@ -5,6 +5,8 @@ import { useWelfare } from '@/context/WelfareContext';
 import { recommendScoredForProfile } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
+import { findWelfareTracking } from '@/core/family/welfareTracking';
+import { WelfareStatusPill, WelfareStatusQuickSelect } from '@/components/WelfareStatusControls';
 
 export function RecommendPage() {
   const { state } = useFamily();
@@ -46,7 +48,8 @@ export function RecommendPage() {
         프로필에서 파생된 태그와 일치하는 항목을 보여 줍니다. <strong>기간이 지난·종료</strong>로 보이는
         항목은 빼고, 공용 데이터가 쌓일수록 더 많은 후보를 노릴 수 있게 만드는 방향입니다.{' '}
         <Link to="/smart-find">스마트 매칭</Link>에서 포함·제외 키워드를 조합해 더 넓게 찾을 수 있습니다. 신청
-        기간이 파싱되는 항목은 <strong>Google 캘린더</strong> 버튼으로 종일 일정을 넣을 수 있습니다.
+        기간이 파싱되는 항목은 <strong>Google 캘린더</strong> 버튼으로 종일 일정을 넣을 수 있습니다. 드롭다운으로{' '}
+        <strong>신청 중 · 제외함 · 나중에 볼게요</strong>를 남기면 혜택 탭에서 모아 볼 수 있습니다.
       </p>
 
       <div className="rec-member-row">
@@ -81,32 +84,46 @@ export function RecommendPage() {
       )}
 
       <div className="stack">
-        {recs.map((w) => (
-          <div
-            key={w.id}
-            className="card"
-            style={{
-              borderLeft: '4px solid',
-              borderLeftColor: member?.memberColor ?? 'transparent',
-            }}
-          >
-            <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
-                <h3 style={{ margin: 0 }}>{w.title}</h3>
-                <span className="score-pill" title="프로필 태그와의 일치 정도(자카드)">
-                  {Math.round(w.matchScore * 100)}%
-                </span>
-              </div>
-              <p>{w.benefit}</p>
-              <p className="muted" style={{ marginTop: 6 }}>
-                {w.tags.join(' · ')}
-              </p>
-            </Link>
-            <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
-              <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
+        {recs.map((w) => {
+          const entry = member && findWelfareTracking(state.welfareTracking, member.id, w.id);
+          return (
+            <div
+              key={w.id}
+              className="card"
+              style={{
+                borderLeft: '4px solid',
+                borderLeftColor: member?.memberColor ?? 'transparent',
+              }}
+            >
+              <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                  <h3 style={{ margin: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+                    {w.title}
+                    {entry && <WelfareStatusPill status={entry.status} />}
+                  </h3>
+                  <span className="score-pill" title="프로필 태그와의 일치 정도(자카드)">
+                    {Math.round(w.matchScore * 100)}%
+                  </span>
+                </div>
+                <p>{w.benefit}</p>
+                <p className="muted" style={{ marginTop: 6 }}>
+                  {w.tags.join(' · ')}
+                </p>
+                {entry?.status === 'excluded' && entry.excludeReason && (
+                  <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>
+                    제외: {entry.excludeReason}
+                  </p>
+                )}
+              </Link>
+              {member && (
+                <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
+                  <WelfareStatusQuickSelect welfare={w} memberId={member.id} />
+                  <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
       {member && recs.length === 0 && (
         <p className="muted">

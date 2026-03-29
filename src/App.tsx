@@ -16,6 +16,7 @@ import { TermsPage } from '@/features/legal/TermsPage';
 import { PrivacyPage } from '@/features/legal/PrivacyPage';
 import { DisclaimerPage } from '@/features/legal/DisclaimerPage';
 import { SmartSearchPage } from '@/features/smartsearch/SmartSearchPage';
+import { WelfareTrackingSync } from '@/components/WelfareTrackingSync';
 
 const routerBasename =
   import.meta.env.BASE_URL === '/' ? undefined : import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -26,6 +27,7 @@ export default function App() {
       <FamilyProvider>
         <ReminderRunner />
         <WelfareProvider>
+          <WelfareTrackingSync />
           <Routes>
             <Route element={<AppShell />}>
               <Route path="/" element={<FamilyPage />} />

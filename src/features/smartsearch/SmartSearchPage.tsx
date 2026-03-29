@@ -9,6 +9,8 @@ import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { contributeRecords } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
+import { findWelfareTracking } from '@/core/family/welfareTracking';
+import { WelfareStatusPill, WelfareStatusQuickSelect } from '@/components/WelfareStatusControls';
 
 const STAGES = [
   { id: 'prep', label: '프로필·포함·제외 조건 정리' },
@@ -292,25 +294,39 @@ export function SmartSearchPage() {
         )}
 
       <div className="stack">
-        {results.map((w) => (
-          <div key={w.id} className="card">
-            <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
-                <h3 style={{ margin: 0 }}>{w.title}</h3>
-                <span className="score-pill" title="스마트 매칭 점수">
-                  {w.smartScore}
-                </span>
-              </div>
-              <p>{w.benefit}</p>
-              <p className="muted" style={{ marginTop: 6 }}>
-                {w.tags.join(' · ')}
-              </p>
-            </Link>
-            <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
-              <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
+        {results.map((w) => {
+          const entry = member && findWelfareTracking(state.welfareTracking, member.id, w.id);
+          return (
+            <div key={w.id} className="card">
+              <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
+                  <h3 style={{ margin: 0, display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
+                    {w.title}
+                    {entry && <WelfareStatusPill status={entry.status} />}
+                  </h3>
+                  <span className="score-pill" title="스마트 매칭 점수">
+                    {w.smartScore}
+                  </span>
+                </div>
+                <p>{w.benefit}</p>
+                <p className="muted" style={{ marginTop: 6 }}>
+                  {w.tags.join(' · ')}
+                </p>
+                {entry?.status === 'excluded' && entry.excludeReason && (
+                  <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>
+                    제외: {entry.excludeReason}
+                  </p>
+                )}
+              </Link>
+              {member && (
+                <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
+                  <WelfareStatusQuickSelect welfare={w} memberId={member.id} />
+                  <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
+                </div>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {!running && results.length === 0 && foundCount === 0 && (

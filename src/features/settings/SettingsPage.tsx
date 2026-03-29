@@ -238,6 +238,10 @@ export function SettingsPage() {
         </p>
       </div>
 
+      <p className="muted" style={{ marginBottom: 12, fontSize: '0.88rem', lineHeight: 1.55 }}>
+        JSON에는 가구·구성원·알림·설정과 함께, 혜택 탭에서 남긴 <strong>진행 상태</strong>(신청 중·제외·나중에
+        볼게요)도 포함됩니다.
+      </p>
       <div className="stack">
         <button type="button" className="btn" style={{ width: '100%' }} onClick={download}>
           가족 정보내기 (JSON)

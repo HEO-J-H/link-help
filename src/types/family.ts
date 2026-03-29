@@ -1,6 +1,7 @@
 import type { Reminder } from '@/types/reminder';
 import type { AppSettings } from '@/types/appSettings';
 import type { HouseholdDefaults } from '@/types/household';
+import type { WelfareTrackingEntry } from '@/types/welfareTracking';
 
 export type Relationship = 'self' | 'spouse' | 'child' | 'parent' | 'other';
 
@@ -42,4 +43,6 @@ export interface FamilyState {
   household: HouseholdDefaults;
   reminders: Reminder[];
   appSettings: AppSettings;
+  /** 구성원별 복지 항목 진행 상태(신청 중 / 제외 / 나중에 볼게요) */
+  welfareTracking: WelfareTrackingEntry[];
 }

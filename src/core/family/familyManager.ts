@@ -101,6 +101,7 @@ export function initialFamilyState(): FamilyState {
     household: emptyHousehold(),
     reminders: [],
     appSettings: defaultAppSettings(),
+    welfareTracking: [],
   };
 }
 
@@ -111,5 +112,6 @@ export function emptySessionFamilyState(): FamilyState {
     household: emptyHousehold(),
     reminders: [],
     appSettings: defaultAppSettings(),
+    welfareTracking: [],
   };
 }

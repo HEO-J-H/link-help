@@ -5,6 +5,7 @@ import { emptyHousehold, emptySessionFamilyState, normalizeMemberProfile } from 
 import type { FamilyMember } from '@/types/family';
 import type { HouseholdDefaults } from '@/types/household';
 import { normalizeMemberColor } from '@/core/family/memberColors';
+import { normalizeWelfareTrackingRaw, pruneWelfareTrackingForMembers } from '@/core/family/welfareTracking';
 
 function normalizeHousehold(raw: unknown): HouseholdDefaults {
   const e = emptyHousehold();
@@ -47,8 +48,10 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
   const appSettings = mergeAppSettingsFromRaw(data.appSettings);
   const household = normalizeHousehold(data.household);
 
+  const rawTracking = normalizeWelfareTrackingRaw(data.welfareTracking);
+
   if (members.length === 0) {
-    return { members: [], household, reminders, appSettings };
+    return { members: [], household, reminders, appSettings, welfareTracking: rawTracking };
   }
 
   const normalizedMembers: FamilyMember[] = members.map((m, index) => {
@@ -60,5 +63,8 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     };
   });
 
-  return { members: normalizedMembers, household, reminders, appSettings };
+  const memberIds = new Set(normalizedMembers.map((m) => m.id));
+  const welfareTracking = pruneWelfareTrackingForMembers(rawTracking, memberIds);
+
+  return { members: normalizedMembers, household, reminders, appSettings, welfareTracking };
 }

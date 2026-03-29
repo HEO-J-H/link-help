@@ -120,6 +120,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       return {
         ...prev,
         members: next,
+        welfareTracking: prev.welfareTracking.filter((e) => e.memberId !== id),
       };
     });
   }, []);
