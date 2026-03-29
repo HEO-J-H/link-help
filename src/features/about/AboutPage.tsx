@@ -1,12 +1,85 @@
-import { Link } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { LOCAL_DEV_API_BASE } from '@/config/localDev';
 
 export function AboutPage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash === '#quick-start') {
+      document.getElementById('quick-start')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [location.hash, location.key]);
+
   return (
     <div>
       <p style={{ marginBottom: 12 }}>
         <Link to="/settings">← 설정</Link>
       </p>
       <h1 className="page-title">서비스 안내</h1>
+
+      <section id="quick-start" className="card" style={{ marginBottom: 14 }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>빠른 시작</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          개발 PC에서 저장소 폴더를 연 뒤 터미널(PowerShell 등)에서 순서대로 진행하면 됩니다.
+        </p>
+        <h3 style={{ fontSize: '0.98rem', margin: '14px 0 8px' }}>웹만 쓰기 (서버 없음)</h3>
+        <pre
+          style={{
+            margin: '0 0 12px',
+            padding: 12,
+            fontSize: '0.82rem',
+            overflow: 'auto',
+            background: 'var(--color-surface-muted, #f4f6f4)',
+            borderRadius: 8,
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          {`npm install
+npm run dev`}
+        </pre>
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
+          브라우저에 나온 주소(보통 localhost:5173)로 접속합니다. 복지 JSON은 앱에 포함된 것만 사용합니다.
+        </p>
+
+        <h3 style={{ fontSize: '0.98rem', margin: '16px 0 8px' }}>API·푸시까지 (로컬)</h3>
+        <ol style={{ margin: '0 0 10px', paddingLeft: '1.25rem', lineHeight: 1.65 }}>
+          <li>
+            <code>npm run server:install</code> (최초 1회)
+          </li>
+          <li>
+            <code>server/.env.example</code>을 복사해 <code>server/.env</code>로 두고,{' '}
+            <code>npx web-push generate-vapid-keys</code>로 만든 키를 넣습니다.
+          </li>
+          <li>
+            루트에 <code>.env</code>를 두고 <code>VITE_VAPID_PUBLIC_KEY</code>에{' '}
+            <strong>서버와 같은 공개 키</strong>를 넣습니다. 그다음 <code>npm run dev</code>를 다시 켭니다.
+          </li>
+          <li>
+            아래 중 편한 방법으로 <strong>API와 웹을 같이</strong> 띄웁니다.
+          </li>
+        </ol>
+        <pre
+          style={{
+            margin: '0 0 8px',
+            padding: 12,
+            fontSize: '0.82rem',
+            overflow: 'auto',
+            background: 'var(--color-surface-muted, #f4f6f4)',
+            borderRadius: 8,
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          {`npm run dev:full`}
+        </pre>
+        <p className="muted" style={{ margin: '0 0 10px', fontSize: '0.88rem' }}>
+          Windows에서는 탐색기에서 <code>scripts\\dev-full.cmd</code>을 더블 클릭해도 됩니다(같은 효과).
+        </p>
+        <p style={{ marginBottom: 0 }}>
+          앱 <Link to="/settings">설정</Link>에서 <strong>「로컬 API 주소 넣기」</strong>를 누르거나, API 베이스
+          URL에 <code>{LOCAL_DEV_API_BASE}</code>를 입력합니다.
+        </p>
+      </section>
 
       <div className="card" style={{ marginBottom: 14 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>Link-Help가 하는 일</h2>
@@ -43,7 +116,7 @@ export function AboutPage() {
         <ul style={{ marginBottom: 0, paddingLeft: '1.2rem' }}>
           <li>회원 가입·클라우드 동기화(기기 간 자동 백업)</li>
           <li>공식 복지 API와의 실시간 연동·데이터 검수 프로세스</li>
-          <li>운영용 백엔드 DB·관리자 화면(현재 데모 서버는 테스트용)</li>
+          <li>운영용 관리자 화면·다중 사용자 권한</li>
           <li>전 기종·전 브라우저에 대한 품질 보증(QA)</li>
         </ul>
       </div>

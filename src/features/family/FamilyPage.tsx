@@ -19,6 +19,12 @@ export function FamilyPage() {
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
         구성원을 눌러 프로필을 입력하면 추천에 반영됩니다.
       </p>
+      <div className="card" style={{ marginBottom: 16, padding: '12px 14px' }}>
+        <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+          처음이면 <Link to="/start">빠른 시작</Link>에서 실행 방법을 보거나,{' '}
+          <Link to="/settings">설정</Link>의 「로컬 API 주소 넣기」로 서버와 연결할 수 있습니다.
+        </p>
+      </div>
       <div className="stack">
         {state.members.map((m) => (
           <Link key={m.id} to={`/family/${m.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>

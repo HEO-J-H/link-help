@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
 import { initialFamilyState } from '@/core/family/familyManager';
+import { LOCAL_DEV_API_BASE } from '@/config/localDev';
 import { isWebPushConfigured } from '@/config/pushPublic';
 import { postPushSubscription, subscribeWebPush, unsubscribeWebPush } from '@/core/push/pushClient';
 
@@ -72,7 +73,9 @@ export function SettingsPage() {
   const registerPush = async () => {
     const base = state.appSettings.syncApiBaseUrl.trim();
     if (!base) {
-      alert('먼저 아래에 API 베이스 URL(예: http://localhost:8787)을 입력하세요.');
+      alert(
+        `먼저 아래「원격 API」에서 주소를 넣거나, 「로컬 API 주소 넣기」버튼을 눌러 주세요. (${LOCAL_DEV_API_BASE})`
+      );
       return;
     }
     if (!('serviceWorker' in navigator)) {
@@ -134,6 +137,17 @@ export function SettingsPage() {
         실행 시 자동으로 옮겨집니다. 백업은 JSON보내기를 사용하세요.
       </p>
 
+      <div className="card" style={{ marginBottom: 22 }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>처음 켤 때</h2>
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+          <strong>웹만:</strong> 터미널에서 <code>npm install</code> → <code>npm run dev</code>
+          <br />
+          <strong>API까지:</strong> <code>npm run dev:full</code> (또는 Windows에서{' '}
+          <code>scripts\dev-full.cmd</code>) — 자세한 단계는{' '}
+          <Link to="/start">빠른 시작 안내</Link>를 보세요.
+        </p>
+      </div>
+
       <h2 style={{ fontSize: '1.1rem', margin: '0 0 10px' }}>알림</h2>
       <div className="card" style={{ marginBottom: 20 }}>
         <div className="field-row" style={{ marginBottom: 12 }}>
@@ -185,6 +199,37 @@ export function SettingsPage() {
       <h2 style={{ fontSize: '1.1rem', margin: '0 0 10px' }}>원격 API</h2>
       <div className="field" style={{ marginBottom: 20 }}>
         <label htmlFor="api-base">API 베이스 URL</label>
+        <div
+          className="field-row"
+          style={{ marginBottom: 10, gap: 8, flexWrap: 'wrap', alignItems: 'center' }}
+        >
+          <button
+            type="button"
+            className="btn secondary"
+            style={{ flex: '1 1 auto', minWidth: '10rem' }}
+            onClick={() =>
+              setState({
+                ...state,
+                appSettings: { ...state.appSettings, syncApiBaseUrl: LOCAL_DEV_API_BASE },
+              })
+            }
+          >
+            로컬 API 주소 넣기
+          </button>
+          <button
+            type="button"
+            className="btn ghost"
+            style={{ flex: '1 1 auto', minWidth: '8rem', border: '1px solid var(--color-border)' }}
+            onClick={() =>
+              setState({
+                ...state,
+                appSettings: { ...state.appSettings, syncApiBaseUrl: '' },
+              })
+            }
+          >
+            원격 끄기
+          </button>
+        </div>
         <input
           id="api-base"
           value={state.appSettings.syncApiBaseUrl}
@@ -194,14 +239,14 @@ export function SettingsPage() {
               appSettings: { ...state.appSettings, syncApiBaseUrl: e.target.value },
             })
           }
-          placeholder="예: http://localhost:8787"
+          placeholder={`예: ${LOCAL_DEV_API_BASE}`}
           autoComplete="off"
         />
         <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem' }}>
-          설정 시 <code>GET …/welfare</code>로 원격 복지 목록을 불러와 로컬 JSON과 병합합니다. 푸시 구독은{' '}
-          <code>POST …/push/subscribe</code>로 전송됩니다. 운영 API: 루트에서 <code>npm run server:install</code>
-          후 <code>server/.env</code>를 채우고 <code>npm run server</code> — 자세한 내용은{' '}
-          <code>server/README.md</code>를 참고하세요.
+          주소가 있으면 <code>GET …/welfare</code>로 원격 복지를 불러와 로컬 JSON과 합칩니다. 푸시는{' '}
+          <code>POST …/push/subscribe</code>로 보냅니다. 서버만 켤 때는{' '}
+          <code>npm run server</code>, 웹과 같이 켤 때는 <code>npm run dev:full</code>이 편합니다. (
+          <code>server/README.md</code>)
         </p>
       </div>
 

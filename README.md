@@ -34,6 +34,14 @@ npm install
 npm run dev
 ```
 
+**앱 안에서** `/start` 또는 **설정 → 빠른 시작 안내**로 실행 순서를 볼 수 있습니다. 로컬 API까지 한 번에 켜려면(터미널 하나, `server/.env` 필요):
+
+```bash
+npm run dev:full
+```
+
+Windows에서는 `scripts\dev-full.cmd` 더블 클릭도 동일합니다(최초에 서버 패키지 자동 설치 시도).
+
 빌드:
 
 ```bash
@@ -54,10 +62,9 @@ npm run preview:lan
 
 1. `server/.env.example`을 복사해 VAPID 키·`CORS_ORIGIN` 등을 채웁니다.
 2. 루트 `.env`에 `VITE_VAPID_PUBLIC_KEY`(서버 공개 키와 동일)를 넣습니다.
-3. `npm run server:install` → `npm run server`
-4. `npm run build && npm run preview`
+3. `npm run dev:full` (또는 터미널 두 개로 `npm run server` + `npm run dev` / `preview`)
 
-앱 설정에서 API 베이스 URL을 `http://localhost:8787`로 두고, **Web Push 구독** 후 터미널에서(관리 시크릿을 쓴 경우 헤더 추가):
+앱 **설정**에서 **「로컬 API 주소 넣기」**를 누르거나, API 베이스 URL을 `http://localhost:8787`로 두고, **Web Push 구독** 후 터미널에서(관리 시크릿을 쓴 경우 헤더 추가):
 
 `curl -X POST http://localhost:8787/push/send -H "Content-Type: application/json" -d "{\"title\":\"Link-Help\",\"body\":\"테스트\"}"`
 

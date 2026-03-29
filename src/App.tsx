@@ -33,6 +33,10 @@ export default function App() {
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route
+                path="/start"
+                element={<Navigate to={{ pathname: '/about', hash: 'quick-start' }} replace />}
+              />
               <Route path="/legal/terms" element={<TermsPage />} />
               <Route path="/legal/privacy" element={<PrivacyPage />} />
               <Route path="/legal/disclaimer" element={<DisclaimerPage />} />
