@@ -47,19 +47,29 @@ export function RecommendPage() {
         <Link to="/smart-find">스마트 매칭</Link>에서 포함·제외 키워드를 조합해 더 넓게 찾을 수 있습니다.
       </p>
 
-      <div className="field">
-        <label htmlFor="rec-member">구성원</label>
-        <select
-          id="rec-member"
-          value={member?.id ?? ''}
-          onChange={(e) => setMemberId(e.target.value)}
-        >
-          {state.members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.displayName}
-            </option>
-          ))}
-        </select>
+      <div className="rec-member-row">
+        {member && (
+          <span
+            className="member-color-dot"
+            style={{ backgroundColor: member.memberColor }}
+            title="이 구성원의 표시 색"
+            aria-hidden
+          />
+        )}
+        <div className="field">
+          <label htmlFor="rec-member">구성원</label>
+          <select
+            id="rec-member"
+            value={member?.id ?? ''}
+            onChange={(e) => setMemberId(e.target.value)}
+          >
+            {state.members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {member && (
@@ -71,7 +81,13 @@ export function RecommendPage() {
       <div className="stack">
         {recs.map((w) => (
           <Link key={w.id} to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card">
+            <div
+              className="card"
+              style={{
+                borderLeft: '4px solid',
+                borderLeftColor: member?.memberColor ?? 'transparent',
+              }}
+            >
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
                 <h3 style={{ margin: 0 }}>{w.title}</h3>
                 <span className="score-pill" title="프로필 태그와의 일치 정도(자카드)">

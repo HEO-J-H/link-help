@@ -7,6 +7,7 @@ import type {
 } from '@/types/family';
 import type { HouseholdDefaults } from '@/types/household';
 import { defaultAppSettings } from '@/types/appSettings';
+import { isValidMemberColor, memberColorFromPaletteIndex } from '@/core/family/memberColors';
 
 function uid(): string {
   return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
@@ -76,11 +77,20 @@ export function createMember(partial: {
   displayName: string;
   relationship: Relationship;
   profile?: Partial<MemberProfile>;
+  /** Explicit #rgb / #rrggbb */
+  memberColor?: string;
+  /** Pick from preset ring when color omitted */
+  paletteIndex?: number;
 }): FamilyMember {
+  const memberColor =
+    typeof partial.memberColor === 'string' && isValidMemberColor(partial.memberColor)
+      ? partial.memberColor.trim()
+      : memberColorFromPaletteIndex(partial.paletteIndex ?? 0);
   return {
     id: uid(),
     displayName: partial.displayName,
     relationship: partial.relationship,
+    memberColor,
     profile: { ...emptyProfile(), ...partial.profile },
   };
 }

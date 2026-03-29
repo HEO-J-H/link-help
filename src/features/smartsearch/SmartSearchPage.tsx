@@ -160,19 +160,29 @@ export function SmartSearchPage() {
       </p>
 
       <div className="card" style={{ marginBottom: 16 }}>
-        <div className="field">
-          <label htmlFor="sm-member">기준 구성원 (프로필에서 태그 유도)</label>
-          <select
-            id="sm-member"
-            value={member?.id ?? ''}
-            onChange={(e) => setMemberId(e.target.value)}
-          >
-            {state.members.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.displayName}
-              </option>
-            ))}
-          </select>
+        <div className="rec-member-row">
+          {member && (
+            <span
+              className="member-color-dot"
+              style={{ backgroundColor: member.memberColor }}
+              title="이 구성원의 표시 색"
+              aria-hidden
+            />
+          )}
+          <div className="field">
+            <label htmlFor="sm-member">기준 구성원 (프로필에서 태그 유도)</label>
+            <select
+              id="sm-member"
+              value={member?.id ?? ''}
+              onChange={(e) => setMemberId(e.target.value)}
+            >
+              {state.members.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.displayName}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div className="field">
           <label htmlFor="sm-include">추가 포함 키워드 (쉼표로 구분)</label>

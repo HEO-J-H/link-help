@@ -31,6 +31,8 @@ export interface FamilyMember {
   id: string;
   displayName: string;
   relationship: Relationship;
+  /** Hex accent for UI (recommend tab, lists), e.g. #2563eb */
+  memberColor: string;
   profile: MemberProfile;
 }
 

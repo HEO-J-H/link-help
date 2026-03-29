@@ -656,3 +656,77 @@ button:disabled {
   border: 1px solid var(--color-border);
   margin-bottom: 12px;
 }
+
+.member-color-dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  align-self: center;
+}
+
+.member-color-dot--lg {
+  width: 14px;
+  height: 14px;
+}
+
+.rec-member-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.rec-member-row .field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.member-color-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+.member-color-swatch {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--color-border);
+  padding: 0;
+  cursor: pointer;
+}
+
+.member-color-swatch[data-active='true'] {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+.member-color-swatch:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.member-color-picker {
+  width: 48px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.member-color-picker::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+
+.member-color-picker::-webkit-color-swatch {
+  border-radius: 6px;
+  border: none;
+}

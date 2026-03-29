@@ -7,6 +7,7 @@ import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { INCOME_CHOICES } from '@/features/family/formConstants';
 import { HouseholdFormFields } from '@/features/family/HouseholdFormFields';
 import { useRegionCatalog } from '@/features/family/useRegionCatalog';
+import { MEMBER_COLOR_PRESETS, memberColorForInput } from '@/core/family/memberColors';
 
 const relationships: { value: Relationship; label: string }[] = [
   { value: 'self', label: '본인' },
@@ -208,6 +209,32 @@ export function MemberDetailPage() {
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="field">
+        <div id="m-color-label">표시 색 (추천·목록에서 구분)</div>
+        <div className="member-color-presets" role="group" aria-labelledby="m-color-label">
+          {MEMBER_COLOR_PRESETS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              className="member-color-swatch"
+              style={{ backgroundColor: c }}
+              data-active={member.memberColor.toLowerCase() === c.toLowerCase() ? 'true' : 'false'}
+              title={c}
+              aria-label={`색 ${c}`}
+              onClick={() => updateMember(member.id, { memberColor: c })}
+            />
+          ))}
+          <input
+            type="color"
+            className="member-color-picker"
+            aria-label="직접 색 선택"
+            value={memberColorForInput(member.memberColor)}
+            onChange={(e) => updateMember(member.id, { memberColor: e.target.value })}
+          />
+        </div>
+        <p className="field-hint">혜택 추천 탭의 카드 왼쪽 강조선과 구성원 선택 옆 점에 쓰입니다.</p>
       </div>
 
       <div className="field">

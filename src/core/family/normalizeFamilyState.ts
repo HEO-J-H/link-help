@@ -4,6 +4,7 @@ import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
 import { emptyHousehold, emptySessionFamilyState, normalizeMemberProfile } from './familyManager';
 import type { FamilyMember } from '@/types/family';
 import type { HouseholdDefaults } from '@/types/household';
+import { normalizeMemberColor } from '@/core/family/memberColors';
 
 function normalizeHousehold(raw: unknown): HouseholdDefaults {
   const e = emptyHousehold();
@@ -50,10 +51,14 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     return { members: [], household, reminders, appSettings };
   }
 
-  const normalizedMembers: FamilyMember[] = members.map((m) => ({
-    ...m,
-    profile: normalizeMemberProfile(m.profile),
-  }));
+  const normalizedMembers: FamilyMember[] = members.map((m, index) => {
+    const raw = m as Record<string, unknown>;
+    return {
+      ...(m as FamilyMember),
+      memberColor: normalizeMemberColor(raw.memberColor, index),
+      profile: normalizeMemberProfile(m.profile),
+    };
+  });
 
   return { members: normalizedMembers, household, reminders, appSettings };
 }

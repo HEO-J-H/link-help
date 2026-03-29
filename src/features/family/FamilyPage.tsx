@@ -60,7 +60,13 @@ export function FamilyPage() {
           return (
             <Link key={m.id} to={`/family/${m.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <div className="card">
-                <h3>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span
+                    className="member-color-dot member-color-dot--lg"
+                    style={{ backgroundColor: m.memberColor }}
+                    title="표시 색"
+                    aria-hidden
+                  />
                   {m.displayName}{' '}
                   <span className="muted" style={{ fontWeight: 500, fontSize: '0.85rem' }}>
                     ({relLabel[m.relationship]})

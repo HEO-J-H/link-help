@@ -93,7 +93,10 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       const base = prev ?? emptySessionFamilyState();
       return {
         ...base,
-        members: [...base.members, createMember({ displayName: name, relationship: 'other' })],
+        members: [
+          ...base.members,
+          createMember({ displayName: name, relationship: 'other', paletteIndex: base.members.length }),
+        ],
       };
     });
   }, []);

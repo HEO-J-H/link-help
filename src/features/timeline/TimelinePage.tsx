@@ -61,19 +61,29 @@ export function TimelinePage() {
         <strong>종료된</strong> 항목은 제외합니다(혜택 탭에서 &quot;종료·기간 만료 항목 보기&quot;로 참고 가능).
       </p>
 
-      <div className="field">
-        <label htmlFor="tl-member">구성원</label>
-        <select
-          id="tl-member"
-          value={member?.id ?? ''}
-          onChange={(e) => setMemberId(e.target.value)}
-        >
-          {state.members.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.displayName}
-            </option>
-          ))}
-        </select>
+      <div className="rec-member-row">
+        {member && (
+          <span
+            className="member-color-dot"
+            style={{ backgroundColor: member.memberColor }}
+            title="이 구성원의 표시 색"
+            aria-hidden
+          />
+        )}
+        <div className="field">
+          <label htmlFor="tl-member">구성원</label>
+          <select
+            id="tl-member"
+            value={member?.id ?? ''}
+            onChange={(e) => setMemberId(e.target.value)}
+          >
+            {state.members.map((m) => (
+              <option key={m.id} value={m.id}>
+                {m.displayName}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {member && (
@@ -98,7 +108,15 @@ export function TimelinePage() {
 
       <div className="stack" style={{ marginTop: 8 }}>
         {blocks.map(({ age, year, items }) => (
-          <section key={age} className="card" style={{ marginBottom: 12 }}>
+          <section
+            key={age}
+            className="card"
+            style={{
+              marginBottom: 12,
+              borderLeft: '4px solid',
+              borderLeftColor: member?.memberColor ?? 'transparent',
+            }}
+          >
             <h2 style={{ margin: '0 0 8px', fontSize: '1.1rem' }}>
               만 {age}세
               {year != null && (
