@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { WelfareRecord } from '@/types/benefit';
 import { emptyProfile } from '@/core/family/familyManager';
-import { profileToDerivedTags, recommendForProfile } from '@/core/filter/filterEngine';
+import {
+  profileToDerivedTags,
+  recommendForProfile,
+  welfareBlockedByMemberProfile,
+} from '@/core/filter/filterEngine';
 
 function record(partial: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 'title'>): WelfareRecord {
   return {
@@ -42,5 +46,23 @@ describe('filterEngine profile tags', () => {
     const out = recommendForProfile(list, p);
     expect(out.map((w) => w.id)).not.toContain('1');
     expect(out.map((w) => w.id)).toContain('2');
+  });
+
+  it('welfareBlockedByMemberProfile: 제외 태그 장애인이 제목·태그·대상에 걸리면 차단', () => {
+    const p = emptyProfile();
+    p.region = '용인시';
+    p.extraIncludeTags = ['청년'];
+    p.extraExcludeTags = ['장애인'];
+    const disability = record({
+      id: 'd',
+      title: '용인시 장애인 지원금(샘플)',
+      tags: ['장애인', '용인시'],
+      target: ['장애인'],
+    });
+    const youth = record({ id: 'y', title: '청년 통장', tags: ['청년', '용인시'] });
+    expect(welfareBlockedByMemberProfile(disability, p)).toBe(true);
+    expect(welfareBlockedByMemberProfile(youth, p)).toBe(false);
+    const rec = recommendForProfile([disability, youth], p);
+    expect(rec.map((w) => w.id)).toEqual(['y']);
   });
 });

@@ -464,8 +464,11 @@ export function MemberDetailPage() {
             setLocal(next);
             persist(next);
           }}
-          placeholder="예: 차상위"
+          placeholder="예: 차상위, 장애인"
         />
+        <p className="field-hint">
+          혜택 탭 목록·맞춤 추천·숨은 복지 찾기에서 비슷한 표현까지 묶어서 빼 줍니다.
+        </p>
       </div>
 
       <div className="stack-actions">

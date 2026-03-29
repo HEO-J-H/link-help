@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
-import { filterWelfareByText } from '@/core/filter/filterEngine';
+import { filterWelfareByText, welfareBlockedByMemberProfile } from '@/core/filter/filterEngine';
+import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired, sortWelfareForDiscovery } from '@/core/welfare/welfareLifecycle';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 import {
@@ -16,6 +17,8 @@ import {
   type WelfareTrackingStatus,
 } from '@/types/welfareTracking';
 import type { WelfareRecord } from '@/types/benefit';
+import type { FamilyMember } from '@/types/family';
+import type { HouseholdDefaults } from '@/types/household';
 import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
 
 type StatusFilter = 'all' | WelfareTrackingStatus;
@@ -27,6 +30,19 @@ function hiddenByDefaultForMember(
 ): boolean {
   const e = findWelfareTracking(tracking, memberId, w.id);
   return e?.status === 'excluded' || e?.status === 'later';
+}
+
+/** Drop rows that match the member's 프로필 제외 태그 (same rules as 맞춤 추천·숨은 복지 찾기 제외). */
+function filterOutProfileExcluded(
+  sorted: WelfareRecord[],
+  memberId: string,
+  members: FamilyMember[],
+  household: HouseholdDefaults
+): WelfareRecord[] {
+  const m = members.find((x) => x.id === memberId);
+  if (!m) return sorted;
+  const eff = getEffectiveProfile(m, household);
+  return sorted.filter((w) => !welfareBlockedByMemberProfile(w, eff));
 }
 
 function filterRowsForMemberView(
@@ -47,9 +63,12 @@ function memberVisibleCount(
   sorted: WelfareRecord[],
   memberId: string,
   tracking: WelfareTrackingEntry[],
-  statusFilter: StatusFilter
+  statusFilter: StatusFilter,
+  members: FamilyMember[],
+  household: HouseholdDefaults
 ): number {
-  return filterRowsForMemberView(sorted, memberId, tracking, statusFilter).length;
+  const afterExclude = filterOutProfileExcluded(sorted, memberId, members, household);
+  return filterRowsForMemberView(afterExclude, memberId, tracking, statusFilter).length;
 }
 
 export function BenefitListPage() {
@@ -81,10 +100,10 @@ export function BenefitListPage() {
       : sortWelfareForDiscovery(noPortals);
   }, [list, q, sortPopular, showEnded, showPortalRows]);
 
-  const filtered = useMemo(
-    () => filterRowsForMemberView(sortedBase, memberId, state.welfareTracking, statusFilter),
-    [sortedBase, memberId, state.welfareTracking, statusFilter]
-  );
+  const filtered = useMemo(() => {
+    const afterExclude = filterOutProfileExcluded(sortedBase, memberId, state.members, state.household);
+    return filterRowsForMemberView(afterExclude, memberId, state.welfareTracking, statusFilter);
+  }, [sortedBase, memberId, state.members, state.household, state.welfareTracking, statusFilter]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -99,14 +118,22 @@ export function BenefitListPage() {
           🎁
         </span>
         <span className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
-          구성원 박스를 눌러 목록을 바꿉니다. 제외함·나중에 볼게요는 기본 목록에서 숨깁니다.
+          구성원 박스를 눌러 목록을 바꿉니다. 가족 프로필의 <strong>제외 태그</strong>(예: 장애인)에 해당하는
+          항목은 이 목록에서 빼고, 제외함·나중에 볼게요는 추가로 숨깁니다.
         </span>
       </p>
 
       {state.members.length > 0 && (
         <div className="benefit-member-grid" role="tablist" aria-label="가족 구성원별 혜택">
           {state.members.map((m) => {
-            const n = memberVisibleCount(sortedBase, m.id, state.welfareTracking, statusFilter);
+            const n = memberVisibleCount(
+              sortedBase,
+              m.id,
+              state.welfareTracking,
+              statusFilter,
+              state.members,
+              state.household
+            );
             const selected = m.id === memberId;
             return (
               <button

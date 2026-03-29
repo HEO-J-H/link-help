@@ -2,6 +2,7 @@ import type { WelfareRecord } from '@/types/benefit';
 import type { MemberProfile, OccupationKind } from '@/types/family';
 import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { ageCategory, ageFromBirthDate } from '@/utils/date';
+import { blobMatchesAnyTerm, relatedMatchTerms } from './smartMatchSynonyms';
 
 const OCC_KIND_TAGS: Partial<Record<OccupationKind, readonly string[]>> = {
   salaried: ['직장인'],
@@ -60,6 +61,25 @@ export function memberExcludeTags(p: MemberProfile): Set<string> {
   return new Set(p.extraExcludeTags.map((t) => t.trim()).filter(Boolean));
 }
 
+/** Same exclude semantics as 숨은 복지·혜택찾기: blob match + topic synonym expansion. */
+export function welfareBlockedByExcludeTokens(w: WelfareRecord, exclude: Set<string>): boolean {
+  if (exclude.size === 0) return false;
+  const blob = blobFromWelfare(w);
+  for (const ex of exclude) {
+    if (!ex.trim()) continue;
+    const terms = relatedMatchTerms(ex);
+    if (blobMatchesAnyTerm(blob, terms)) return true;
+  }
+  return false;
+}
+
+/**
+ * True if welfare matches any member "제외 태그" (synonym-expanded against title·tags·target·…).
+ */
+export function welfareBlockedByMemberProfile(w: WelfareRecord, profile: MemberProfile): boolean {
+  return welfareBlockedByExcludeTokens(w, memberExcludeTags(profile));
+}
+
 function jaccardMatchScore(derived: Set<string>, welfareTags: string[]): number {
   if (derived.size === 0 || welfareTags.length === 0) return 0;
   let inter = 0;
@@ -90,7 +110,7 @@ function recommendFromDerived(
     if (isWelfareEffectivelyExpired(w)) return false;
     if (profile && welfareConflictsWithAssets(w, profile)) return false;
     const hit = w.tags.some((t) => derived.has(t));
-    const blocked = w.tags.some((t) => exclude.has(t));
+    const blocked = welfareBlockedByExcludeTokens(w, exclude);
     return hit && !blocked;
   });
 }
