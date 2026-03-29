@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "preview:lan": "vite preview --host",
     "dev:lan": "vite --host",
-    "server:demo": "node server/demo-server.mjs"
+    "server": "npm run start --prefix server",
+    "server:install": "npm install --prefix server"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -23,7 +24,6 @@
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^0.21.2",
-    "web-push": "^3.6.7",
     "workbox-core": "^7.4.0",
     "workbox-precaching": "^7.4.0",
     "workbox-routing": "^7.4.0",

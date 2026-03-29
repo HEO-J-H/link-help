@@ -19,7 +19,7 @@
 - 태그 힌트: 공고문 붙여넣기 + 로컬 태그 사전 매칭(서버 없음)
 - **원격 API**: 베이스 URL 설정 시 `GET /welfare`로 원격 복지를 불러와 로컬 JSON과 병합
 - **Web Push**: `injectManifest` SW가 `push` 이벤트를 알림으로 표시. 설정에서 구독 시 `POST /push/subscribe` 호출
-- 데모 서버: `npm run server:demo` → `server/README.md` 참고
+- **운영 API**: `npm run server:install` 후 `server/.env` 설정, `npm run server` → `server/README.md` 참고
 - 설정에서 **서비스 안내**, **이용약관**, **개인정보 처리 안내**, **면책** 화면으로 이동 가능 (상용 전 법무 검토 권장)
 
 ## 기술 스택
@@ -52,12 +52,12 @@ npm run preview:lan
 
 원격·푸시 테스트(로컬):
 
-```bash
-npm run server:demo
-npm run build && npm run preview
-```
+1. `server/.env.example`을 복사해 VAPID 키·`CORS_ORIGIN` 등을 채웁니다.
+2. 루트 `.env`에 `VITE_VAPID_PUBLIC_KEY`(서버 공개 키와 동일)를 넣습니다.
+3. `npm run server:install` → `npm run server`
+4. `npm run build && npm run preview`
 
-앱 설정에서 API 베이스 URL을 `http://localhost:8787`로 두고, **Web Push 구독** 후 터미널에서:
+앱 설정에서 API 베이스 URL을 `http://localhost:8787`로 두고, **Web Push 구독** 후 터미널에서(관리 시크릿을 쓴 경우 헤더 추가):
 
 `curl -X POST http://localhost:8787/push/send -H "Content-Type: application/json" -d "{\"title\":\"Link-Help\",\"body\":\"테스트\"}"`
 
@@ -68,7 +68,7 @@ npm run build && npm run preview
 - `src/components/layout` — 하단 네비게이션
 - `public/welfare-db` — 복지·태그·지역·메타 JSON
 - `src/sw.ts` — Workbox + Web Push / 알림 클릭
-- `server/` — 데모 HTTP API (`/welfare`, `/push/*`)
+- `server/` — 운영 HTTP API (`/welfare`, `/push/*`, SQLite)
 - `data/sample` — 샘플보내기 JSON
 
 ## 라이선스

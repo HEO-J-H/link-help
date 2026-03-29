@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
 import { initialFamilyState } from '@/core/family/familyManager';
+import { isWebPushConfigured } from '@/config/pushPublic';
 import { postPushSubscription, subscribeWebPush, unsubscribeWebPush } from '@/core/push/pushClient';
 
 export function SettingsPage() {
   const { state, setState, updateState } = useFamily();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pushBusy, setPushBusy] = useState(false);
+  const pushConfigured = isWebPushConfigured();
 
   const download = () => {
     const blob = new Blob([exportFamilyJson(state)], { type: 'application/json' });
@@ -149,11 +151,17 @@ export function SettingsPage() {
         <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.88rem' }}>
           예약 알림은 앱이 열려 있을 때 주기적으로 확인합니다. 앱을 닫아도 받으려면 아래 Web Push를 사용하세요.
         </p>
+        {!pushConfigured && (
+          <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
+            Web Push를 쓰려면 빌드 시 <code>VITE_VAPID_PUBLIC_KEY</code>를 설정하세요(루트{' '}
+            <code>.env</code> 참고). 공개 키는 서버의 <code>VAPID_PUBLIC_KEY</code>와 같아야 합니다.
+          </p>
+        )}
         <button
           type="button"
           className="btn secondary"
           style={{ width: '100%', marginTop: 12 }}
-          disabled={pushBusy}
+          disabled={pushBusy || !pushConfigured}
           onClick={registerPush}
         >
           {pushBusy ? '처리 중…' : 'Web Push 구독 (서버 등록)'}
@@ -191,7 +199,9 @@ export function SettingsPage() {
         />
         <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem' }}>
           설정 시 <code>GET …/welfare</code>로 원격 복지 목록을 불러와 로컬 JSON과 병합합니다. 푸시 구독은{' '}
-          <code>POST …/push/subscribe</code>로 전송됩니다. 데모 서버: <code>npm run server:demo</code>
+          <code>POST …/push/subscribe</code>로 전송됩니다. 운영 API: 루트에서 <code>npm run server:install</code>
+          후 <code>server/.env</code>를 채우고 <code>npm run server</code> — 자세한 내용은{' '}
+          <code>server/README.md</code>를 참고하세요.
         </p>
       </div>
 

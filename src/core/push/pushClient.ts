@@ -13,8 +13,11 @@ export async function subscribeWebPush(): Promise<PushSubscription> {
   if (!('serviceWorker' in navigator)) {
     throw new Error('Service workers are not supported');
   }
-  const reg = await navigator.serviceWorker.ready;
   const key = getVapidPublicKey();
+  if (!key) {
+    throw new Error('VITE_VAPID_PUBLIC_KEY가 설정되지 않았습니다. 빌드 환경의 .env를 확인하세요.');
+  }
+  const reg = await navigator.serviceWorker.ready;
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
     applicationServerKey: urlBase64ToUint8Array(key),
