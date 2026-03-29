@@ -24,6 +24,12 @@ export function TermsPage() {
           <li>실제 지원 여부·금액·기한은 반드시 공식 공고 및 담당 기관을 통해 확인해야 합니다.</li>
           <li>불법적이거나 타인의 권리를 침해하는 방식으로 서비스를 이용해서는 안 됩니다.</li>
         </ul>
+        <p style={{ marginBottom: 0, marginTop: 12 }}>
+          <strong>선택 기능:</strong> 이용자가 설정에 <strong>직접 입력한</strong> API 주소를 통해 공용 복지
+          메타데이터를 가져오거나, 동의 후 기여·공고 분석 요청을 보낼 수 있습니다. 가족 프로필은 해당
+          요청에 포함되지 않으며, 그 서버의 운영·약관은 배포 주체가 아닌 <strong>해당 API 운영자</strong>에
+          따릅니다.
+        </p>
       </section>
       <section>
         <h2>제4조 (서비스 변경·중단)</h2>

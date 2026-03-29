@@ -297,6 +297,12 @@ export function SettingsPage() {
           있습니다. <strong>가족·프로필은 전송하지 않습니다.</strong> 서버 실행법은{' '}
           <code>server/README.md</code> 참고.
         </p>
+        {String(import.meta.env.VITE_LINK_HELP_API_BASE ?? '').trim() && (
+          <p className="muted" style={{ marginTop: 0, fontSize: '0.85rem' }}>
+            이 빌드는 <code>VITE_LINK_HELP_API_BASE</code>로 신규 세션의 기본 URL을 채울 수 있습니다. 아래
+            입력란에서 항상 바꿀 수 있습니다.
+          </p>
+        )}
         <div className="field">
           <label htmlFor="api-base">API 기본 URL (슬래시 없이)</label>
           <input

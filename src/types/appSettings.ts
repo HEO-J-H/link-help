@@ -13,9 +13,13 @@ export interface AppSettings {
 }
 
 export function defaultAppSettings(): AppSettings {
+  const viteBase =
+    typeof import.meta !== 'undefined' && import.meta.env?.VITE_LINK_HELP_API_BASE
+      ? String(import.meta.env.VITE_LINK_HELP_API_BASE).trim()
+      : '';
   return {
     browserNotifications: false,
-    linkHelpApiBaseUrl: '',
+    linkHelpApiBaseUrl: viteBase,
     linkHelpApiToken: '',
     welfareContributeConsent: false,
   };

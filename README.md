@@ -75,11 +75,13 @@ npm run build:gh
 
 **자동 배포(선택):** 저장소 **Settings → Pages → Build and deployment → Source: GitHub Actions**로 바꾼 뒤, `main`에 푸시하면 `.github/workflows/deploy-pages.yml`이 `build:gh` 결과를 게시합니다.
 
-**참고:** GitHub Pages는 **정적 파일만** 제공합니다. 배포된 앱은 포함된 복지 JSON만 사용합니다.
+**참고:** GitHub Pages는 **정적 파일만** 호스팅합니다. 복지 샘플은 번들 JSON이며, 이용자가 설정에
+**별도 API URL**을 넣으면 브라우저가 그 주소로 공용 목록·분석·기여 요청을 보낼 수 있습니다(CORS·서버
+필요).
 
 ## 남은 작업·백로그
 
-구현 여부와 우선순위는 [`docs/roadmap.md`](docs/roadmap.md)를 기준으로 합니다. 요약하면: **호스티드 AI 분석·공용 복지 DB 파이프라인**은 [`docs/catalog-pipeline.md`](docs/catalog-pipeline.md)에 설계만 있고 서버 구현은 백로그입니다. **공식 API 연동**, **관리자**, **법무 확정**, **테스트·보안 점검** 등도 별도 작업입니다. 아키텍처 개요는 [`docs/architecture.md`](docs/architecture.md)입니다.
+구현 여부와 우선순위는 [`docs/roadmap.md`](docs/roadmap.md)를 기준으로 합니다. **자가 호스팅 API**(`server/`: `GET /welfare`, `POST /welfare/analyze`, `POST /welfare/contribute`)와 앱 설정 연동은 구현되어 있습니다. 계약·흐름은 [`docs/catalog-pipeline.md`](docs/catalog-pipeline.md)를 참고하세요. **운영 검수·레이트리밋**, **공공 복지 API 실시간 연동**, **관리자**, **법무 확정** 등은 여전히 백로그입니다. 아키텍처는 [`docs/architecture.md`](docs/architecture.md)입니다.
 
 ## 스크립트
 
