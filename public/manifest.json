@@ -1,6 +1,6 @@
 {
-  "name": "Link-Help",
-  "short_name": "Link-Help",
+  "name": "Link-Help — 복지·혜택 알림",
+  "short_name": "LinkHelp",
   "description": "로컬 기반 가족 복지·혜택 알림",
   "start_url": "/",
   "display": "standalone",
