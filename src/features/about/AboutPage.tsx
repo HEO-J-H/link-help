@@ -73,11 +73,16 @@ npm run dev`}
         <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.65 }}>
           <li>
             하단 <strong>스마트</strong> 탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>을
-            브라우저에서만 돌립니다. 외부 LLM을 붙이려면 별도 확장이 필요합니다.
+            브라우저에서만 돌립니다. (외부 LLM·AI 분석 서버는 선택적 확장입니다.)
           </li>
           <li>
             <strong>기간이 끝난 혜택</strong>은 추천·타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
             만료 항목 보기&quot;로 <strong>참고</strong>할 수 있게 합니다.
+          </li>
+          <li>
+            <strong>숨은 복지·혜택</strong>을 더 넓게 알리기 위해, 장기적으로는 공고문을 구조화한{' '}
+            <strong>공용 복지 DB</strong>(출처·중복 제거·검증)를 두고 모든 사용자가 같은 카탈로그를 재사용하는
+            방향을 설계 문서로 정리해 두었습니다. (저장소 <code>docs/catalog-pipeline.md</code>)
           </li>
         </ul>
       </div>
@@ -102,6 +107,10 @@ npm run dev`}
           별도로 준비하는 영역입니다.
         </p>
         <ul style={{ marginBottom: 0, paddingLeft: '1.2rem' }}>
+          <li>
+            <strong>AI 분석 서버</strong>: 공고문 → JSON → 공용 DB 적재, 크라우드 기여·검수·중복 제거 (
+            <code>docs/catalog-pipeline.md</code> 참고)
+          </li>
           <li>회원 가입·클라우드 동기화(기기 간 자동 백업)</li>
           <li>공식 복지 API와의 실시간 연동·데이터 검수 프로세스</li>
           <li>운영용 관리자 화면·다중 사용자 권한</li>

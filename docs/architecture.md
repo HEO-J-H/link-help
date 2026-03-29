@@ -14,7 +14,9 @@
 
 ## Benefit catalog
 
-- **Static only**: `public/welfare-db` — fetched via paths built with `import.meta.env.BASE_URL` (`publicAsset()`). No remote merge in the web app.
+- **Shipped data**: `public/welfare-db` — fetched via `import.meta.env.BASE_URL` (`publicAsset()`).
+- **Client merge**: `loadMergedWelfareCatalog()` loads bundled JSON **plus** IndexedDB cache (`link-help-welfare-cache`) so smart-match hits persist per device.
+- **Planned / external**: An **AI analysis server** can turn notice text into `WelfareRecord` JSON and feed a **shared public catalog** (crowdsourcing + dedupe + review). Contract and diagram: `docs/catalog-pipeline.md`. Types include optional fields (`schema_version`, `dedupe_key`, `source_url`, etc.) for that pipeline; sample JSON files omit them.
 
 ## Service worker (`src/sw.ts`)
 
