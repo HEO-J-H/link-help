@@ -17,8 +17,8 @@ export function PrivacyPage() {
         <h2>2. 수집·저장되는 정보</h2>
         <ul>
           <li>
-            <strong>탭·창이 열려 있는 동안(로컬):</strong> 이름(표시용), 생년월일, 지역, 소득 구간,
-            태그, 알림 예약, 앱 설정 등 — sessionStorage에만 보관됩니다.
+            <strong>탭·창이 열려 있는 동안(로컬):</strong> 이름(표시용), 생년월일, 가구 기본(지역·소득),
+            구성원별 프로필, 태그, 알림 예약, 앱 설정 등 — sessionStorage에만 보관됩니다.
           </li>
           <li>
             <strong>복지 샘플 데이터:</strong> 앱에 포함된 JSON 파일을 브라우저에서 읽어 옵니다. 가족

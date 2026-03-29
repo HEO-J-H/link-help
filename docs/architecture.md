@@ -7,6 +7,7 @@
 
 ## User data (family, reminders, app settings)
 
+- **Household defaults**: `FamilyState.household` — shared `sido` / `sigungu` / `incomeBand` (and optional memo) applied when a member has `useHouseholdRegionIncome: true`. `getEffectiveProfile()` merges for matching.
 - **Live storage**: **`sessionStorage`** (`link-help-family-session-v1`), JSON-serialized `FamilyState`. Cleared when the tab/window closes; reopening starts empty until **JSON import**.
 - **Legacy migration (once per browser)**: If session is empty, load from **IndexedDB** (`link-help` / `family`) or old **localStorage** key, write to session, then **delete** the IndexedDB database so it is not reused.
 - **Export/import**: `core/storage/exportImport.ts` — user-controlled backup; `normalizeFamilyState` allows zero members.

@@ -5,7 +5,12 @@ import { ageCategory, ageFromBirthDate } from '@/utils/date';
 
 function baseProfileTags(p: MemberProfile, age: number | null): string[] {
   const tags = new Set<string>();
-  if (p.region.trim()) tags.add(p.region.trim());
+  const region = p.region.trim();
+  if (region) {
+    for (const token of region.split(/\s+/).filter(Boolean)) {
+      tags.add(token);
+    }
+  }
   const occ = p.occupation.trim();
   if (occ) tags.add(occ);
   for (const t of ageCategory(age)) tags.add(t);

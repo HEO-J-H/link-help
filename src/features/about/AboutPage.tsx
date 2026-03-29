@@ -109,6 +109,19 @@ npm run dev`}
         </ul>
       </div>
 
+      <div className="card" style={{ marginBottom: 14 }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>만든 사람 · 문의</h2>
+        <p style={{ marginTop: 0, marginBottom: 8, lineHeight: 1.6 }}>
+          법적으로 앱 화면에 제작자 이름을 넣을 의무는 없습니다. 다만 오픈소스·개인 프로젝트에서는{' '}
+          <strong>README</strong>나 이 안내에 <strong>연락처</strong>를 적어 두면 버그 제보·협업이
+          쉬워집니다.
+        </p>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          이 저장소 기준: <strong>허정훈</strong> ·{' '}
+          <a href="mailto:hjh1014@naver.com">hjh1014@naver.com</a>
+        </p>
+      </div>
+
       <p className="muted" style={{ fontSize: '0.9rem' }}>
         관련 문서:{' '}
         <Link to="/legal/disclaimer">면책 안내</Link> · <Link to="/legal/privacy">개인정보 안내</Link> ·{' '}

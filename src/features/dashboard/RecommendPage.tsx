@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { recommendScoredForProfile } from '@/core/filter/filterEngine';
+import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 
 export function RecommendPage() {
   const { state } = useFamily();
@@ -19,8 +20,8 @@ export function RecommendPage() {
   const member = state.members.find((m) => m.id === memberId) ?? state.members[0];
   const recs = useMemo(() => {
     if (!member) return [];
-    return recommendScoredForProfile(list, member.profile);
-  }, [list, member]);
+    return recommendScoredForProfile(list, getEffectiveProfile(member, state.household));
+  }, [list, member, state.household]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;

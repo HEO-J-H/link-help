@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { recommendForProfileAtAge } from '@/core/filter/filterEngine';
+import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { ageFromBirthDate } from '@/utils/date';
 import { upcomingMilestoneAges, yearWhenTurningAge } from '@/utils/timeline';
 
@@ -27,12 +28,13 @@ export function TimelinePage() {
 
   const blocks = useMemo(() => {
     if (!member) return [];
+    const eff = getEffectiveProfile(member, state.household);
     return milestones.map((age) => ({
       age,
       year: yearWhenTurningAge(member.profile.birthDate, age),
-      items: recommendForProfileAtAge(list, member.profile, age),
+      items: recommendForProfileAtAge(list, eff, age),
     }));
-  }, [list, member, milestones]);
+  }, [list, member, state.household, milestones]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;

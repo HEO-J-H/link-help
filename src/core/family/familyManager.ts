@@ -5,15 +5,28 @@ import type {
   Relationship,
   StudentLevel,
 } from '@/types/family';
+import type { HouseholdDefaults } from '@/types/household';
 import { defaultAppSettings } from '@/types/appSettings';
 
 function uid(): string {
   return `m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
+export function emptyHousehold(): HouseholdDefaults {
+  return {
+    sido: '',
+    sigungu: '',
+    incomeBand: '',
+    annualIncomeMemoManwon: '',
+  };
+}
+
 export function emptyProfile(): MemberProfile {
   return {
     birthDate: '',
+    useHouseholdRegionIncome: true,
+    regionSido: '',
+    regionSigungu: '',
     region: '',
     occupation: '',
     incomeBand: '',
@@ -36,8 +49,13 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
   } else if (o.isStudent === true) {
     studentLevel = 'university';
   }
+  const useHouseholdRegionIncome =
+    typeof o.useHouseholdRegionIncome === 'boolean' ? o.useHouseholdRegionIncome : true;
   return {
     birthDate: typeof o.birthDate === 'string' ? o.birthDate : e.birthDate,
+    useHouseholdRegionIncome,
+    regionSido: typeof o.regionSido === 'string' ? o.regionSido : e.regionSido,
+    regionSigungu: typeof o.regionSigungu === 'string' ? o.regionSigungu : e.regionSigungu,
     region: typeof o.region === 'string' ? o.region : e.region,
     occupation: typeof o.occupation === 'string' ? o.occupation : e.occupation,
     incomeBand: typeof o.incomeBand === 'string' ? o.incomeBand : e.incomeBand,
@@ -70,6 +88,7 @@ export function createMember(partial: {
 export function initialFamilyState(): FamilyState {
   return {
     members: [createMember({ displayName: '본인', relationship: 'self' })],
+    household: emptyHousehold(),
     reminders: [],
     appSettings: defaultAppSettings(),
   };
@@ -79,6 +98,7 @@ export function initialFamilyState(): FamilyState {
 export function emptySessionFamilyState(): FamilyState {
   return {
     members: [],
+    household: emptyHousehold(),
     reminders: [],
     appSettings: defaultAppSettings(),
   };

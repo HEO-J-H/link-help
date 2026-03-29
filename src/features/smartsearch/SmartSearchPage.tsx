@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { profileToDerivedTags } from '@/core/filter/filterEngine';
+import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/core/filter/smartMatchEngine';
 
 const STAGES = [
@@ -57,11 +58,12 @@ export function SmartSearchPage() {
       await sleep(40);
     }
 
-    const profileTags = profileToDerivedTags(member.profile);
+    const eff = getEffectiveProfile(member, state.household);
+    const profileTags = profileToDerivedTags(eff);
     const includeKeywords = parseKeywordInput(includeRaw);
     const excludeKeywords = [
       ...parseKeywordInput(excludeRaw),
-      ...member.profile.extraExcludeTags.map((t) => t.trim()).filter(Boolean),
+      ...eff.extraExcludeTags.map((t) => t.trim()).filter(Boolean),
     ];
 
     const matched = runSmartMatch(list, { profileTags, includeKeywords, excludeKeywords });
@@ -79,7 +81,7 @@ export function SmartSearchPage() {
     setRunning(false);
     setProgress(100);
     setStatusLine('완료');
-  }, [member, list, includeRaw, excludeRaw]);
+  }, [member, list, includeRaw, excludeRaw, state.household]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;

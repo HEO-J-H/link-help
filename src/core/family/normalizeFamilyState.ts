@@ -1,8 +1,22 @@
 import type { FamilyState } from '@/types/family';
 import type { Reminder } from '@/types/reminder';
 import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
-import { emptySessionFamilyState, normalizeMemberProfile } from './familyManager';
+import { emptyHousehold, emptySessionFamilyState, normalizeMemberProfile } from './familyManager';
 import type { FamilyMember } from '@/types/family';
+import type { HouseholdDefaults } from '@/types/household';
+
+function normalizeHousehold(raw: unknown): HouseholdDefaults {
+  const e = emptyHousehold();
+  if (!raw || typeof raw !== 'object') return e;
+  const o = raw as Record<string, unknown>;
+  return {
+    sido: typeof o.sido === 'string' ? o.sido : e.sido,
+    sigungu: typeof o.sigungu === 'string' ? o.sigungu : e.sigungu,
+    incomeBand: typeof o.incomeBand === 'string' ? o.incomeBand : e.incomeBand,
+    annualIncomeMemoManwon:
+      typeof o.annualIncomeMemoManwon === 'string' ? o.annualIncomeMemoManwon : e.annualIncomeMemoManwon,
+  };
+}
 
 function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   const base = defaultAppSettings();
@@ -23,9 +37,10 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
   const members = data.members as FamilyState['members'];
   const reminders = Array.isArray(data.reminders) ? (data.reminders as Reminder[]) : [];
   const appSettings = mergeAppSettingsFromRaw(data.appSettings);
+  const household = normalizeHousehold(data.household);
 
   if (members.length === 0) {
-    return { members: [], reminders, appSettings };
+    return { members: [], household, reminders, appSettings };
   }
 
   const normalizedMembers: FamilyMember[] = members.map((m) => ({
@@ -33,5 +48,5 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     profile: normalizeMemberProfile(m.profile),
   }));
 
-  return { members: normalizedMembers, reminders, appSettings };
+  return { members: normalizedMembers, household, reminders, appSettings };
 }
