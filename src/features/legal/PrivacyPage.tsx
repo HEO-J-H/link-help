@@ -25,15 +25,14 @@ export function PrivacyPage() {
             프로필이 그 파일이나 외부 서버로 자동 전송되지는 않습니다.
           </li>
           <li>
-            <strong>복지 카탈로그 누적(IndexedDB):</strong> 스마트 매칭 결과와, 설정에서 불러온 복지 JSON
-            배열(<code>WelfareRecord</code>)이 같은 기기의 <code>link-help-welfare-cache</code>에
-            저장되어 번들 JSON과 통합 목록으로 합쳐집니다. 브라우저에서 사이트 데이터를 지우면 IndexedDB
-            누적은 함께 삭제될 수 있으며, 앱에 포함된 번들 JSON 파일 자체는 앱 재배포 전까지 동일합니다.
+            <strong>복지 카탈로그 누적(IndexedDB):</strong> 스마트 매칭 등으로 이 기기에 쌓인 복지 메타(
+            <code>WelfareRecord</code>)가 <code>link-help-welfare-cache</code>에 저장되어 번들 JSON과
+            합쳐집니다. 브라우저에서 사이트 데이터를 지우면 누적은 함께 삭제될 수 있습니다.
           </li>
           <li>
-            <strong>공용 복지 API(선택):</strong> 설정에 API URL을 직접 넣은 경우에만, 공고문 분석·공용
-            목록 가져오기·기여 동의 하의 복지 메타 전송이 <strong>해당 서버</strong>로 나갑니다. 가족
-            프로필·이름 등은 보내지 않습니다. 토큰은 sessionStorage 세션 JSON에만 저장됩니다.
+            <strong>자가 호스팅·개발 빌드(선택):</strong> 배포 시 환경 변수 등으로 API 주소가 붙은 빌드만
+            공용 서버와 분석·기여 요청을 주고받을 수 있습니다. 일반 웹 배포본은 가족 프로필을 외부로 보내지
+            않습니다.
           </li>
         </ul>
       </section>
@@ -46,7 +45,7 @@ export function PrivacyPage() {
         <ul>
           <li>탭·창을 닫으면 sessionStorage의 입력 데이터가 지워집니다.</li>
           <li>설정의 &quot;데이터 초기화&quot;로 같은 탭 안에서도 가족 데이터를 바로 비울 수 있습니다.</li>
-          <li>설정의 &quot;복지 누적 캐시 비우기&quot;로 IndexedDB에만 쌓인 복지 누적을 지울 수 있습니다(번들 JSON은 그대로).</li>
+          <li>브라우저 설정에서 사이트 데이터·저장소를 지우면 IndexedDB 누적도 함께 없어질 수 있습니다(번들 JSON은 앱과 함께 다시 제공됩니다).</li>
           <li>JSON 보내기로 파일을 내려받아 두면, 나중에 불러오기로 같은 기기·다른 탭에서 복원할 수 있습니다.</li>
         </ul>
       </section>

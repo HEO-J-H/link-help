@@ -36,7 +36,7 @@ function toPersistable(w: SmartMatchedWelfare): WelfareRecord {
 }
 
 export function SmartSearchPage() {
-  const { state } = useFamily();
+  const { state, setState } = useFamily();
   const { list, loading, error, refreshWelfareCatalog } = useWelfare();
   const [memberId, setMemberId] = useState(state.members[0]?.id ?? '');
   const [includeRaw, setIncludeRaw] = useState('');
@@ -155,8 +155,7 @@ export function SmartSearchPage() {
         <strong>기본 프로필 태그</strong> + <strong>추가 포함</strong>(예: 자동차) + <strong>추가 제외</strong>(예:
         차상위, 장애인)를 조합해 통합 카탈로그에서 찾습니다. 핵심은 붙여넣기가 아니라{' '}
         <strong>이 조건으로 스캔·매칭</strong>하는 흐름입니다. 매칭으로 걸린 항목은{' '}
-        <strong>이 기기 IndexedDB</strong>에 쌓입니다. 설정에서 공용 API를 넣고 기여에 동의한 경우에만, 매칭
-        결과(복지 메타만)를 서버로 보낼 수 있습니다. 신청 기간이 파싱되면 결과 카드에서{' '}
+        <strong>이 기기 IndexedDB</strong>에 쌓입니다. (서버 기여는 자가 빌드·호스팅 시에만 켜질 수 있어요.) 신청 기간이 파싱되면 결과 카드에서{' '}
         <strong>Google 캘린더</strong>로 종일 일정을 넣을 수 있습니다.
       </p>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.85rem' }}>
@@ -248,20 +247,33 @@ export function SmartSearchPage() {
       )}
       {!running && persistNote && <p className="muted" style={{ marginBottom: 12 }}>{persistNote}</p>}
 
-      {!running &&
-        results.length > 0 &&
-        state.appSettings.linkHelpApiBaseUrl.trim() &&
-        state.appSettings.welfareContributeConsent && (
+      {!running && results.length > 0 && state.appSettings.linkHelpApiBaseUrl.trim() && (
           <div className="card" style={{ marginBottom: 16 }}>
             <p style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
-              아래 버튼은 <strong>매칭된 복지 항목 JSON만</strong> 공용 DB(
-              <code>POST /welfare/contribute</code>)로 보냅니다. 가족 프로필은 포함되지 않습니다.
+              <strong>🌐 서버 기여</strong> — 매칭된 복지 JSON만 전송합니다. 가족 프로필은 보내지 않습니다.
             </p>
+            <label className="settings-toggle-row" style={{ marginTop: 10, marginBottom: 12 }}>
+              <input
+                type="checkbox"
+                className="input-checkbox"
+                checked={state.appSettings.welfareContributeConsent}
+                onChange={() =>
+                  setState({
+                    ...state,
+                    appSettings: {
+                      ...state.appSettings,
+                      welfareContributeConsent: !state.appSettings.welfareContributeConsent,
+                    },
+                  })
+                }
+              />
+              <span>동의 후 전송</span>
+            </label>
             <button
               type="button"
               className="btn secondary"
               style={{ width: '100%' }}
-              disabled={contribBusy}
+              disabled={contribBusy || !state.appSettings.welfareContributeConsent}
               onClick={async () => {
                 const base = state.appSettings.linkHelpApiBaseUrl.trim();
                 setContribBusy(true);
@@ -288,7 +300,7 @@ export function SmartSearchPage() {
               </p>
             )}
             <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.85rem' }}>
-              API 주소·토큰·동의는 <Link to="/settings">설정</Link>에서 바꿀 수 있습니다.
+              API 주소는 빌드 시 환경 변수로 넣은 경우에만 여기가 열립니다.
             </p>
           </div>
         )}

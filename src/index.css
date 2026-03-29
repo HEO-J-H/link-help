@@ -219,20 +219,34 @@ button:disabled {
 }
 
 .bottom-nav a {
-  flex: 1 0 12.5%;
-  min-width: 52px;
-  max-width: 88px;
+  flex: 1 0 16%;
+  min-width: 48px;
+  max-width: 100px;
   min-height: var(--tap-min);
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
   text-decoration: none;
   color: var(--color-muted);
-  font-size: 0.68rem;
   font-weight: 600;
   text-align: center;
-  line-height: 1.15;
-  padding: 4px 2px;
+  line-height: 1.1;
+  padding: 6px 2px 8px;
+}
+
+.bottom-nav__icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.bottom-nav__label {
+  font-size: 0.62rem;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .smart-progress-track {
@@ -768,4 +782,206 @@ button:disabled {
 .btn.secondary[data-active='true'] {
   background: #e8f0ec;
   box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.page-lead-graphic {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.page-lead-graphic__icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.settings-hub {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.settings-hub__tile {
+  width: 100%;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.25;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.settings-hub__emoji {
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.settings-hub__label {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.settings-hint-details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  background: #fafcfb;
+}
+
+.settings-hint-details summary {
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+  list-style: none;
+}
+
+.settings-hint-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-section__h {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+
+.settings-section__icon {
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.settings-alert-card {
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.settings-link-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.settings-link-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 72px;
+  padding: 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  text-decoration: none;
+  color: var(--color-text);
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.settings-link-tile:hover {
+  background: #f4faf7;
+  border-color: var(--color-primary);
+}
+
+.settings-empty-illu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 8px;
+  text-align: center;
+}
+
+.settings-empty-illu__icon {
+  font-size: 2.25rem;
+  line-height: 1;
+  opacity: 0.85;
+}
+
+.reminder-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.reminder-list__item:last-child {
+  border-bottom: none;
+  padding-bottom: 4px;
+}
+
+.reminder-list__emoji {
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+
+.reminder-list__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.reminder-list__title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--color-text);
+  margin-bottom: 4px;
+}
+
+.reminder-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--color-muted);
+}
+
+.reminder-list__date {
+  font-weight: 600;
+}
+
+.reminder-list__badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e8f0ec;
+  color: var(--color-primary);
+}
+
+.reminder-list__trash {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.reminder-list__trash:hover {
+  background: #fff0f0;
+  color: #b33a3a;
 }

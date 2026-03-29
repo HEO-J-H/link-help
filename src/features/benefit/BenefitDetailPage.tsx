@@ -248,7 +248,7 @@ export function BenefitDetailPage() {
           알림 추가
         </button>
         <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
-          <Link to="/notifications">알림 목록 보기</Link>
+          <Link to="/settings#reminders">예정 알림 보기</Link>
         </p>
       </div>
 

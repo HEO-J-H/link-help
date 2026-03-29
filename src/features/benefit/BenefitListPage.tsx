@@ -49,33 +49,48 @@ export function BenefitListPage() {
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
 
+  const accentMember = state.members.find((m) => m.id === memberId);
+
   return (
     <div>
       <h1 className="page-title">혜택</h1>
-      <p className="muted" style={{ marginTop: -8, marginBottom: 14, fontSize: '0.92rem', lineHeight: 1.55 }}>
-        공식 API에만 의존하지 않고, 태그·프로필·앞으로 쌓이는 데이터로{' '}
-        <strong>놓치기 쉬운 지원</strong>을 더 찾는 방향입니다. 아래는 로컬·원격 복지 목록입니다. 신청 기간이
-        파싱되는 항목은 <strong>Google 캘린더</strong>로 종일 일정을 추가할 수 있습니다.
+      <p className="page-lead-graphic" style={{ marginTop: -6, marginBottom: 14 }}>
+        <span className="page-lead-graphic__icon" aria-hidden>
+          🎁
+        </span>
+        <span className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.5 }}>
+          지금 보는 색 띠는 선택한 가족 구성원이에요. 캘린더·진행 상태는 카드에서 한 번에.
+        </span>
       </p>
 
       {state.members.length > 0 && (
         <div className="card" style={{ marginBottom: 14, padding: '12px 14px' }}>
-          <div className="field" style={{ marginBottom: 10 }}>
-            <label htmlFor="ben-list-member">진행 상태를 볼 구성원</label>
-            <select
-              id="ben-list-member"
-              value={memberId}
-              onChange={(e) => setMemberId(e.target.value)}
-            >
-              {state.members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.displayName}
-                </option>
-              ))}
-            </select>
+          <div className="rec-member-row" style={{ marginBottom: 0 }}>
+            {accentMember && (
+              <span
+                className="member-color-dot member-color-dot--lg"
+                style={{ backgroundColor: accentMember.memberColor }}
+                title={`${accentMember.displayName} 색`}
+                aria-hidden
+              />
+            )}
+            <div className="field" style={{ flex: 1, marginBottom: 10 }}>
+              <label htmlFor="ben-list-member">구성원</label>
+              <select
+                id="ben-list-member"
+                value={memberId}
+                onChange={(e) => setMemberId(e.target.value)}
+              >
+                {state.members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.displayName}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="field">
-            <label htmlFor="ben-list-status">목록 필터</label>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <label htmlFor="ben-list-status">보기</label>
             <select
               id="ben-list-status"
               value={statusFilter}
@@ -87,10 +102,6 @@ export function BenefitListPage() {
               <option value="later">{WELFARE_TRACKING_LABELS.later}만</option>
             </select>
           </div>
-          <p className="muted" style={{ margin: '8px 0 0', fontSize: '0.82rem' }}>
-            「{WELFARE_TRACKING_LABELS.later}만」은 잠깐 미뤄 둔 항목만 모아 봅니다. 제외 사유는 상세에서
-            적을 수 있습니다.
-          </p>
         </div>
       )}
 
@@ -128,7 +139,14 @@ export function BenefitListPage() {
             ? findWelfareTracking(state.welfareTracking, memberId, w.id)
             : undefined;
           return (
-            <div key={w.id} className="card">
+            <div
+              key={w.id}
+              className="card"
+              style={{
+                borderLeft: accentMember ? '4px solid' : undefined,
+                borderLeftColor: accentMember?.memberColor ?? 'transparent',
+              }}
+            >
               <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                 <h3 style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                   {w.title}

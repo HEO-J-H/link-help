@@ -10,7 +10,6 @@ import { BenefitDetailPage } from '@/features/benefit/BenefitDetailPage';
 import { RecommendPage } from '@/features/dashboard/RecommendPage';
 import { TimelinePage } from '@/features/timeline/TimelinePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
-import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 import { AboutPage } from '@/features/about/AboutPage';
 import { TermsPage } from '@/features/legal/TermsPage';
 import { PrivacyPage } from '@/features/legal/PrivacyPage';
@@ -37,7 +36,10 @@ export default function App() {
               <Route path="/recommend" element={<RecommendPage />} />
               <Route path="/smart-find" element={<SmartSearchPage />} />
               <Route path="/timeline" element={<TimelinePage />} />
-              <Route path="/notifications" element={<NotificationsPage />} />
+              <Route
+                path="/notifications"
+                element={<Navigate to={{ pathname: '/settings', hash: 'reminders' }} replace />}
+              />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route

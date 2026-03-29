@@ -25,9 +25,8 @@ export function AboutPage() {
           브라우저에 저장되며, 닫으면 비워질 수 있으니 필요하면 설정에서 JSON으로 백업하세요.
         </p>
         <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
-          번들 복지 데이터는 공개 기관 안내를 요약한 JSON이며, 스마트 매칭·로컬 가져오기로 쌓인 항목은 기본적으로 이 기기
-          IndexedDB에만 둡니다. <strong>선택적으로</strong> 설정에 공용 API URL을 넣고 동의하면 공고 분석·목록
-          동기화·복지 메타 기여만 해당 서버로 갈 수 있습니다(가족 프로필은 전송하지 않음).
+          번들 복지 데이터는 공개 기관 안내를 요약한 JSON이며, 스마트 매칭으로 쌓인 항목은 이 기기 IndexedDB에만
+          둡니다. 공용 서버 연동은 <strong>자가 빌드·호스팅</strong>할 때만 선택적으로 켤 수 있습니다.
         </p>
       </section>
 
@@ -59,8 +58,8 @@ npm run server`}
         </p>
         <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
           <code>server/</code>는 <strong>선택</strong>입니다. 띄우면 <code>GET /welfare</code>,{' '}
-          <code>POST /welfare/analyze</code>, <code>POST /welfare/contribute</code> 등이 열리고, 앱{' '}
-          <Link to="/settings">설정</Link>에서 URL을 맞추면 로컬에서 연동 테스트할 수 있습니다. 자세한
+          <code>POST /welfare/analyze</code>, <code>POST /welfare/contribute</code> 등이 열리며, 로컬 개발 시{' '}
+          <code>VITE_LINK_HELP_API_BASE</code> 등으로 앱 빌드에 주소를 넣어 연동 테스트할 수 있습니다. 자세한
           내용은 <code>server/README.md</code>, <code>docs/catalog-pipeline.md</code>를 보세요.
         </p>
       </section>
@@ -79,7 +78,7 @@ npm run server`}
           <li>
             하단 <strong>스마트</strong> 탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>은
             브라우저에서 돌립니다. 공고 전문 구조화는 <strong>선택</strong>으로 자가 호스팅{' '}
-            <code>server/</code>(OpenAI 키 있으면 LLM, 없으면 휴리스틱) 또는 설정에서 연결합니다.
+            <code>server/</code>(OpenAI 키 있으면 LLM, 없으면 휴리스틱) 등으로 연결합니다.
           </li>
           <li>
             <strong>기간이 끝난 혜택</strong>은 추천·타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
@@ -101,12 +100,12 @@ npm run server`}
             지워지고, <strong>JSON 불러오기</strong>로만 다시 채웁니다. 회원 가입 없음.
           </li>
           <li>
-            <strong>로컬 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽고, IndexedDB·선택
-            API와 병합합니다.
+            <strong>번들 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽고, IndexedDB 누적과
+            합쳐 보여 줍니다.
           </li>
           <li>
-            <strong>설정의 API URL·토큰</strong> → sessionStorage에만 저장됩니다. 비워 두면 외부 서버로 복지
-            메타를 보내지 않습니다.
+            <strong>API 주소·토큰(개발·자가 호스팅)</strong> → 빌드·세션에만 쓰이며, 일반 공개 배포본에서는
+            비어 있는 것이 기본입니다.
           </li>
         </ul>
       </div>

@@ -25,10 +25,9 @@ export function TermsPage() {
           <li>불법적이거나 타인의 권리를 침해하는 방식으로 서비스를 이용해서는 안 됩니다.</li>
         </ul>
         <p style={{ marginBottom: 0, marginTop: 12 }}>
-          <strong>선택 기능:</strong> 이용자가 설정에 <strong>직접 입력한</strong> API 주소를 통해 공용 복지
-          메타데이터를 가져오거나, 동의 후 기여·공고 분석 요청을 보낼 수 있습니다. 가족 프로필은 해당
-          요청에 포함되지 않으며, 그 서버의 운영·약관은 배포 주체가 아닌 <strong>해당 API 운영자</strong>에
-          따릅니다.
+          <strong>선택 기능:</strong> 자가 호스팅·특수 빌드에서만 공용 복지 메타데이터 동기화·기여·공고 분석
+          요청이 외부 서버로 나갈 수 있습니다. 가족 프로필은 그런 요청에 포함되지 않으며, 해당 서버의 운영·약관은{' '}
+          <strong>그 API 운영자</strong>에 따릅니다.
         </p>
       </section>
       <section>
