@@ -41,7 +41,8 @@ export function SettingsPage() {
     <div>
       <h1 className="page-title">설정</h1>
       <p className="muted" style={{ marginBottom: 20 }}>
-        데이터는 브라우저에만 저장됩니다. 백업은 JSON보내기를 사용하세요.
+        가족 데이터는 브라우저 IndexedDB에만 저장됩니다. 예전 버전(localStorage)은 첫
+        실행 시 자동으로 옮겨집니다. 백업은 JSON보내기를 사용하세요.
       </p>
 
       <div className="stack">
@@ -69,8 +70,8 @@ export function SettingsPage() {
       </div>
 
       <p className="muted" style={{ marginTop: 24, fontSize: '0.85rem' }}>
-        복지 DB는 <code>public/welfare-db</code>의 JSON입니다. GitHub 저장소와 함께 배포·갱신할 수
-        있습니다.
+        빌드 후 서비스 워커가 앱과 <code>welfare-db</code> JSON을 캐시해 오프라인에서도 열 수 있습니다.
+        복지 원본은 <code>public/welfare-db</code>입니다.
       </p>
     </div>
   );

@@ -15,6 +15,9 @@ export function BottomNav() {
       <NavLink to="/recommend" className={linkClass}>
         추천
       </NavLink>
+      <NavLink to="/timeline" className={linkClass}>
+        타임라인
+      </NavLink>
       <NavLink to="/settings" className={linkClass}>
         설정
       </NavLink>

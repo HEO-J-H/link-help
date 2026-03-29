@@ -7,6 +7,7 @@ import { MemberDetailPage } from '@/features/family/MemberDetailPage';
 import { BenefitListPage } from '@/features/benefit/BenefitListPage';
 import { BenefitDetailPage } from '@/features/benefit/BenefitDetailPage';
 import { RecommendPage } from '@/features/dashboard/RecommendPage';
+import { TimelinePage } from '@/features/timeline/TimelinePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 
 export default function App() {
@@ -21,6 +22,7 @@ export default function App() {
               <Route path="/benefits" element={<BenefitListPage />} />
               <Route path="/benefits/:id" element={<BenefitDetailPage />} />
               <Route path="/recommend" element={<RecommendPage />} />
+              <Route path="/timeline" element={<TimelinePage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>

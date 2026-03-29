@@ -12,11 +12,12 @@
 - 구성원별 추천(프로필에서 파생한 태그와 복지 항목 태그 교차)
 - 가족 데이터 JSON보내기 / 불러오기 / 초기화
 - 하단 탭: 가족 · 혜택 · 추천 · 설정
-- PWA용 `manifest.json` (아이콘·테마)
+- PWA: `manifest.json` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
+- 타임라인: 만 50·55·60… 도래 시점별 추천 미리보기
 
 ## 기술 스택
 
-React 19, TypeScript, Vite, React Router, `localStorage`
+React 19, TypeScript, Vite, React Router, IndexedDB(가족), `vite-plugin-pwa`
 
 ## 설치 및 실행
 
