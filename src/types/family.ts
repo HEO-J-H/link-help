@@ -8,6 +8,22 @@ export type Relationship = 'self' | 'spouse' | 'child' | 'parent' | 'other';
 /** Replaces legacy `isStudent` boolean (university-only UX). */
 export type StudentLevel = 'none' | 'k12' | 'university';
 
+/** Universal activity / employment shape for matching (not legal status). */
+export type OccupationKind =
+  | ''
+  | 'salaried'
+  | 'self_employed'
+  | 'freelancer'
+  | 'homemaker'
+  | 'student'
+  | 'job_seeking'
+  | 'retired'
+  | 'parental_leave'
+  | 'other';
+
+/** For car / home hints: unknown = do not filter or add asset tags. */
+export type AssetAnswer = 'unknown' | 'yes' | 'no';
+
 export interface MemberProfile {
   birthDate: string;
   /** When false, use regionSido/regionSigungu (or legacy region) instead of 가구 기본. */
@@ -18,7 +34,14 @@ export interface MemberProfile {
   regionSigungu: string;
   /** Derived / legacy single field; kept in sync when possible */
   region: string;
+  /** Primary activity selector; drives welfare tags. */
+  occupationKind: OccupationKind;
+  /** Free text when occupationKind is other, or legacy note */
   occupation: string;
+  /** 자동차 보유 — 'no'일 때 자동차 중심 공고를 제외하는 데 씁니다. */
+  hasCar: AssetAnswer;
+  /** 주택 보유(유주택) — 태그 힌트에만 사용합니다. */
+  ownsHome: AssetAnswer;
   incomeBand: string;
   /** Optional memo (만 원 단위 문자). Matching/tags are unchanged — not a legal income test. */
   annualIncomeMemoManwon: string;

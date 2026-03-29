@@ -1,7 +1,9 @@
 import type {
+  AssetAnswer,
   FamilyMember,
   FamilyState,
   MemberProfile,
+  OccupationKind,
   Relationship,
   StudentLevel,
 } from '@/types/family';
@@ -29,7 +31,10 @@ export function emptyProfile(): MemberProfile {
     regionSido: '',
     regionSigungu: '',
     region: '',
+    occupationKind: '',
     occupation: '',
+    hasCar: 'unknown',
+    ownsHome: 'unknown',
     incomeBand: '',
     annualIncomeMemoManwon: '',
     studentLevel: 'none',
@@ -52,13 +57,42 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
   }
   const useHouseholdRegionIncome =
     typeof o.useHouseholdRegionIncome === 'boolean' ? o.useHouseholdRegionIncome : true;
+
+  const kindVals: OccupationKind[] = [
+    '',
+    'salaried',
+    'self_employed',
+    'freelancer',
+    'homemaker',
+    'student',
+    'job_seeking',
+    'retired',
+    'parental_leave',
+    'other',
+  ];
+  let occupationKind: OccupationKind =
+    typeof o.occupationKind === 'string' && kindVals.includes(o.occupationKind as OccupationKind)
+      ? (o.occupationKind as OccupationKind)
+      : '';
+  let occupation = typeof o.occupation === 'string' ? o.occupation : e.occupation;
+  if (!occupationKind && occupation.trim()) occupationKind = 'other';
+
+  const normAsset = (v: unknown): AssetAnswer => {
+    if (v === 'yes' || v === true) return 'yes';
+    if (v === 'no' || v === false) return 'no';
+    return 'unknown';
+  };
+
   return {
     birthDate: typeof o.birthDate === 'string' ? o.birthDate : e.birthDate,
     useHouseholdRegionIncome,
     regionSido: typeof o.regionSido === 'string' ? o.regionSido : e.regionSido,
     regionSigungu: typeof o.regionSigungu === 'string' ? o.regionSigungu : e.regionSigungu,
     region: typeof o.region === 'string' ? o.region : e.region,
-    occupation: typeof o.occupation === 'string' ? o.occupation : e.occupation,
+    occupationKind,
+    occupation,
+    hasCar: normAsset(o.hasCar),
+    ownsHome: normAsset(o.ownsHome),
     incomeBand: typeof o.incomeBand === 'string' ? o.incomeBand : e.incomeBand,
     annualIncomeMemoManwon:
       typeof o.annualIncomeMemoManwon === 'string' ? o.annualIncomeMemoManwon : e.annualIncomeMemoManwon,

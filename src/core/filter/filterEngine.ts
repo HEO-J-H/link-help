@@ -1,7 +1,29 @@
 import type { WelfareRecord } from '@/types/benefit';
-import type { MemberProfile } from '@/types/family';
+import type { MemberProfile, OccupationKind } from '@/types/family';
 import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { ageCategory, ageFromBirthDate } from '@/utils/date';
+
+const OCC_KIND_TAGS: Partial<Record<OccupationKind, readonly string[]>> = {
+  salaried: ['직장인'],
+  self_employed: ['자영업'],
+  freelancer: ['프리랜서'],
+  homemaker: ['전업주부'],
+  student: ['학생'],
+  job_seeking: ['구직'],
+  retired: ['은퇴'],
+  parental_leave: ['육아휴직'],
+};
+
+function addOccupationAndAssetTags(tags: Set<string>, p: MemberProfile) {
+  const kindTags = p.occupationKind ? OCC_KIND_TAGS[p.occupationKind] : undefined;
+  if (kindTags) for (const t of kindTags) tags.add(t);
+  if (p.occupationKind === 'other' && p.occupation.trim()) tags.add(p.occupation.trim());
+  if (!p.occupationKind && p.occupation.trim()) tags.add(p.occupation.trim());
+
+  if (p.hasCar === 'yes') tags.add('자동차');
+  if (p.ownsHome === 'yes') tags.add('유주택');
+  if (p.ownsHome === 'no') tags.add('무주택');
+}
 
 function baseProfileTags(p: MemberProfile, age: number | null): string[] {
   const tags = new Set<string>();
@@ -11,8 +33,7 @@ function baseProfileTags(p: MemberProfile, age: number | null): string[] {
       tags.add(token);
     }
   }
-  const occ = p.occupation.trim();
-  if (occ) tags.add(occ);
+  addOccupationAndAssetTags(tags, p);
   for (const t of ageCategory(age)) tags.add(t);
   if (p.hasDisability) tags.add('장애인');
   if (p.studentLevel === 'university' && age != null && age >= 18 && age <= 39) tags.add('대학생');
@@ -49,14 +70,25 @@ function jaccardMatchScore(derived: Set<string>, welfareTags: string[]): number 
   return union === 0 ? 0 : Math.round((inter / union) * 1000) / 1000;
 }
 
+/** Drop car-centric rows when user explicitly has no car. */
+function welfareConflictsWithAssets(w: WelfareRecord, p: MemberProfile): boolean {
+  if (p.hasCar !== 'no') return false;
+  return w.tags.some((t) => {
+    const x = t.trim();
+    return x === '자동차' || x === '전기차' || x === '차량';
+  });
+}
+
 function recommendFromDerived(
   list: WelfareRecord[],
   derived: Set<string>,
-  exclude: Set<string>
+  exclude: Set<string>,
+  profile?: MemberProfile
 ): WelfareRecord[] {
   if (derived.size === 0) return [];
   return list.filter((w) => {
     if (isWelfareEffectivelyExpired(w)) return false;
+    if (profile && welfareConflictsWithAssets(w, profile)) return false;
     const hit = w.tags.some((t) => derived.has(t));
     const blocked = w.tags.some((t) => exclude.has(t));
     return hit && !blocked;
@@ -73,7 +105,7 @@ export function recommendScoredForProfile(
   const derived = new Set(profileToDerivedTags(profile));
   const exclude = memberExcludeTags(profile);
   if (derived.size === 0) return [];
-  const base = recommendFromDerived(list, derived, exclude);
+  const base = recommendFromDerived(list, derived, exclude, profile);
   return base
     .map((w) => ({
       ...w,
@@ -106,7 +138,8 @@ export function recommendForProfileAtAge(
   return recommendFromDerived(
     list,
     new Set(profileToDerivedTagsAtAge(profile, ageYears)),
-    memberExcludeTags(profile)
+    memberExcludeTags(profile),
+    profile
   );
 }
 

@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import type { HouseholdDefaults } from '@/types/household';
-import type { MemberProfile, Relationship, StudentLevel } from '@/types/family';
+import type { AssetAnswer, MemberProfile, Relationship, StudentLevel } from '@/types/family';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
-import { INCOME_CHOICES } from '@/features/family/formConstants';
+import { ASSET_CHOICES, INCOME_CHOICES, OCCUPATION_KIND_CHOICES } from '@/features/family/formConstants';
 import { HouseholdFormFields } from '@/features/family/HouseholdFormFields';
 import { useRegionCatalog } from '@/features/family/useRegionCatalog';
 import { MEMBER_COLOR_PRESETS, memberColorForInput } from '@/core/family/memberColors';
@@ -310,21 +310,47 @@ export function MemberDetailPage() {
       </div>
 
       <div className="field">
-        <label htmlFor="m-job">직업·상태</label>
-        <input
-          id="m-job"
-          value={local.occupation}
-          onChange={(e) => setLocal({ ...local, occupation: e.target.value })}
-          onBlur={(e) => {
-            const occ = e.target.value;
-            const next = { ...local, occupation: occ };
+        <label htmlFor="m-occ-kind">활동·직업 상태</label>
+        <select
+          id="m-occ-kind"
+          value={local.occupationKind}
+          onChange={(e) => {
+            const occupationKind = e.target.value as MemberProfile['occupationKind'];
+            const next = { ...local, occupationKind };
             setLocal(next);
             persist(next);
           }}
-          placeholder="예: 직장인"
-        />
-        <p className="field-hint">공고에 직업 태그가 있을 때만 매칭에 쓰입니다.</p>
+        >
+          {OCCUPATION_KIND_CHOICES.map((o) => (
+            <option key={o.value === '' ? '_empty' : o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="field-hint">
+          {OCCUPATION_KIND_CHOICES.find((x) => x.value === local.occupationKind)?.hint ??
+            '공고의 대상·직업 태그와 맞출 때 사용합니다.'}
+        </p>
       </div>
+
+      {local.occupationKind === 'other' && (
+        <div className="field">
+          <label htmlFor="m-job">기타 (직접 입력)</label>
+          <input
+            id="m-job"
+            value={local.occupation}
+            onChange={(e) => setLocal({ ...local, occupation: e.target.value })}
+            onBlur={(e) => {
+              const occ = e.target.value;
+              const next = { ...local, occupation: occ };
+              setLocal(next);
+              persist(next);
+            }}
+            placeholder="예: 공무원, 예술인"
+          />
+          <p className="field-hint">「기타」일 때만 매칭 태그로 넣습니다.</p>
+        </div>
+      )}
 
       <fieldset className="field fieldset-plain">
         <legend className="fieldset-legend">학생 여부</legend>
@@ -352,6 +378,50 @@ export function MemberDetailPage() {
           })}
         </div>
       </fieldset>
+
+      <div className="field">
+        <label htmlFor="m-car">자동차 보유</label>
+        <select
+          id="m-car"
+          value={local.hasCar}
+          onChange={(e) => {
+            const hasCar = e.target.value as AssetAnswer;
+            const next = { ...local, hasCar };
+            setLocal(next);
+            persist(next);
+          }}
+        >
+          {ASSET_CHOICES.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="field-hint">「아니오」이면 자동차·전기차 중심 공고는 목록에서 빼는 데 씁니다.</p>
+      </div>
+
+      <div className="field">
+        <label htmlFor="m-home">주택 보유 (유주택)</label>
+        <select
+          id="m-home"
+          value={local.ownsHome}
+          onChange={(e) => {
+            const ownsHome = e.target.value as AssetAnswer;
+            const next = { ...local, ownsHome };
+            setLocal(next);
+            persist(next);
+          }}
+        >
+          {ASSET_CHOICES.map((o) => (
+            <option key={o.value} value={o.value}>
+              {o.label}
+            </option>
+          ))}
+        </select>
+        <p className="field-hint">
+          무주택·유주택 공고 태그 힌트에만 씁니다. 가구 대표만 채워도 됩니다.
+        </p>
+      </div>
 
       <div className="field">
         <label className="switch-row">
