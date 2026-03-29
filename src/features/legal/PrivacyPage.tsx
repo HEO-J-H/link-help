@@ -9,8 +9,9 @@ export function PrivacyPage() {
           Link-Help는 <strong>회원 가입 없이</strong> 동작합니다. 가족 구성원·프로필·알림 등
           이용자가 입력하는 민감 정보는 <strong>서버에 자동으로 모이지 않으며</strong>, 기본적으로{' '}
           <strong>브라우저 sessionStorage</strong>(탭·창 단위)에만 JSON 형태로 보관됩니다. 탭이나
-          창을 닫으면 해당 데이터는 사라지고, 다시 열면 빈 화면에서 시작합니다. 지속하려면 이용자가
-          직접 <strong>JSON 보내기/불러오기</strong>를 사용합니다.
+          창을 닫으면 해당 데이터는 사라지기 쉽습니다. 이용자가 <strong>가족 탭</strong>에서 JSON
+          보내기/불러오기를 하거나, 선택 시 <strong>localStorage</strong>에 남기는 브라우저 백업으로 새 탭에서
+          복원을 제안받을 수 있습니다.
         </p>
       </section>
       <section>
@@ -44,7 +45,7 @@ export function PrivacyPage() {
         <h2>4. 보관 및 삭제</h2>
         <ul>
           <li>탭·창을 닫으면 sessionStorage의 입력 데이터가 지워집니다.</li>
-          <li>설정의 &quot;데이터 초기화&quot;로 같은 탭 안에서도 가족 데이터를 바로 비울 수 있습니다.</li>
+          <li>가족 탭의 &quot;가족 데이터 초기화&quot;로 같은 탭 안에서도 가족 데이터와 브라우저 백업을 비울 수 있습니다.</li>
           <li>브라우저 설정에서 사이트 데이터·저장소를 지우면 IndexedDB 누적도 함께 없어질 수 있습니다(번들 JSON은 앱과 함께 다시 제공됩니다).</li>
           <li>JSON 보내기로 파일을 내려받아 두면, 나중에 불러오기로 같은 기기·다른 탭에서 복원할 수 있습니다.</li>
         </ul>

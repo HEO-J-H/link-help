@@ -14,6 +14,8 @@ import { clearFamilyIndexedDb, loadFamilyFromIndexedDb } from '@/core/storage/fa
 import { FAMILY_STORAGE_KEY } from '@/core/storage/localStorageKeys';
 import { loadFamilyFromStorage } from '@/core/storage/localStorage';
 import { loadFamilyFromSession, saveFamilyToSession } from '@/core/storage/familySessionStorage';
+import { loadFamilyLocalBackupRaw } from '@/core/storage/familyLocalBackup';
+import { parseFamilyImportJson } from '@/core/storage/exportImport';
 
 type FamilyContextValue = {
   state: FamilyState;
@@ -38,6 +40,23 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
         if (fromSession !== null) {
           if (!cancelled) setStateInternal(fromSession);
           return;
+        }
+
+        const backupRaw = loadFamilyLocalBackupRaw();
+        if (backupRaw) {
+          const restore = window.confirm(
+            '이 브라우저에 저장된 가족 백업이 있습니다.\n\n불러올까요?\n\n「취소」하면 비어 있는 상태로 시작하고, 이전에 내려받은 마이그레이션(IndexedDB 등)을 이어서 확인합니다.',
+          );
+          if (restore) {
+            try {
+              const parsed = parseFamilyImportJson(backupRaw);
+              saveFamilyToSession(parsed);
+              if (!cancelled) setStateInternal(parsed);
+              return;
+            } catch {
+              window.alert('백업 파일 형식을 읽지 못했습니다. 파일에서 불러오기로 다시 시도해 주세요.');
+            }
+          }
         }
 
         const fromIdb = await loadFamilyFromIndexedDb();

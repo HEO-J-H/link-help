@@ -97,7 +97,8 @@ npm run server`}
         <ul style={{ marginBottom: 0, paddingLeft: '1.2rem' }}>
           <li>
             <strong>가족·알림·설정</strong> → <strong>sessionStorage</strong>(탭·창 단위). 창을 닫으면
-            지워지고, <strong>JSON 불러오기</strong>로만 다시 채웁니다. 회원 가입 없음.
+            비워지기 쉬우니 <strong>가족 탭</strong>에서 JSON으로 내려받거나 브라우저 백업을 써 두세요. 새 탭에서
+            백업이 있으면 복원 여부를 묻습니다. 회원 가입 없음.
           </li>
           <li>
             <strong>번들 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽고, IndexedDB 누적과
