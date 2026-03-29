@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useWelfare } from '@/context/WelfareContext';
 import { filterWelfareByText } from '@/core/filter/filterEngine';
 import { isWelfareEffectivelyExpired, sortWelfareForDiscovery } from '@/core/welfare/welfareLifecycle';
+import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 
 export function BenefitListPage() {
   const { list, loading, error } = useWelfare();
@@ -28,7 +29,8 @@ export function BenefitListPage() {
       <h1 className="page-title">혜택</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 14, fontSize: '0.92rem', lineHeight: 1.55 }}>
         공식 API에만 의존하지 않고, 태그·프로필·앞으로 쌓이는 데이터로{' '}
-        <strong>놓치기 쉬운 지원</strong>을 더 찾는 방향입니다. 아래는 로컬·원격 복지 목록입니다.
+        <strong>놓치기 쉬운 지원</strong>을 더 찾는 방향입니다. 아래는 로컬·원격 복지 목록입니다. 신청 기간이
+        파싱되는 항목은 <strong>Google 캘린더</strong>로 종일 일정을 추가할 수 있습니다.
       </p>
       <input
         className="search-input"
@@ -60,8 +62,8 @@ export function BenefitListPage() {
       </div>
       <div className="stack">
         {filtered.map((w) => (
-          <Link key={w.id} to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card">
+          <div key={w.id} className="card">
+            <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <h3 style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
                 {w.title}
                 {isWelfareEffectivelyExpired(w) && (
@@ -81,8 +83,11 @@ export function BenefitListPage() {
                   </span>
                 )}
               </p>
+            </Link>
+            <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
+              <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
             </div>
-          </Link>
+          </div>
         ))}
       </div>
       {filtered.length === 0 && <p className="muted">검색 결과가 없습니다.</p>}

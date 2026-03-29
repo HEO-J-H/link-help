@@ -8,6 +8,7 @@ import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/co
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { contributeRecords } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
+import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 
 const STAGES = [
   { id: 'prep', label: '프로필·포함·제외 조건 정리' },
@@ -153,7 +154,8 @@ export function SmartSearchPage() {
         차상위, 장애인)를 조합해 통합 카탈로그에서 찾습니다. 핵심은 붙여넣기가 아니라{' '}
         <strong>이 조건으로 스캔·매칭</strong>하는 흐름입니다. 매칭으로 걸린 항목은{' '}
         <strong>이 기기 IndexedDB</strong>에 쌓입니다. 설정에서 공용 API를 넣고 기여에 동의한 경우에만, 매칭
-        결과(복지 메타만)를 서버로 보낼 수 있습니다.
+        결과(복지 메타만)를 서버로 보낼 수 있습니다. 신청 기간이 파싱되면 결과 카드에서{' '}
+        <strong>Google 캘린더</strong>로 종일 일정을 넣을 수 있습니다.
       </p>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.85rem' }}>
         통합 카탈로그 <strong>{list.length}</strong>건 로드됨 (번들 JSON + 로컬 누적).
@@ -291,8 +293,8 @@ export function SmartSearchPage() {
 
       <div className="stack">
         {results.map((w) => (
-          <Link key={w.id} to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-            <div className="card">
+          <div key={w.id} className="card">
+            <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>
                 <h3 style={{ margin: 0 }}>{w.title}</h3>
                 <span className="score-pill" title="스마트 매칭 점수">
@@ -303,8 +305,11 @@ export function SmartSearchPage() {
               <p className="muted" style={{ marginTop: 6 }}>
                 {w.tags.join(' · ')}
               </p>
+            </Link>
+            <div className="field-row field-row--wrap" style={{ marginTop: 10, marginBottom: 0, gap: 8 }}>
+              <GoogleCalendarPeriodButton record={w} className="btn secondary btn--compact" label="Google 캘린더" />
             </div>
-          </Link>
+          </div>
         ))}
       </div>
 

@@ -22,7 +22,9 @@ export function NotificationsPage() {
     <div>
       <h1 className="page-title">알림</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        예정된 알림 목록입니다. 브라우저 알림은 설정에서 허용해야 표시됩니다.
+        예정된 알림 목록입니다. 브라우저 알림은 설정에서 허용해야 표시됩니다. 복지 항목의{' '}
+        <strong>신청 기간</strong>을 Google 캘린더에 넣으려면 혜택·추천·스마트 매칭 화면의 해당 카드 또는 상세의
+        「Google 캘린더」를 사용하세요.
       </p>
 
       <p className="muted" style={{ marginBottom: 16 }}>

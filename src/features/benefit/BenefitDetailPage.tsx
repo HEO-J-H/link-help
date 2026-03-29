@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { suggestTagsFromText } from '@/core/ai/suggestTags';
 import type { Reminder } from '@/types/reminder';
 import { makeId } from '@/utils/uid';
-import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
+import { googleCalendarUrlForApplicationPeriod } from '@/core/calendar/googleCalendar';
+import { isWelfareEffectivelyExpired, parseApplicationPeriodRange } from '@/core/welfare/welfareLifecycle';
+import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
+import { formatDatetimeLocalValue } from '@/utils/format';
 import type { WelfareCatalogOrigin } from '@/types/benefit';
 
 function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
@@ -28,6 +31,17 @@ export function BenefitDetailPage() {
   const [paste, setPaste] = useState('');
   const [suggested, setSuggested] = useState<string[]>([]);
   const [suggestBusy, setSuggestBusy] = useState(false);
+
+  useEffect(() => {
+    if (!w) return;
+    const r = parseApplicationPeriodRange(w.period);
+    if (!r) {
+      setRemindAt('');
+      return;
+    }
+    const d = new Date(r.start.getFullYear(), r.start.getMonth(), r.start.getDate(), 9, 0, 0, 0);
+    setRemindAt(formatDatetimeLocalValue(d));
+  }, [w?.id, w?.period]);
 
   if (loading) return <p className="muted">불러오는 중…</p>;
   if (!w) {
@@ -75,6 +89,7 @@ export function BenefitDetailPage() {
   };
 
   const ended = isWelfareEffectivelyExpired(w);
+  const gcalHref = googleCalendarUrlForApplicationPeriod(w);
 
   return (
     <div>
@@ -156,10 +171,25 @@ export function BenefitDetailPage() {
         )}
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>알림 예약</h2>
+      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>알림·캘린더</h2>
       <div className="card">
-        <p className="muted" style={{ marginTop: 0 }}>
-          선택한 시각에 브라우저 알림(허용 시)과 알림 탭 목록을 사용합니다.
+        {gcalHref ? (
+          <>
+            <p className="muted" style={{ marginTop: 0 }}>
+              <strong>Google 캘린더</strong>에는 항목의 <strong>신청·모집 기간</strong> 문자열을 파싱해 종일 일정으로
+              넣습니다. 실제 접수 마감은 공식 공고로 확인하세요.
+            </p>
+            <GoogleCalendarPeriodButton record={w} style={{ width: '100%', textAlign: 'center', marginBottom: 14 }} />
+          </>
+        ) : (
+          <p className="muted" style={{ marginTop: 0 }}>
+            이 항목의 기간 문구에서 날짜 범위를 읽을 수 없어 Google 캘린더 링크를 만들 수 없습니다. 아래 앱 알림만
+            사용하거나, 기간을 확인한 뒤 캘린더에 직접 넣어 주세요.
+          </p>
+        )}
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.88rem', lineHeight: 1.55 }}>
+          <strong>이 앱 알림</strong>은 아래에서 원하는 시각을 고릅니다. 신청 기간의 <strong>시작일 오전 9시</strong>로
+          자동 채웁니다(기간을 파싱할 수 있을 때).
         </p>
         <div className="field">
           <label htmlFor="ben-rem">알림 시각</label>

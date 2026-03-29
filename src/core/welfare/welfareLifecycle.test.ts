@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import type { WelfareRecord } from '@/types/benefit';
-import { isWelfareEffectivelyExpired, parsePeriodEndDate } from './welfareLifecycle';
+import {
+  isWelfareEffectivelyExpired,
+  parseApplicationPeriodRange,
+  parsePeriodEndDate,
+} from './welfareLifecycle';
 
 function row(partial: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 'title'>): WelfareRecord {
   return {
@@ -31,6 +35,25 @@ describe('parsePeriodEndDate', () => {
   it('returns null for empty', () => {
     expect(parsePeriodEndDate('')).toBeNull();
     expect(parsePeriodEndDate('상시')).toBeNull();
+  });
+});
+
+describe('parseApplicationPeriodRange', () => {
+  it('returns start and end for date range', () => {
+    const r = parseApplicationPeriodRange('2026-03-01 ~ 2026-06-30');
+    expect(r).not.toBeNull();
+    expect(r!.start.getFullYear()).toBe(2026);
+    expect(r!.start.getMonth()).toBe(2);
+    expect(r!.start.getDate()).toBe(1);
+    expect(r!.end.getMonth()).toBe(5);
+    expect(r!.end.getDate()).toBe(30);
+  });
+
+  it('returns single day for 마감 date phrase', () => {
+    const r = parseApplicationPeriodRange('접수 마감: 2026-04-15');
+    expect(r).not.toBeNull();
+    expect(r!.start.getDate()).toBe(15);
+    expect(r!.end.getDate()).toBe(15);
   });
 });
 
