@@ -11,6 +11,8 @@ export interface MemberProfile {
   region: string;
   occupation: string;
   incomeBand: string;
+  /** Optional memo (만 원 단위 문자). Matching/tags are unchanged — not a legal income test. */
+  annualIncomeMemoManwon: string;
   studentLevel: StudentLevel;
   hasDisability: boolean;
   extraIncludeTags: string[];

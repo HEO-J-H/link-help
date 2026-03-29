@@ -17,6 +17,7 @@ export function emptyProfile(): MemberProfile {
     region: '',
     occupation: '',
     incomeBand: '',
+    annualIncomeMemoManwon: '',
     studentLevel: 'none',
     hasDisability: false,
     extraIncludeTags: [],
@@ -40,6 +41,8 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
     region: typeof o.region === 'string' ? o.region : e.region,
     occupation: typeof o.occupation === 'string' ? o.occupation : e.occupation,
     incomeBand: typeof o.incomeBand === 'string' ? o.incomeBand : e.incomeBand,
+    annualIncomeMemoManwon:
+      typeof o.annualIncomeMemoManwon === 'string' ? o.annualIncomeMemoManwon : e.annualIncomeMemoManwon,
     studentLevel,
     hasDisability: typeof o.hasDisability === 'boolean' ? o.hasDisability : e.hasDisability,
     extraIncludeTags: Array.isArray(o.extraIncludeTags)

@@ -18,12 +18,27 @@ export function AboutPage() {
       </p>
       <h1 className="page-title">서비스 안내</h1>
 
-      <section id="quick-start" className="card" style={{ marginBottom: 14 }}>
-        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>빠른 시작</h2>
-        <p className="muted" style={{ marginTop: 0 }}>
-          개발 PC에서 저장소 폴더를 연 뒤 터미널(PowerShell 등)에서 순서대로 진행하면 됩니다.
+      <section className="card" style={{ marginBottom: 14, borderColor: '#b8d4c4', background: '#f4fbf7' }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>인터넷 주소만으로 쓰기</h2>
+        <p style={{ marginTop: 0, lineHeight: 1.6 }}>
+          이 사이트 주소(예: GitHub Pages로 배포된 URL)를 브라우저에서 열면 됩니다.{' '}
+          <strong>별도 프로그램 설치·회원 가입·서버 실행은 없습니다.</strong> 가족과 프로필은 이 탭이
+          열려 있는 동안만 브라우저에 저장되며, 닫으면 비워질 수 있으니 필요하면 설정에서 JSON으로
+          백업하세요.
         </p>
-        <h3 style={{ fontSize: '0.98rem', margin: '14px 0 8px' }}>웹만 쓰기 (서버 없음)</h3>
+        <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
+          설정의 「원격 API」는 <strong>선택</strong>입니다. 비워 두면 앱에 포함된 복지 샘플 데이터만으로
+          목록·추천이 동작합니다.
+        </p>
+      </section>
+
+      <section id="quick-start" className="card" style={{ marginBottom: 14 }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>빠른 시작 (개발자용)</h2>
+        <p className="muted" style={{ marginTop: 0 }}>
+          로컬에서 소스를 수정·실행할 때만 아래가 필요합니다. 일반 이용은 위 「인터넷 주소만」으로
+          충분합니다.
+        </p>
+        <h3 style={{ fontSize: '0.98rem', margin: '14px 0 8px' }}>로컬 웹만 (서버 없음)</h3>
         <pre
           style={{
             margin: '0 0 12px',

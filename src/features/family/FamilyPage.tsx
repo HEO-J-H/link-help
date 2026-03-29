@@ -17,8 +17,9 @@ export function FamilyPage() {
     <div>
       <h1 className="page-title">가족</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        구성원을 눌러 프로필을 입력하면 추천에 반영됩니다. 탭을 닫기 전에 필요하면 설정에서
-        JSON보내기로 백업하세요.
+        <strong>이 주소만 열어도</strong> 가족·혜택·추천은 서버 없이 동작합니다. (설정의 API는 선택
+        사항입니다.) 구성원을 눌러 프로필을 입력하면 추천에 반영됩니다. 탭을 닫기 전에 필요하면 설정에서
+        JSON 보내기로 백업하세요.
       </p>
       {state.members.length === 0 && (
         <p className="muted" style={{ marginBottom: 14, fontSize: '0.92rem' }}>

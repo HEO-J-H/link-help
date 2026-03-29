@@ -26,7 +26,7 @@ const INCOME_CHOICES: { value: string; label: string; hint: string }[] = [
   {
     value: '중위소득150',
     label: '중위소득 150% 이하',
-    hint: '가구 소득이 전국 중위소득의 150% 이하일 때. 청년·아동 많은 공고가 이 기준을 씁니다.',
+    hint: '가구 단위로 본 소득이 「중위소득」의 150% 이하일 때 쓰는 말입니다. 금액은 가구원 수·연도마다 달라 아래 도움말을 보세요.',
   },
   {
     value: '일반',
@@ -297,6 +297,62 @@ export function MemberDetailPage() {
           ))}
         </select>
         {incomeHint && <p className="field-hint">{incomeHint}</p>}
+
+        <details className="details-help">
+          <summary className="details-help__summary">중위소득·금액이 헷갈려요</summary>
+          <div className="details-help__body">
+            <p>
+              <strong>중위소득 150%는 고정 금액이 아닙니다.</strong> 같은 비율이라도 가구원 수(1인·2인·4인
+              …)와 매년 바뀌는 기준액에 따라 달라집니다. 복지마다 인정 소득(근로·사업·재산 환산 등)을
+              어떻게 넣는지도 다를 수 있어요.
+            </p>
+            <p>
+              이 앱의 「소득 구간」은 <strong>샘플 복지 데이터의 태그</strong>와 맞추기 위한 선택이며,
+              실제 수급·신청 가능 여부를 판정하지 않습니다.
+            </p>
+            <p className="details-help__links">
+              <a
+                href="https://www.bokjiro.go.kr/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-link"
+              >
+                복지로(정부복지포털)
+              </a>
+              에서 「중위소득」으로 검색하면 가구 기준액·안내를 볼 수 있습니다. 정확한 판단은 공고문·
+              주민센터·담당 기관 기준을 따르세요.
+            </p>
+          </div>
+        </details>
+
+        <div className="field" style={{ marginTop: 12, marginBottom: 0 }}>
+          <label htmlFor="m-income-memo">참고용 연소득 (만 원, 선택)</label>
+          <input
+            id="m-income-memo"
+            inputMode="numeric"
+            pattern="[0-9]*"
+            placeholder="예: 3600"
+            value={local.annualIncomeMemoManwon}
+            onChange={(e) => {
+              const raw = e.target.value.replace(/\D/g, '');
+              setLocal((prev) => (prev ? { ...prev, annualIncomeMemoManwon: raw } : prev));
+            }}
+            onBlur={(e) => {
+              const raw = e.target.value.replace(/\D/g, '');
+              setLocal((prev) => {
+                if (!prev) return prev;
+                const next = { ...prev, annualIncomeMemoManwon: raw };
+                persist(next);
+                return next;
+              });
+            }}
+          />
+          <p className="field-hint">
+            본인이 기억하기 위한 메모입니다. <strong>자동으로 소득 구간을 바꾸지 않습니다.</strong>{' '}
+            연봉만으로 복지 기준을 계산하면 가구·소득 종류를 빼먹기 쉬워 오해가 생길 수 있어, 앱에서는
+            구간은 직접 고르고 숫자는 선택 입력으로 두었습니다.
+          </p>
+        </div>
       </div>
 
       <fieldset className="field fieldset-plain">

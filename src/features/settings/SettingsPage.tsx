@@ -141,11 +141,16 @@ export function SettingsPage() {
 
       <div className="card" style={{ marginBottom: 22 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>처음 켤 때</h2>
-        <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
-          <strong>웹만:</strong> 터미널에서 <code>npm install</code> → <code>npm run dev</code>
+        <p style={{ marginTop: 0, fontSize: '0.95rem', lineHeight: 1.55 }}>
+          <strong>배포된 웹 주소</strong>(예: GitHub Pages)만 열면 가족·혜택 목록·추천·타임라인은{' '}
+          <strong>바로 쓸 수 있습니다.</strong> 터미널·npm·서버는 필요 없습니다.
+        </p>
+        <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+          아래 <strong>원격 API·Web Push</strong>는 스마트 검색 기록·서버 연동을 쓸 때만 넣으면 됩니다.
+          비워 두어도 앱은 정상 동작합니다.
           <br />
-          <strong>API까지:</strong> <code>npm run dev:full</code> (또는 Windows에서{' '}
-          <code>scripts\dev-full.cmd</code>) — 자세한 단계는{' '}
+          <strong>로컬에서 개발할 때만:</strong> <code>npm install</code> → <code>npm run dev</code> — API까지
+          쓰려면 <code>npm run dev:full</code> 등. 자세한 단계는{' '}
           <Link to="/start">빠른 시작 안내</Link>를 보세요.
         </p>
       </div>
