@@ -5,6 +5,15 @@ import { useWelfare } from '@/context/WelfareContext';
 import { profileToDerivedTags } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/core/filter/smartMatchEngine';
+import {
+  SMART_SEARCH_PRESETS,
+  SMART_QUICK_CHIPS,
+  SMART_SEARCH_COACH_STEPS,
+  SMART_MATCH_MANY_THRESHOLD,
+  collectDrilldownGuides,
+  appendKeywordToDraft,
+  fallbackChipsForEmpty,
+} from '@/features/smartsearch/smartSearchAssist';
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { contributeRecords } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
@@ -56,6 +65,10 @@ export function SmartSearchPage() {
     () => state.members.find((m) => m.id === memberId) ?? state.members[0],
     [state.members, memberId]
   );
+
+  const includeKeywordsDraft = useMemo(() => parseKeywordInput(includeRaw), [includeRaw]);
+  const drilldownGuides = useMemo(() => collectDrilldownGuides(includeRaw), [includeRaw]);
+  const emptySuggestChips = useMemo(() => fallbackChipsForEmpty(includeRaw), [includeRaw]);
 
   const hydratedMemberRef = useRef(false);
   useEffect(() => {
@@ -201,11 +214,59 @@ export function SmartSearchPage() {
   return (
     <div className="page-comfort smart-find-page">
       <h1 className="page-title">숨은 복지·혜택찾기</h1>
-      <p className="muted smart-find-lead">
-        <strong>포함 키워드</strong>를 넣으면 그 단어(또는 가까운 표현)가 제목·내용·태그에 있는 항목만 골라 옵니다.{' '}
-        <strong>쉼표(,)</strong>로 여러 개를 넣으면 <strong>하나만 걸려도</strong> 나옵니다. 띄어쓰기 있는 문장은 한 덩어리로
-        취급합니다. 입력 내용은 가족 데이터와 함께 이 브라우저에 저장됩니다.
+      <p className="smart-find-subtitle muted">
+        한 줄에 상황을 적듯이 쓰고, 안내에 따라 <strong>세부 단어로 바꿔 가며</strong> 찾아 보세요. 챗봇처럼 한 번에 답이
+        나오기보다, <strong>주제를 좁히는 질문</strong>을 스스로 던지는 흐름에 가깝게 설계했습니다.
       </p>
+      <p className="muted smart-find-lead">
+        <strong>포함 키워드</strong>는 제목·내용·태그에서 비슷한 말까지 넓게 짝지어 찾습니다. <strong>쉼표(,)</strong>로
+        나눈 단어는 <strong>하나만 맞아도</strong> 나옵니다(OR). 건수가 많으면 단어를 줄이거나 <strong>제외</strong> 칸을
+        쓰세요. 띄어쓰기 있는 문장은 한 덩어리로 둡니다. 입력은 이 브라우저에 저장됩니다.
+      </p>
+
+      <div className="card smart-find-coach" aria-labelledby="smart-find-coach-title">
+        <h2 id="smart-find-coach-title" className="smart-find-coach__title">
+          맞춤에 가깝게 쓰는 순서
+        </h2>
+        <ol className="smart-find-coach__steps">
+          {SMART_SEARCH_COACH_STEPS.map((line, i) => (
+            <li key={i}>{line}</li>
+          ))}
+        </ol>
+      </div>
+
+      <h2 className="subsection-title smart-find-section-title">자주 찾는 묶음</h2>
+      <p className="muted smart-find-section-hint">누르면 포함 키워드 칸이 아래 묶음으로 채워집니다. 필요하면 고쳐 쓴 뒤 혜택 찾기를 누르세요.</p>
+      <div className="smart-find-preset-grid">
+        {SMART_SEARCH_PRESETS.map((p) => (
+          <button
+            key={p.id}
+            type="button"
+            className="btn secondary smart-find-preset-btn"
+            onClick={() => setIncludeRaw(p.includeLine)}
+            title={p.hint}
+          >
+            <span className="smart-find-preset-btn__label">{p.label}</span>
+            <span className="smart-find-preset-btn__hint muted">{p.hint}</span>
+          </button>
+        ))}
+      </div>
+
+      <h2 className="subsection-title smart-find-section-title">빠른 키워드</h2>
+      <p className="muted smart-find-section-hint">탭하면 포함 칸 <strong>맨 뒤에</strong> 붙습니다. 같은 말은 한 번만 넣습니다.</p>
+      <div className="smart-find-chip-row" role="group" aria-label="빠른 키워드">
+        {SMART_QUICK_CHIPS.map((chip) => (
+          <button
+            key={chip}
+            type="button"
+            className="smart-find-chip"
+            onClick={() => setIncludeRaw((prev) => appendKeywordToDraft(prev, chip))}
+          >
+            {chip}
+          </button>
+        ))}
+      </div>
+
       <p className="muted smart-find-meta">
         통합 카탈로그 <strong>{list.length}</strong>건
       </p>
@@ -243,7 +304,7 @@ export function SmartSearchPage() {
             className="input-touch"
             value={includeRaw}
             onChange={(e) => setIncludeRaw(e.target.value)}
-            placeholder="예: 아동수당, 전기요금, 장애인"
+            placeholder="예: 전기요금 또는 한부모, 장애인 (세부로 바꿔 가며 검색)"
             autoComplete="off"
           />
         </div>
@@ -258,6 +319,29 @@ export function SmartSearchPage() {
             autoComplete="off"
           />
         </div>
+
+        {includeKeywordsDraft.length > 0 && drilldownGuides.length > 0 && (
+          <div className="smart-find-drill-wrap">
+            <p className="smart-find-drill-intro muted">
+              지금 적은 말과 맞물리는 주제입니다. <strong>세부로 들어가려면</strong> 아래 칩을 눌러 포함 키워드를 그 단어로
+              바꾼 뒤, 다시 혜택 찾기를 눌러 보세요.
+            </p>
+            {drilldownGuides.map((g) => (
+              <div key={g.id} className="card smart-find-drill">
+                <h3 className="smart-find-drill__title">{g.title}</h3>
+                <p className="muted smart-find-drill__body">{g.body}</p>
+                <div className="smart-find-chip-row smart-find-drill__chips" role="group" aria-label={`${g.title} 추천 단어`}>
+                  {g.refineChips.map((chip) => (
+                    <button key={chip} type="button" className="smart-find-chip smart-find-chip--refine" onClick={() => setIncludeRaw(chip)}>
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         <button type="button" className="btn smart-find-primary" onClick={run} disabled={running}>
           {running ? '찾는 중…' : '혜택 찾기'}
         </button>
@@ -285,6 +369,19 @@ export function SmartSearchPage() {
       {!running && foundCount !== null && (
         <p className="smart-find-result-count">{foundCount}개를 찾았습니다.</p>
       )}
+      {!running &&
+        foundCount !== null &&
+        foundCount >= SMART_MATCH_MANY_THRESHOLD &&
+        includeKeywordsDraft.length > 0 && (
+          <div className="card smart-find-alert-many" role="status">
+            <p className="smart-find-alert-many__title">결과가 많습니다</p>
+            <p className="muted" style={{ margin: 0, lineHeight: 1.55 }}>
+              쉼표로 나눈 키워드는 <strong>하나만 맞아도</strong> 모두 나열합니다. 건수를 줄이려면 포함 칸의 단어 수를 줄이거나,
+              제외 칸으로 주제를 거르세요. 위의 「세부로 들어가기」 칩으로 <strong>한 단어 검색</strong>을 여러 번 시도해 보는
+              것도 좋습니다.
+            </p>
+          </div>
+        )}
       {!running && persistNote && <p className="muted smart-find-note">{persistNote}</p>}
 
       {!running && results.length > 0 && state.appSettings.linkHelpApiBaseUrl.trim() && (
@@ -380,7 +477,16 @@ export function SmartSearchPage() {
       </div>
 
       {!running && results.length === 0 && foundCount === 0 && (
-        <p className="muted smart-find-empty">조건에 맞는 항목이 없습니다. 키워드·제외 단어를 바꿔 보세요.</p>
+        <div className="smart-find-empty-block">
+          <p className="muted smart-find-empty">조건에 맞는 항목이 없습니다. 동의어·철자를 바꾸거나, 아래를 눌러 포함 칸을 그 단어로 바꾼 뒤 다시 찾아 보세요.</p>
+          <div className="smart-find-chip-row" role="group" aria-label="다시 시도할 키워드">
+            {emptySuggestChips.map((chip) => (
+              <button key={chip} type="button" className="smart-find-chip" onClick={() => setIncludeRaw(chip)}>
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );

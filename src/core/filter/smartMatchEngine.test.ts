@@ -71,6 +71,27 @@ describe('runSmartMatch', () => {
     expect(out.map((x) => x.id)).toEqual(['1']);
   });
 
+  it('expands welfare topic clusters (한부모·기초생활 등)', () => {
+    const list = [
+      w({ id: '1', title: '지원', description: '한부모가정 대상', tags: [], benefit: '' }),
+      w({ id: '2', title: '급여', description: '생계급여 안내', tags: [], benefit: '' }),
+    ];
+    expect(
+      runSmartMatch(list, {
+        profileTags: [],
+        includeKeywords: ['한부모'],
+        excludeKeywords: [],
+      }).map((x) => x.id)
+    ).toEqual(['1']);
+    expect(
+      runSmartMatch(list, {
+        profileTags: [],
+        includeKeywords: ['기초생활수급'],
+        excludeKeywords: [],
+      }).map((x) => x.id)
+    ).toEqual(['2']);
+  });
+
   it('excludes by keyword (with cluster expansion)', () => {
     const list = [
       w({ id: '1', title: '복지 A', tags: ['전국', '장애인'], benefit: 'x' }),
