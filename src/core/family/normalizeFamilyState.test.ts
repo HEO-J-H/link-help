@@ -33,4 +33,29 @@ describe('normalizeFamilyState', () => {
     expect(norm.members).toEqual(empty.members);
     expect(norm.reminders).toEqual(empty.reminders);
   });
+
+  it('migrates legacy isStudent to studentLevel university', () => {
+    const out = normalizeFamilyState({
+      members: [
+        {
+          id: '1',
+          displayName: 'A',
+          relationship: 'self',
+          profile: {
+            birthDate: '',
+            region: '',
+            occupation: '',
+            incomeBand: '',
+            isStudent: true,
+            hasDisability: false,
+            extraIncludeTags: [],
+            extraExcludeTags: [],
+          } as import('@/types/family').MemberProfile & { isStudent?: boolean },
+        },
+      ],
+      reminders: [],
+      appSettings: {},
+    });
+    expect(out.members[0].profile.studentLevel).toBe('university');
+  });
 });

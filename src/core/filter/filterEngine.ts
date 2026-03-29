@@ -10,8 +10,10 @@ function baseProfileTags(p: MemberProfile, age: number | null): string[] {
   if (occ) tags.add(occ);
   for (const t of ageCategory(age)) tags.add(t);
   if (p.hasDisability) tags.add('장애인');
-  if (p.isStudent && age != null && age >= 18 && age <= 39) tags.add('대학생');
-  if (p.isStudent && age == null) tags.add('대학생');
+  if (p.studentLevel === 'university' && age != null && age >= 18 && age <= 39) tags.add('대학생');
+  if (p.studentLevel === 'university' && age == null) tags.add('대학생');
+  if (p.studentLevel === 'k12' && age != null && age >= 6 && age <= 19) tags.add('청소년');
+  if (p.studentLevel === 'k12' && age == null) tags.add('청소년');
   if (p.incomeBand.trim()) tags.add(p.incomeBand.trim());
   for (const t of p.extraIncludeTags) if (t.trim()) tags.add(t.trim());
   return [...tags];

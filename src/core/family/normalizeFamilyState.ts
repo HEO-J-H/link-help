@@ -1,7 +1,8 @@
 import type { FamilyState } from '@/types/family';
 import type { Reminder } from '@/types/reminder';
 import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
-import { emptySessionFamilyState } from './familyManager';
+import { emptySessionFamilyState, normalizeMemberProfile } from './familyManager';
+import type { FamilyMember } from '@/types/family';
 
 function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   const base = defaultAppSettings();
@@ -30,5 +31,10 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     return { members: [], reminders, appSettings };
   }
 
-  return { members, reminders, appSettings };
+  const normalizedMembers: FamilyMember[] = members.map((m) => ({
+    ...m,
+    profile: normalizeMemberProfile(m.profile),
+  }));
+
+  return { members: normalizedMembers, reminders, appSettings };
 }
