@@ -1,5 +1,4 @@
 import type { FamilyState } from '@/types/family';
-import type { InsurancePolicy } from '@/types/insurance';
 import type { Reminder } from '@/types/reminder';
 import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
 import { initialFamilyState } from './familyManager';
@@ -24,10 +23,8 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
     return initialFamilyState();
   }
   const members = data.members as FamilyState['members'];
-  const insurancePolicies =
-    Array.isArray(data.insurancePolicies) ? (data.insurancePolicies as InsurancePolicy[]) : [];
   const reminders = Array.isArray(data.reminders) ? (data.reminders as Reminder[]) : [];
   const appSettings = mergeAppSettingsFromRaw(data.appSettings);
 
-  return { members, insurancePolicies, reminders, appSettings };
+  return { members, reminders, appSettings };
 }

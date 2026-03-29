@@ -127,7 +127,7 @@ export function SettingsPage() {
     <div>
       <h1 className="page-title">설정</h1>
       <p className="muted" style={{ marginBottom: 20 }}>
-        가족·보험·알림 데이터는 브라우저 IndexedDB에만 저장됩니다. 예전 버전(localStorage)은 첫
+        가족·알림 데이터는 브라우저 IndexedDB에만 저장됩니다. 예전 버전(localStorage)은 첫
         실행 시 자동으로 옮겨집니다. 백업은 JSON보내기를 사용하세요.
       </p>
 

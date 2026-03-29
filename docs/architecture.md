@@ -6,6 +6,6 @@
 - **Service worker**: `src/sw.ts` (injectManifest) — precache, navigation fallback, welfare cache, **Web Push** handlers
 - **Matching**: `core/filter/filterEngine.ts` — tag overlap + exclude tags; timeline uses hypothetical age
 
-Tab shell: Family → Benefits → Recommend → Timeline → Insurance → Notifications → Settings (scrollable bar).
+Tab shell: Family → Benefits → Recommend → Timeline → Notifications → Settings (scrollable bar).
 
-Extensions: insurance CRUD in `FamilyState`, reminders + `ReminderRunner` (Notification API), `recommendScoredForProfile`, `core/ai/suggestTags` (client-only).
+Extensions: reminders + `ReminderRunner` (Notification API), `recommendScoredForProfile`, `core/ai/suggestTags` (client-only).

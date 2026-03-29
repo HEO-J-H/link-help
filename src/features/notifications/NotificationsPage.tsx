@@ -30,7 +30,7 @@ export function NotificationsPage() {
       </p>
 
       <div className="stack">
-        {sorted.length === 0 && <p className="muted">등록된 알림이 없습니다. 혜택·보험 상세에서 추가하세요.</p>}
+        {sorted.length === 0 && <p className="muted">등록된 알림이 없습니다. 혜택 상세에서 추가하세요.</p>}
         {sorted.map((r) => (
           <div key={r.id} className="card">
             <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'flex-start' }}>

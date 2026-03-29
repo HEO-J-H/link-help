@@ -1,4 +1,3 @@
-import type { InsurancePolicy } from '@/types/insurance';
 import type { Reminder } from '@/types/reminder';
 import type { AppSettings } from '@/types/appSettings';
 
@@ -24,7 +23,6 @@ export interface FamilyMember {
 
 export interface FamilyState {
   members: FamilyMember[];
-  insurancePolicies: InsurancePolicy[];
   reminders: Reminder[];
   appSettings: AppSettings;
 }

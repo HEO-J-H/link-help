@@ -34,7 +34,6 @@ export function createMember(partial: {
 export function initialFamilyState(): FamilyState {
   return {
     members: [createMember({ displayName: '본인', relationship: 'self' })],
-    insurancePolicies: [],
     reminders: [],
     appSettings: defaultAppSettings(),
   };

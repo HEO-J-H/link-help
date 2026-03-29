@@ -87,7 +87,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       return {
         ...prev,
         members: next,
-        insurancePolicies: prev.insurancePolicies.filter((p) => p.memberId !== id),
       };
     });
   }, []);

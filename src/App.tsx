@@ -10,8 +10,6 @@ import { BenefitDetailPage } from '@/features/benefit/BenefitDetailPage';
 import { RecommendPage } from '@/features/dashboard/RecommendPage';
 import { TimelinePage } from '@/features/timeline/TimelinePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
-import { InsuranceListPage } from '@/features/insurance/InsuranceListPage';
-import { InsuranceDetailPage } from '@/features/insurance/InsuranceDetailPage';
 import { NotificationsPage } from '@/features/notifications/NotificationsPage';
 
 export default function App() {
@@ -28,8 +26,6 @@ export default function App() {
               <Route path="/benefits/:id" element={<BenefitDetailPage />} />
               <Route path="/recommend" element={<RecommendPage />} />
               <Route path="/timeline" element={<TimelinePage />} />
-              <Route path="/insurance" element={<InsuranceListPage />} />
-              <Route path="/insurance/:id" element={<InsuranceDetailPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
