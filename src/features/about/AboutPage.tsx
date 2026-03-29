@@ -26,7 +26,8 @@ export function AboutPage() {
           백업하세요.
         </p>
         <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
-          복지 샘플 데이터는 앱에 포함된 JSON만 사용합니다. 스마트 매칭 결과도 서버로 보내지 않습니다.
+          복지 샘플은 앱에 포함된 JSON이며, 스마트 매칭·설정의 복지 JSON 가져오기로 쌓인 항목은 이
+          기기 IndexedDB에만 두고 서버로 보내지 않습니다.
         </p>
       </section>
 

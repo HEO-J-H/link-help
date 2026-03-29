@@ -1,12 +1,17 @@
 import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
+import { useWelfare } from '@/context/WelfareContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
 import { emptySessionFamilyState } from '@/core/family/familyManager';
+import { clearWelfareCache, upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
+import { parseWelfareImportJson } from '@/core/welfare/normalizeWelfareImport';
 
 export function SettingsPage() {
   const { state, setState } = useFamily();
+  const { refreshWelfareCatalog } = useWelfare();
   const fileRef = useRef<HTMLInputElement>(null);
+  const welfareFileRef = useRef<HTMLInputElement>(null);
 
   const download = () => {
     const blob = new Blob([exportFamilyJson(state)], { type: 'application/json' });
@@ -35,6 +40,47 @@ export function SettingsPage() {
   const reset = () => {
     if (window.confirm('로컬에 저장된 가족 데이터를 초기화할까요?')) {
       setState(emptySessionFamilyState());
+    }
+  };
+
+  const onWelfareFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const rows = parseWelfareImportJson(text);
+      await upsertWelfareRecords(rows);
+      refreshWelfareCatalog();
+      alert(`복지 항목 ${rows.length}건을 이 기기 카탈로그(IndexedDB)에 합쳤습니다.`);
+    } catch (err) {
+      const code = err instanceof Error ? err.message : '';
+      const msg =
+        code === 'invalid_json'
+          ? 'JSON 형식이 올바르지 않습니다.'
+          : code === 'not_array'
+            ? '파일 내용은 복지 항목 배열([...])이어야 합니다.'
+            : code === 'no_valid_rows'
+              ? 'id와 title이 있는 항목이 하나도 없습니다.'
+              : '복지 파일을 읽지 못했습니다.';
+      alert(msg);
+    }
+  };
+
+  const clearWelfare = async () => {
+    if (
+      !window.confirm(
+        '이 기기에 쌓인 복지 누적(스마트 매칭·파일 가져오기)을 모두 지울까요? 앱에 포함된 번들 샘플은 그대로입니다.'
+      )
+    ) {
+      return;
+    }
+    try {
+      await clearWelfareCache();
+      refreshWelfareCatalog();
+      alert('복지 누적 캐시를 비웠습니다.');
+    } catch {
+      alert('캐시를 비우지 못했습니다. 비공개 창 등 저장소 제한일 수 있습니다.');
     }
   };
 
@@ -129,6 +175,34 @@ export function SettingsPage() {
         />
         <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={reset}>
           데이터 초기화
+        </button>
+      </div>
+
+      <h2 style={{ fontSize: '1.1rem', margin: '28px 0 10px' }}>복지 카탈로그 (이 기기)</h2>
+      <div className="card" style={{ marginBottom: 20 }}>
+        <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
+          <code>WelfareRecord</code> 객체의 <strong>JSON 배열</strong> 파일을 불러오면{' '}
+          <code>link-help-welfare-cache</code>(IndexedDB)에 합쳐지고, 번들 샘플과 통합 목록으로
+          표시됩니다. 서버로 전송되지 않습니다. 형식은{' '}
+          <code>docs/schemas/welfare-record.example.json</code> 참고.
+        </p>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ width: '100%', marginBottom: 10 }}
+          onClick={() => welfareFileRef.current?.click()}
+        >
+          복지 JSON 불러오기 (배열)
+        </button>
+        <input
+          ref={welfareFileRef}
+          type="file"
+          accept="application/json,.json"
+          hidden
+          onChange={onWelfareFile}
+        />
+        <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={clearWelfare}>
+          복지 누적 캐시 비우기
         </button>
       </div>
 

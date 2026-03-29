@@ -5,19 +5,22 @@
 - 가족·프로필·정적 복지 목록·검색·상세
 - 구성원별 추천(태그 교차)·추천 점수·인기도(샘플)
 - 타임라인(연령별 미리보기)
-- 알림 예약 + 브라우저 알림 + Web Push(서버 연동 시)
-- JSON 보내기/불러오기/초기화
+- 알림 예약 + 브라우저 알림(로컬)
+- 가족 JSON 보내기/불러오기/초기화
 - **sessionStorage** 세션 모델(탭·창 닫으면 비움), 예전 IndexedDB/localStorage 1회 마이그레이션
 - PWA(injectManifest), GitHub Pages용 `build:gh` + `404.html` + Actions 배포 워크플로
-- 운영 API: `/welfare`, `/push/*`, SQLite
 - 법적/안내 화면(참고용 문구), `/start` 빠른 시작
 - **기간·종료 처리**: `period` 파싱 + `status: expired`로 추천·타임라인에서 제외, 혜택 목록에서 선택적으로 표시
-- **스마트 매칭**: 프로필+포함·제외 키워드, 진행 UI, `POST /smart-match`로 이력·`welfare_match_boost` 누적(PII 없음)
+- **스마트 매칭**: 프로필+포함·제외 키워드, 소스별 진행 UI, 전부 클라이언트; 결과 **IndexedDB** 누적 후 `loadMergedWelfareCatalog()`로 번들과 병합
+- **설정**: 복지 `WelfareRecord[]` JSON 파일 가져오기·누적 캐시 비우기 (`normalizeWelfareImport.ts`)
+- **`WelfareRecord` 확장 필드** + **`docs/catalog-pipeline.md`**(공고→AI→공용 DB 설계)·예시 JSON
+- **혜택 상세**: `source_url`, 카탈로그 메타(출처 유형·스키마·AI 신뢰도·dedupe_key) 표시
+- (선택) **`server/`** 레거시 실험: Express·SQLite·`POST /smart-match` 등 — **정적 웹앱 동작에 필수 아님**
 
 ## Backlog (not implemented)
 
-- **복지 DB 파이프라인**: AI 검색·큐레이션·크롤 후 `welfare_items` 자동 갱신(정책만 문서화, 코드 파이프라인 없음)
-- **앱 내 “AI 검색” UX**: 검색 결과를 서버에 선별 저장하는 흐름(무인증 시 스팸·남용 대책 필요)
+- **호스티드 AI 분석 서버** + **공용 복지 DB** 적재·검수·중복 제거(클라이언트는 `docs/catalog-pipeline.md` 계약만 반영)
+- **앱 → 서버 기여 UX**: 매칭/검색 결과를 공용 DB에 보내는 흐름(동의·스팸·검수 필요)
 - **회원·클라우드 동기화**: 의도적으로 범위 밖
 - **공식 복지 API** 실시간 연동·검수 프로세스
 - **관리자 화면**·역할·감사 로그

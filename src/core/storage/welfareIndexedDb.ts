@@ -65,3 +65,13 @@ export async function upsertWelfareRecords(records: WelfareRecord[]): Promise<vo
   await txComplete(tx);
   db.close();
 }
+
+/** Remove all cached welfare rows on this device (bundled JSON unaffected). */
+export async function clearWelfareCache(): Promise<void> {
+  const db = await openDb();
+  const tx = db.transaction(STORE, 'readwrite');
+  const store = tx.objectStore(STORE);
+  store.clear();
+  await txComplete(tx);
+  db.close();
+}

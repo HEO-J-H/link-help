@@ -6,6 +6,17 @@ import { suggestTagsFromText } from '@/core/ai/suggestTags';
 import type { Reminder } from '@/types/reminder';
 import { makeId } from '@/utils/uid';
 import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
+import type { WelfareCatalogOrigin } from '@/types/benefit';
+
+function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
+  if (!origin) return null;
+  const m: Record<WelfareCatalogOrigin, string> = {
+    bundled: '앱 번들',
+    crowd: '기여·공유',
+    import: '파일 가져오기',
+  };
+  return `출처 유형: ${m[origin]}`;
+}
 
 export function BenefitDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -103,6 +114,39 @@ export function BenefitDetailPage() {
         <p className="muted" style={{ marginTop: 12 }}>
           출처: {w.source}
         </p>
+        {w.source_url && (
+          <p style={{ marginTop: 10 }}>
+            <a href={w.source_url} target="_blank" rel="noreferrer">
+              공고·원문 페이지
+            </a>
+          </p>
+        )}
+        {(w.catalog_origin ||
+          typeof w.schema_version === 'number' ||
+          typeof w.ai_confidence === 'number' ||
+          w.dedupe_key) && (
+          <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.88rem', lineHeight: 1.55 }}>
+            {catalogOriginLabel(w.catalog_origin)}
+            {typeof w.schema_version === 'number' && (
+              <>
+                {w.catalog_origin ? ' · ' : ''}스키마 v{w.schema_version}
+              </>
+            )}
+            {typeof w.ai_confidence === 'number' && (
+              <>
+                {(w.catalog_origin || typeof w.schema_version === 'number') ? ' · ' : ''}AI 신뢰도{' '}
+                {Math.round(w.ai_confidence * 100)}%
+              </>
+            )}
+            {w.dedupe_key && (
+              <>
+                <br />
+                중복 키: <code style={{ fontSize: '0.82em' }}>{w.dedupe_key.slice(0, 48)}</code>
+                {w.dedupe_key.length > 48 ? '…' : ''}
+              </>
+            )}
+          </p>
+        )}
         {w.apply_url && (
           <p style={{ marginTop: 16 }}>
             <a href={w.apply_url} target="_blank" rel="noreferrer">
@@ -137,8 +181,9 @@ export function BenefitDetailPage() {
       <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>태그 힌트 (로컬)</h2>
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>
-          공고문을 붙여넣으면 태그 사전과 맞춰 힌트를 줍니다. 앞으로는 AI로 공고 본문을 구조화해 숨은
-          조건을 더 찾고, 익명·비식별로 공용 DB를 키우는 방향과 이어질 수 있습니다.
+          공고문을 붙여넣으면 태그 사전과 맞춰 힌트를 줍니다. 구조화된 복지 JSON 배열은{' '}
+          <Link to="/settings">설정</Link>에서 파일로 불러와 이 기기 카탈로그에 합칠 수 있습니다. 공용 DB·AI
+          파이프라인 설계는 저장소 <code>docs/catalog-pipeline.md</code>를 참고하세요.
         </p>
         <textarea
           rows={4}

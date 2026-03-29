@@ -25,9 +25,10 @@ export function PrivacyPage() {
             프로필이 그 파일이나 외부 서버로 자동 전송되지는 않습니다.
           </li>
           <li>
-            <strong>스마트 매칭 누적(IndexedDB):</strong> 매칭으로 걸린 복지 항목 메타데이터는 같은
-            기기의 <code>link-help-welfare-cache</code> DB에 저장되어, 다음에 앱을 열면 통합 목록에
-            합쳐집니다. 브라우저에서 사이트 데이터를 지우면 함께 삭제됩니다.
+            <strong>복지 카탈로그 누적(IndexedDB):</strong> 스마트 매칭 결과와, 설정에서 불러온 복지 JSON
+            배열(<code>WelfareRecord</code>)이 같은 기기의 <code>link-help-welfare-cache</code>에
+            저장되어 번들 샘플과 통합 목록으로 합쳐집니다. 브라우저에서 사이트 데이터를 지우면 함께
+            삭제됩니다.
           </li>
         </ul>
       </section>
@@ -39,7 +40,8 @@ export function PrivacyPage() {
         <h2>4. 보관 및 삭제</h2>
         <ul>
           <li>탭·창을 닫으면 sessionStorage의 입력 데이터가 지워집니다.</li>
-          <li>설정의 &quot;데이터 초기화&quot;로 같은 탭 안에서도 바로 비울 수 있습니다.</li>
+          <li>설정의 &quot;데이터 초기화&quot;로 같은 탭 안에서도 가족 데이터를 바로 비울 수 있습니다.</li>
+          <li>설정의 &quot;복지 누적 캐시 비우기&quot;로 IndexedDB에만 쌓인 복지 누적을 지울 수 있습니다(번들 샘플은 유지).</li>
           <li>JSON 보내기로 파일을 내려받아 두면, 나중에 불러오기로 같은 기기·다른 탭에서 복원할 수 있습니다.</li>
         </ul>
       </section>

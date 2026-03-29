@@ -77,6 +77,7 @@
 ## 현재 코드베이스와의 관계
 
 - 클라이언트는 `loadMergedWelfareCatalog()`로 **번들 JSON ∪ IndexedDB**를 병합합니다.
+- **설정 화면**에서 이용자가 `WelfareRecord[]` JSON 파일을 고르면 같은 IndexedDB에 **upsert**되어 통합 목록에 합쳐집니다(서버 없음).
 - 향후 공용 DB는 **주기적으로 정적 JSON을 생성**해 `welfare-db`와 병합하거나, **별도 엔드포인트**로 내려받도록 확장할 수 있습니다.
 
 JSON 예시 파일: `docs/schemas/welfare-record.example.json`.

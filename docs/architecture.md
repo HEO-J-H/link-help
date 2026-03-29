@@ -15,7 +15,7 @@
 ## Benefit catalog
 
 - **Shipped data**: `public/welfare-db` — fetched via `import.meta.env.BASE_URL` (`publicAsset()`).
-- **Client merge**: `loadMergedWelfareCatalog()` loads bundled JSON **plus** IndexedDB cache (`link-help-welfare-cache`) so smart-match hits persist per device.
+- **Client merge**: `loadMergedWelfareCatalog()` loads bundled JSON **plus** IndexedDB cache (`link-help-welfare-cache`) — smart-match upserts and **Settings → 복지 JSON 불러오기** (`parseWelfareImportJson` + `upsertWelfareRecords`).
 - **Planned / external**: An **AI analysis server** can turn notice text into `WelfareRecord` JSON and feed a **shared public catalog** (crowdsourcing + dedupe + review). Contract and diagram: `docs/catalog-pipeline.md`. Types include optional fields (`schema_version`, `dedupe_key`, `source_url`, etc.) for that pipeline; sample JSON files omit them.
 
 ## Service worker (`src/sw.ts`)
