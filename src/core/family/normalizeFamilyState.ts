@@ -52,7 +52,7 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
   }
 
   const normalizedMembers: FamilyMember[] = members.map((m, index) => {
-    const raw = m as Record<string, unknown>;
+    const raw = m as unknown as Record<string, unknown>;
     return {
       ...(m as FamilyMember),
       memberColor: normalizeMemberColor(raw.memberColor, index),
