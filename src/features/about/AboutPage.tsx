@@ -67,7 +67,7 @@ npm run server`}
       <div className="card" style={{ marginBottom: 14 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>Link-Help가 하는 일</h2>
         <p style={{ marginBottom: 0 }}>
-          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·추천·타임라인·스마트 매칭으로
+          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·타임라인·스마트 매칭으로
           놓치기 쉬운 정보를 <strong>참고용</strong>으로 모아 두는 도구입니다.
         </p>
       </div>
@@ -81,7 +81,7 @@ npm run server`}
             <code>server/</code>(OpenAI 키 있으면 LLM, 없으면 휴리스틱) 등으로 연결합니다.
           </li>
           <li>
-            <strong>기간이 끝난 혜택</strong>은 추천·타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
+            <strong>기간이 끝난 혜택</strong>은 타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
             만료 항목 보기&quot;로 <strong>참고</strong>할 수 있게 합니다.
           </li>
           <li>

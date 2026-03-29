@@ -8,7 +8,6 @@ type Item = { to: string; icon: string; label: string; end?: boolean };
 const items: Item[] = [
   { to: '/', icon: '👪', label: '가족', end: true },
   { to: '/benefits', icon: '🎁', label: '혜택' },
-  { to: '/recommend', icon: '✨', label: '추천' },
   { to: '/smart-find', icon: '🔎', label: '스마트' },
   { to: '/timeline', icon: '📅', label: '타임라인' },
   { to: '/settings', icon: '⚙️', label: '설정' },

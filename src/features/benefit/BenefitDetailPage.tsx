@@ -11,6 +11,7 @@ import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodBut
 import { formatDatetimeLocalValue } from '@/utils/format';
 import type { WelfareCatalogOrigin } from '@/types/benefit';
 import { WelfareStatusControls } from '@/components/WelfareStatusControls';
+import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
 
 function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
   if (!origin) return null;
@@ -107,23 +108,59 @@ export function BenefitDetailPage() {
 
   const ended = isWelfareEffectivelyExpired(w);
   const gcalHref = googleCalendarUrlForApplicationPeriod(w);
+  const sameApplyAndSource =
+    w.apply_url &&
+    w.source_url &&
+    w.apply_url.trim() === w.source_url.trim();
 
   return (
     <div>
       <p style={{ marginBottom: 12 }}>
         <Link to="/benefits">← 혜택 목록</Link>
       </p>
-      <h1 className="page-title">{w.title}</h1>
+      <div className="benefit-detail__title-row">
+        <h1 className="page-title" style={{ marginBottom: 0 }}>
+          {w.title}
+        </h1>
+        <ApplicationDeadlineBadge record={w} showSubline className="benefit-detail__dday" />
+      </div>
       {ended && (
-        <p
-          className="remote-warn"
-          role="status"
-          style={{ marginBottom: 14, borderRadius: 8 }}
-        >
-          이 항목은 <strong>기간 종료</strong> 또는 <strong>만료</strong>로 보입니다. 추천·타임라인에서는
-          빼고, 참고용으로만 남겨 둡니다. 신청 가능 여부는 반드시 공식 공고를 확인하세요.
+        <p className="remote-warn" role="status" style={{ marginBottom: 14, borderRadius: 8 }}>
+          이 항목은 <strong>기간 종료</strong> 또는 <strong>만료</strong>로 보입니다. 타임라인 등에서는 빼고 참고용으로만
+          남겨 둡니다. 신청 가능 여부는 반드시 공식 공고를 확인하세요.
         </p>
       )}
+
+      <div className="benefit-action-bar card" style={{ marginBottom: 14, padding: '12px 14px' }}>
+        <p className="muted" style={{ margin: '0 0 10px', fontSize: '0.82rem' }}>
+          바로가기
+        </p>
+        <div className="benefit-action-bar__buttons">
+          {gcalHref ? (
+            <GoogleCalendarPeriodButton record={w} className="btn secondary" label="Google 캘린더" />
+          ) : (
+            <span className="btn secondary" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled>
+              캘린더 (기간 없음)
+            </span>
+          )}
+          {w.source_url && (
+            <a className="btn secondary" href={w.source_url} target="_blank" rel="noreferrer">
+              공고·원문
+            </a>
+          )}
+          {w.apply_url && !sameApplyAndSource && (
+            <a className="btn secondary" href={w.apply_url} target="_blank" rel="noreferrer">
+              신청·안내
+            </a>
+          )}
+          {sameApplyAndSource && (
+            <a className="btn secondary" href={w.apply_url} target="_blank" rel="noreferrer">
+              공고·신청
+            </a>
+          )}
+        </div>
+      </div>
+
       <div className="card">
         <p>{w.description}</p>
         <p style={{ marginTop: 12 }}>
@@ -132,6 +169,14 @@ export function BenefitDetailPage() {
         <p>
           <strong>기간</strong> {w.period}
         </p>
+        {w.required_documents?.trim() && (
+          <p style={{ marginTop: 12 }}>
+            <strong>신청 서류</strong>
+          </p>
+        )}
+        {w.required_documents?.trim() && (
+          <pre className="benefit-docs-block">{w.required_documents.trim()}</pre>
+        )}
         <p>
           <strong>지역</strong> {w.region.join(', ')}
         </p>
@@ -146,13 +191,6 @@ export function BenefitDetailPage() {
         <p className="muted" style={{ marginTop: 12 }}>
           출처: {w.source}
         </p>
-        {w.source_url && (
-          <p style={{ marginTop: 10 }}>
-            <a href={w.source_url} target="_blank" rel="noreferrer">
-              공고·원문 페이지
-            </a>
-          </p>
-        )}
         {(w.catalog_origin ||
           typeof w.schema_version === 'number' ||
           typeof w.ai_confidence === 'number' ||
@@ -177,13 +215,6 @@ export function BenefitDetailPage() {
                 {w.dedupe_key.length > 48 ? '…' : ''}
               </>
             )}
-          </p>
-        )}
-        {w.apply_url && (
-          <p style={{ marginTop: 16 }}>
-            <a href={w.apply_url} target="_blank" rel="noreferrer">
-              신청·안내 링크
-            </a>
           </p>
         )}
       </div>
@@ -218,22 +249,16 @@ export function BenefitDetailPage() {
       <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>알림·캘린더</h2>
       <div className="card">
         {gcalHref ? (
-          <>
-            <p className="muted" style={{ marginTop: 0 }}>
-              <strong>Google 캘린더</strong>에는 항목의 <strong>신청·모집 기간</strong> 문자열을 파싱해 종일 일정으로
-              넣습니다. 실제 접수 마감은 공식 공고로 확인하세요.
-            </p>
-            <GoogleCalendarPeriodButton record={w} style={{ width: '100%', textAlign: 'center', marginBottom: 14 }} />
-          </>
+          <p className="muted" style={{ marginTop: 0 }}>
+            위 <strong>바로가기</strong>에서도 캘린더를 열 수 있습니다. 아래는 이 앱 알림입니다.
+          </p>
         ) : (
           <p className="muted" style={{ marginTop: 0 }}>
-            이 항목의 기간 문구에서 날짜 범위를 읽을 수 없어 Google 캘린더 링크를 만들 수 없습니다. 아래 앱 알림만
-            사용하거나, 기간을 확인한 뒤 캘린더에 직접 넣어 주세요.
+            기간 문구에서 날짜 범위를 읽을 수 없어 캘린더 링크를 만들 수 없습니다.
           </p>
         )}
         <p className="muted" style={{ marginTop: 0, fontSize: '0.88rem', lineHeight: 1.55 }}>
-          <strong>이 앱 알림</strong>은 아래에서 원하는 시각을 고릅니다. 신청 기간의 <strong>시작일 오전 9시</strong>로
-          자동 채웁니다(기간을 파싱할 수 있을 때).
+          신청 기간의 <strong>시작일 오전 9시</strong>로 자동 채웁니다(파싱 가능할 때).
         </p>
         <div className="field">
           <label htmlFor="ben-rem">알림 시각</label>
@@ -256,8 +281,7 @@ export function BenefitDetailPage() {
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>
           공고문을 붙여넣으면 태그 사전과 맞춰 힌트를 줍니다. 구조화된 복지 JSON 배열은{' '}
-          <Link to="/settings">설정</Link>에서 파일로 불러와 이 기기 카탈로그에 합칠 수 있습니다. 공용 DB·AI
-          파이프라인 설계는 저장소 <code>docs/catalog-pipeline.md</code>를 참고하세요.
+          <Link to="/settings">설정</Link>에서 파일로 불러와 이 기기 카탈로그에 합칠 수 있습니다.
         </p>
         <textarea
           rows={4}

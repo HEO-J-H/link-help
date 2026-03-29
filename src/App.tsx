@@ -7,7 +7,6 @@ import { FamilyPage } from '@/features/family/FamilyPage';
 import { MemberDetailPage } from '@/features/family/MemberDetailPage';
 import { BenefitListPage } from '@/features/benefit/BenefitListPage';
 import { BenefitDetailPage } from '@/features/benefit/BenefitDetailPage';
-import { RecommendPage } from '@/features/dashboard/RecommendPage';
 import { TimelinePage } from '@/features/timeline/TimelinePage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
 import { AboutPage } from '@/features/about/AboutPage';
@@ -33,7 +32,7 @@ export default function App() {
               <Route path="/family/:id" element={<MemberDetailPage />} />
               <Route path="/benefits" element={<BenefitListPage />} />
               <Route path="/benefits/:id" element={<BenefitDetailPage />} />
-              <Route path="/recommend" element={<RecommendPage />} />
+              <Route path="/recommend" element={<Navigate to="/benefits" replace />} />
               <Route path="/smart-find" element={<SmartSearchPage />} />
               <Route path="/timeline" element={<TimelinePage />} />
               <Route

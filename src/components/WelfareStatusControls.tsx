@@ -169,21 +169,19 @@ export function WelfareStatusControls({ welfare, memberId }: Props) {
   );
 }
 
-/** Read-only pill for cards */
-/** Dropdown for list / 추천 cards (제외 시 기본 문구만; 상세에서 사유 수정). */
+/** Toggle buttons for list / smart-match cards; same choice again clears. */
 export function WelfareStatusQuickSelect({ welfare, memberId }: Props) {
   const { state, updateState } = useFamily();
   const member = state.members.find((m) => m.id === memberId);
   const entry = findWelfareTracking(state.welfareTracking, memberId, welfare.id);
-  const val = entry?.status ?? '';
 
   if (!member) return null;
 
-  const setVal = (status: string) => {
+  const setStatus = (status: WelfareTrackingStatus | null) => {
     updateState((prev) => {
       const m = prev.members.find((x) => x.id === memberId);
       if (!m) return prev;
-      if (status === '') {
+      if (status === null) {
         return {
           ...prev,
           welfareTracking: removeWelfareTracking(prev.welfareTracking, memberId, welfare.id),
@@ -208,24 +206,30 @@ export function WelfareStatusQuickSelect({ welfare, memberId }: Props) {
         welfareTracking: upsertWelfareTracking(prev.welfareTracking, {
           memberId,
           welfareId: welfare.id,
-          status: status as WelfareTrackingStatus,
+          status,
         }),
       };
     });
   };
 
+  const onPick = (status: WelfareTrackingStatus) => {
+    if (entry?.status === status) setStatus(null);
+    else setStatus(status);
+  };
+
   return (
-    <select
-      className="welfare-status-select"
-      aria-label={`${welfare.title} 진행 상태`}
-      value={val}
-      onChange={(e) => setVal(e.target.value)}
-    >
-      <option value="">상태 없음</option>
-      <option value="applying">{WELFARE_TRACKING_LABELS.applying}</option>
-      <option value="excluded">{WELFARE_TRACKING_LABELS.excluded}</option>
-      <option value="later">{WELFARE_TRACKING_LABELS.later}</option>
-    </select>
+    <div className="welfare-status-btn-row" role="group" aria-label={`${welfare.title} 진행 상태`}>
+      {(['applying', 'excluded', 'later'] as const).map((st) => (
+        <button
+          key={st}
+          type="button"
+          className={`btn secondary btn--compact welfare-status-btn${entry?.status === st ? ' welfare-status-btn--on' : ''}`}
+          onClick={() => onPick(st)}
+        >
+          {WELFARE_TRACKING_LABELS[st]}
+        </button>
+      ))}
+    </div>
   );
 }
 

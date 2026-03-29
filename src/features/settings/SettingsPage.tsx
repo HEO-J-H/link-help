@@ -138,7 +138,7 @@ export function SettingsPage() {
           <RemindersPanel />
         </div>
         <p className="muted" style={{ marginTop: 10, fontSize: '0.82rem' }}>
-          Google 캘린더는 혜택·추천 카드의 버튼으로 넣을 수 있어요.
+          Google 캘린더는 혜택 카드의 버튼으로 넣을 수 있어요.
         </p>
       </section>
 

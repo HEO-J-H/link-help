@@ -212,7 +212,7 @@ export function MemberDetailPage() {
       </div>
 
       <div className="field">
-        <div id="m-color-label">표시 색 (추천·목록에서 구분)</div>
+        <div id="m-color-label">표시 색 (혜택 목록에서 구분)</div>
         <div className="member-color-presets" role="group" aria-labelledby="m-color-label">
           {MEMBER_COLOR_PRESETS.map((c) => (
             <button
@@ -234,7 +234,7 @@ export function MemberDetailPage() {
             onChange={(e) => updateMember(member.id, { memberColor: e.target.value })}
           />
         </div>
-        <p className="field-hint">혜택 추천 탭의 카드 왼쪽 강조선과 구성원 선택 옆 점에 쓰입니다.</p>
+        <p className="field-hint">혜택 탭 박스·카드 왼쪽 강조선에 쓰입니다.</p>
       </div>
 
       <div className="field">

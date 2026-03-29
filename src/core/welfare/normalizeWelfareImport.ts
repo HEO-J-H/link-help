@@ -40,6 +40,9 @@ export function normalizeImportedWelfare(raw: unknown): WelfareRecord | null {
     updated_at: typeof o.updated_at === 'string' ? o.updated_at : today,
     source: typeof o.source === 'string' && o.source.trim() ? o.source.trim() : 'import',
   };
+  if (typeof o.required_documents === 'string' && o.required_documents.trim()) {
+    base.required_documents = o.required_documents.trim();
+  }
 
   if (isStatus(o.status)) base.status = o.status;
   if (typeof o.popularity === 'number' && Number.isFinite(o.popularity)) {

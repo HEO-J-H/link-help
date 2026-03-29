@@ -15,6 +15,8 @@ export interface WelfareRecord {
   benefit: string;
   /** e.g. "YYYY-MM-DD ~ YYYY-MM-DD" — used to detect ended programs when status is not set */
   period: string;
+  /** Optional: required documents (free text or newline-separated), from catalog or import */
+  required_documents?: string;
   apply_url: string;
   status?: WelfareStatus;
   created_at: string;

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
@@ -10,9 +10,47 @@ import {
   welfareIdsForMemberStatus,
 } from '@/core/family/welfareTracking';
 import { WelfareStatusPill, WelfareStatusQuickSelect } from '@/components/WelfareStatusControls';
-import { WELFARE_TRACKING_LABELS, type WelfareTrackingStatus } from '@/types/welfareTracking';
+import {
+  WELFARE_TRACKING_LABELS,
+  type WelfareTrackingEntry,
+  type WelfareTrackingStatus,
+} from '@/types/welfareTracking';
+import type { WelfareRecord } from '@/types/benefit';
+import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
 
 type StatusFilter = 'all' | WelfareTrackingStatus;
+
+function hiddenByDefaultForMember(
+  w: WelfareRecord,
+  memberId: string,
+  tracking: WelfareTrackingEntry[]
+): boolean {
+  const e = findWelfareTracking(tracking, memberId, w.id);
+  return e?.status === 'excluded' || e?.status === 'later';
+}
+
+function filterRowsForMemberView(
+  sorted: WelfareRecord[],
+  memberId: string,
+  tracking: WelfareTrackingEntry[],
+  statusFilter: StatusFilter
+): WelfareRecord[] {
+  if (!memberId) return sorted;
+  if (statusFilter !== 'all') {
+    const ids = welfareIdsForMemberStatus(tracking, memberId, statusFilter);
+    return sorted.filter((w) => ids.has(w.id));
+  }
+  return sorted.filter((w) => !hiddenByDefaultForMember(w, memberId, tracking));
+}
+
+function memberVisibleCount(
+  sorted: WelfareRecord[],
+  memberId: string,
+  tracking: WelfareTrackingEntry[],
+  statusFilter: StatusFilter
+): number {
+  return filterRowsForMemberView(sorted, memberId, tracking, statusFilter).length;
+}
 
 export function BenefitListPage() {
   const { state } = useFamily();
@@ -30,21 +68,20 @@ export function BenefitListPage() {
     }
   }, [state.members, memberId]);
 
-  const filtered = useMemo(() => {
+  const sortedBase = useMemo(() => {
     const textFiltered = filterWelfareByText(list, q);
     const visibility = showEnded
       ? textFiltered
       : textFiltered.filter((w) => !isWelfareEffectivelyExpired(w));
-    let rows = sortPopular
+    return sortPopular
       ? [...visibility].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
       : sortWelfareForDiscovery(visibility);
+  }, [list, q, sortPopular, showEnded]);
 
-    if (statusFilter !== 'all' && memberId) {
-      const ids = welfareIdsForMemberStatus(state.welfareTracking, memberId, statusFilter);
-      rows = rows.filter((w) => ids.has(w.id));
-    }
-    return rows;
-  }, [list, q, sortPopular, showEnded, statusFilter, memberId, state.welfareTracking]);
+  const filtered = useMemo(
+    () => filterRowsForMemberView(sortedBase, memberId, state.welfareTracking, statusFilter),
+    [sortedBase, memberId, state.welfareTracking, statusFilter]
+  );
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -58,37 +95,42 @@ export function BenefitListPage() {
         <span className="page-lead-graphic__icon" aria-hidden>
           🎁
         </span>
-        <span className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.5 }}>
-          지금 보는 색 띠는 선택한 가족 구성원이에요. 캘린더·진행 상태는 카드에서 한 번에.
+        <span className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
+          구성원 박스를 눌러 목록을 바꿉니다. 제외함·나중에 볼게요는 기본 목록에서 숨깁니다.
         </span>
       </p>
 
       {state.members.length > 0 && (
-        <div className="card" style={{ marginBottom: 14, padding: '12px 14px' }}>
-          <div className="rec-member-row" style={{ marginBottom: 0 }}>
-            {accentMember && (
-              <span
-                className="member-color-dot member-color-dot--lg"
-                style={{ backgroundColor: accentMember.memberColor }}
-                title={`${accentMember.displayName} 색`}
-                aria-hidden
-              />
-            )}
-            <div className="field" style={{ flex: 1, marginBottom: 10 }}>
-              <label htmlFor="ben-list-member">구성원</label>
-              <select
-                id="ben-list-member"
-                value={memberId}
-                onChange={(e) => setMemberId(e.target.value)}
+        <div className="benefit-member-grid" role="tablist" aria-label="가족 구성원별 혜택">
+          {state.members.map((m) => {
+            const n = memberVisibleCount(sortedBase, m.id, state.welfareTracking, statusFilter);
+            const selected = m.id === memberId;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                className={`benefit-member-box${selected ? ' benefit-member-box--selected' : ''}`}
+                style={
+                  {
+                    '--member-accent': m.memberColor,
+                  } as CSSProperties
+                }
+                onClick={() => setMemberId(m.id)}
               >
-                {state.members.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.displayName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+                <span className="benefit-member-box__dot" style={{ backgroundColor: m.memberColor }} />
+                <span className="benefit-member-box__name">{m.displayName}</span>
+                <span className="benefit-member-box__count">{n}</span>
+                <span className="benefit-member-box__unit">혜택</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {state.members.length > 0 && (
+        <div className="card" style={{ marginBottom: 14, padding: '12px 14px' }}>
           <div className="field" style={{ marginBottom: 0 }}>
             <label htmlFor="ben-list-status">보기</label>
             <select
@@ -96,7 +138,7 @@ export function BenefitListPage() {
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
             >
-              <option value="all">전체</option>
+              <option value="all">전체 (제외·나중에 숨김)</option>
               <option value="applying">{WELFARE_TRACKING_LABELS.applying}만</option>
               <option value="excluded">{WELFARE_TRACKING_LABELS.excluded}만</option>
               <option value="later">{WELFARE_TRACKING_LABELS.later}만</option>
@@ -138,28 +180,39 @@ export function BenefitListPage() {
           const entry = memberId
             ? findWelfareTracking(state.welfareTracking, memberId, w.id)
             : undefined;
+          const docs = w.required_documents?.trim();
           return (
             <div
               key={w.id}
-              className="card"
+              className="card benefit-card"
               style={{
                 borderLeft: accentMember ? '4px solid' : undefined,
                 borderLeftColor: accentMember?.memberColor ?? 'transparent',
               }}
             >
+              <div className="benefit-card__head">
+                <ApplicationDeadlineBadge record={w} showSubline />
+                <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit', flex: 1, minWidth: 0 }}>
+                  <h3 style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8, margin: 0 }}>
+                    {w.title}
+                    {isWelfareEffectivelyExpired(w) && (
+                      <span className="score-pill" title="기간 종료 또는 만료로 표시된 항목">
+                        종료
+                      </span>
+                    )}
+                    {entry && <WelfareStatusPill status={entry.status} />}
+                  </h3>
+                </Link>
+              </div>
               <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-                <h3 style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-                  {w.title}
-                  {isWelfareEffectivelyExpired(w) && (
-                    <span className="score-pill" title="기간 종료 또는 만료로 표시된 항목">
-                      종료
-                    </span>
-                  )}
-                  {entry && <WelfareStatusPill status={entry.status} />}
-                </h3>
-                <p>
+                <p style={{ marginTop: 8 }}>
                   {w.region.join(', ')} · {w.benefit}
                 </p>
+                {docs && (
+                  <p className="benefit-card__docs" style={{ marginTop: 8 }}>
+                    <strong>신청 서류</strong> {docs.length > 120 ? `${docs.slice(0, 120)}…` : docs}
+                  </p>
+                )}
                 <p className="muted" style={{ marginTop: 6 }}>
                   {w.tags.join(' · ')}
                   {typeof w.popularity === 'number' && (
