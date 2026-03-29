@@ -1,5 +1,6 @@
 import type { WelfareRecord } from '@/types/benefit';
 import type { MemberProfile } from '@/types/family';
+import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { ageCategory, ageFromBirthDate } from '@/utils/date';
 
 function baseProfileTags(p: MemberProfile, age: number | null): string[] {
@@ -48,7 +49,7 @@ function recommendFromDerived(
 ): WelfareRecord[] {
   if (derived.size === 0) return [];
   return list.filter((w) => {
-    if (w.status === 'expired') return false;
+    if (isWelfareEffectivelyExpired(w)) return false;
     const hit = w.tags.some((t) => derived.has(t));
     const blocked = w.tags.some((t) => exclude.has(t));
     return hit && !blocked;

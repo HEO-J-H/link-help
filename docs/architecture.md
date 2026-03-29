@@ -26,6 +26,7 @@
 
 ## Matching & helpers
 
-- **filterEngine**: tag overlap, excludes, scored recommend, timeline hypothetical age.
+- **filterEngine**: tag overlap, excludes, scored recommend, timeline hypothetical age. Skips items that are **effectively ended** (`status: expired` or `period` end date before today when parseable).
+- **welfareLifecycle**: parse `period` strings, `isWelfareEffectivelyExpired`, list sort for discovery (active first).
 - **Reminders**: `ReminderRunner` + Notification API.
 - **Tag hints**: `core/ai/suggestTags.ts` — client-only vocabulary match (not a hosted “AI search” product).

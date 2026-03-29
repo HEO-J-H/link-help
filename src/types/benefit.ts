@@ -10,6 +10,7 @@ export interface WelfareRecord {
   income: string[];
   tags: string[];
   benefit: string;
+  /** e.g. "YYYY-MM-DD ~ YYYY-MM-DD" — used to detect ended programs when status is not set */
   period: string;
   apply_url: string;
   status?: WelfareStatus;

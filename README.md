@@ -1,6 +1,6 @@
 # Link-Help
 
-로컬 저장 기반 가족 복지·혜택 알림 웹앱입니다. 로그인 없이 브라우저에만 가족 프로필을 저장하고, 정적 복지 DB(JSON)와 태그 매칭으로 추천 목록을 보여 줍니다.
+로컬·세션 기반 가족 복지·혜택 웹앱입니다. **놓치기 쉬운 지원**을 더 찾는 방향으로, 태그·프로필 매칭과 (선택) 원격 복지 API를 쓰고, 기간이 지난 항목은 추천에서 빼고 목록에서만 참고할 수 있게 합니다.
 
 - **GitHub**: [https://github.com/HEO-J-H/link-help](https://github.com/HEO-J-H/link-help)
 - **설계 메모**: 저장소 루트의 `복지 알림 시스템 Link-Help.txt`, `전체 앱 구조.txt`, `DB 구조 설계.txt`, `GitHub Repository 구조.txt`

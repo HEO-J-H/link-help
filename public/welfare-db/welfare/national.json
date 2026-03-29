@@ -34,5 +34,23 @@
     "updated_at": "2026-03-29",
     "source": "샘플",
     "popularity": 78
+  },
+  {
+    "id": "welfare_demo_ended",
+    "title": "종료된 샘플 모집(참고용)",
+    "description": "기간이 지난 항목은 추천에서 빠지고, 혜택 목록에서만 '종료'로 볼 수 있습니다.",
+    "region": ["전국"],
+    "target": ["청년"],
+    "age": ["무관"],
+    "income": ["무관"],
+    "tags": ["전국", "청년", "교육"],
+    "benefit": "수강료 일부 지원(예시)",
+    "period": "2023-01-01 ~ 2023-12-31",
+    "apply_url": "",
+    "status": "active",
+    "created_at": "2026-03-29",
+    "updated_at": "2026-03-29",
+    "source": "샘플",
+    "popularity": 10
   }
 ]

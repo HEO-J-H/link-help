@@ -55,7 +55,8 @@ export function TimelinePage() {
     <div>
       <h1 className="page-title">타임라인</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        앞으로 도래하는 나이(만 50·55·60…)를 기준으로, 그때의 조건에 맞는 샘플 혜택을 미리 봅니다.
+        앞으로 도래하는 나이(만 50·55·60…)를 기준으로, 그때의 조건에 맞는 샘플 혜택을 미리 봅니다. 이미{' '}
+        <strong>종료된</strong> 항목은 제외합니다(혜택 탭에서 &quot;종료·기간 만료 항목 보기&quot;로 참고 가능).
       </p>
 
       <div className="field">

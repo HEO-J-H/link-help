@@ -11,6 +11,7 @@
 - PWA(injectManifest), GitHub Pages용 `build:gh` + `404.html` + Actions 배포 워크플로
 - 운영 API: `/welfare`, `/push/*`, SQLite
 - 법적/안내 화면(참고용 문구), `/start` 빠른 시작
+- **기간·종료 처리**: `period` 파싱 + `status: expired`로 추천·타임라인에서 제외, 혜택 목록에서 선택적으로 표시
 
 ## Backlog (not implemented)
 

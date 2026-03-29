@@ -5,6 +5,7 @@ import { useWelfare } from '@/context/WelfareContext';
 import { suggestTagsFromText } from '@/core/ai/suggestTags';
 import type { Reminder } from '@/types/reminder';
 import { makeId } from '@/utils/uid';
+import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 
 export function BenefitDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -62,12 +63,24 @@ export function BenefitDetailPage() {
     }
   };
 
+  const ended = isWelfareEffectivelyExpired(w);
+
   return (
     <div>
       <p style={{ marginBottom: 12 }}>
         <Link to="/benefits">← 혜택 목록</Link>
       </p>
       <h1 className="page-title">{w.title}</h1>
+      {ended && (
+        <p
+          className="remote-warn"
+          role="status"
+          style={{ marginBottom: 14, borderRadius: 8 }}
+        >
+          이 항목은 <strong>기간 종료</strong> 또는 <strong>만료</strong>로 보입니다. 추천·타임라인에서는
+          빼고, 참고용으로만 남겨 둡니다. 신청 가능 여부는 반드시 공식 공고를 확인하세요.
+        </p>
+      )}
       <div className="card">
         <p>{w.description}</p>
         <p style={{ marginTop: 12 }}>
@@ -124,7 +137,8 @@ export function BenefitDetailPage() {
       <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>태그 힌트 (로컬)</h2>
       <div className="card">
         <p className="muted" style={{ marginTop: 0 }}>
-          공고문을 붙여넣으면 DB에 있는 태그 목록과 문자열을 맞춰 제안합니다. 서버·AI 없이 동작합니다.
+          공고문을 붙여넣으면 태그 사전과 맞춰 힌트를 줍니다. 앞으로는 AI로 공고 본문을 구조화해 숨은
+          조건을 더 찾고, 익명·비식별로 공용 DB를 키우는 방향과 이어질 수 있습니다.
         </p>
         <textarea
           rows={4}

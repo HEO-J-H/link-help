@@ -12,7 +12,7 @@ export function AppShell() {
           <span className="app-brand" translate="no">
             Link-Help
           </span>
-          <span className="app-tagline">가족 복지·혜택 알림</span>
+          <span className="app-tagline">놓치기 쉬운 복지·혜택 찾기</span>
         </div>
       </header>
       <main className="app-main">

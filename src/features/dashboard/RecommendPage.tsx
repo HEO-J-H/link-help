@@ -41,7 +41,8 @@ export function RecommendPage() {
     <div>
       <h1 className="page-title">추천</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        프로필에서 파생된 태그와 일치하는 항목을 보여 줍니다. 프로필·태그를 채우면 결과가 늘어납니다.
+        프로필에서 파생된 태그와 일치하는 항목을 보여 줍니다. <strong>기간이 지난·종료</strong>로 보이는
+        항목은 빼고, 공용 데이터가 쌓일수록 더 많은 후보를 노릴 수 있게 만드는 방향입니다.
       </p>
 
       <div className="field">

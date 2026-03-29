@@ -95,6 +95,24 @@ npm run dev`}
       </div>
 
       <div className="card" style={{ marginBottom: 14 }}>
+        <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>지향하는 방향</h2>
+        <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.65 }}>
+          <li>
+            공식 API만으로는 닿지 않는 <strong>숨은 지원·공고</strong>까지 넓히기 위해, 지금은 로컬·원격
+            복지 DB와 태그 매칭을 키우고 <strong>(향후) AI 분석·임시 API</strong>와 병행하는 전략입니다.
+          </li>
+          <li>
+            사용·필터·공고 활동이 쌓이면 <strong>개인정보 없이</strong> 공용 복지 레코드가 늘어나, 모두의
+            후보 풀이 커지는 효과를 노립니다.
+          </li>
+          <li>
+            <strong>기간이 끝난 혜택</strong>은 추천·타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
+            만료 항목 보기&quot;로 <strong>참고</strong>할 수 있게 합니다.
+          </li>
+        </ul>
+      </div>
+
+      <div className="card" style={{ marginBottom: 14 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>내 데이터는 어디에 있나요?</h2>
         <ul style={{ marginBottom: 0, paddingLeft: '1.2rem' }}>
           <li>
