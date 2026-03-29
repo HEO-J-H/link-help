@@ -1,0 +1,212 @@
+목표:
+
+로컬 저장 기반
+가족 그룹 공유
+프로필/필터/혜택 관리
+Import / Export 지원
+웹 기반 (PWA 가능)
+1. GitHub Repository 구조 (권장 설계)
+family-benefit-manager/
+│
+├── README.md
+├── LICENSE
+├── .gitignore
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+│
+├── docs/
+│   ├── PRD.md
+│   ├── architecture.md
+│   ├── database.md
+│   └── roadmap.md
+│
+├── public/
+│   ├── icons/
+│   └── manifest.json
+│
+├── src/
+│   ├── main.tsx
+│   ├── App.tsx
+│   │
+│   ├── core/
+│   │   ├── storage/
+│   │   │   ├── localStorage.ts
+│   │   │   ├── indexedDB.ts
+│   │   │   └── exportImport.ts
+│   │   │
+│   │   ├── family/
+│   │   │   ├── familyManager.ts
+│   │   │   ├── memberManager.ts
+│   │   │   └── relationship.ts
+│   │   │
+│   │   ├── filter/
+│   │   │   ├── filterEngine.ts
+│   │   │   └── eligibility.ts
+│   │   │
+│   │   └── profile/
+│   │       ├── profileManager.ts
+│   │       └── profileTypes.ts
+│   │
+│   ├── features/
+│   │   ├── family/
+│   │   │   ├── FamilyPage.tsx
+│   │   │   ├── MemberCard.tsx
+│   │   │   └── AddMember.tsx
+│   │   │
+│   │   ├── benefit/
+│   │   │   ├── BenefitList.tsx
+│   │   │   ├── BenefitDetail.tsx
+│   │   │   └── BenefitFilter.tsx
+│   │   │
+│   │   ├── insurance/
+│   │   │   ├── InsuranceList.tsx
+│   │   │   └── InsuranceDetail.tsx
+│   │   │
+│   │   ├── settings/
+│   │   │   ├── ExportData.tsx
+│   │   │   └── ImportData.tsx
+│   │   │
+│   │   └── dashboard/
+│   │       └── Dashboard.tsx
+│   │
+│   ├── components/
+│   │   ├── UI/
+│   │   │   ├── Button.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   └── Card.tsx
+│   │   │
+│   │   └── layout/
+│   │       ├── Header.tsx
+│   │       └── Sidebar.tsx
+│   │
+│   ├── types/
+│   │   ├── family.ts
+│   │   ├── benefit.ts
+│   │   └── insurance.ts
+│   │
+│   └── utils/
+│       ├── date.ts
+│       ├── format.ts
+│       └── validator.ts
+│
+└── data/
+    ├── sample/
+    │   ├── sample_family.json
+    │   └── sample_benefits.json
+2. 핵심 설계 개념
+1. core 폴더 (핵심 엔진)
+여기가 핵심입니다
+
+core/
+여기에는
+
+storage
+storage/
+기능
+
+localStorage 관리
+indexedDB 관리
+import/export
+파일
+
+localStorage.ts
+indexedDB.ts
+exportImport.ts
+family
+family/
+기능
+
+가족 그룹 생성
+가족 구성원 관리
+관계 설정
+파일
+
+familyManager.ts
+memberManager.ts
+relationship.ts
+filter
+filter/
+기능
+
+필터 엔진
+복지 조건 필터
+예
+
+나이
+소득
+장애
+학생
+3. 데이터 구조 연결 흐름
+Family
+ ├── Members
+ │    ├── Profile
+ │    ├── Filter
+ │    └── Benefits
+예
+
+아빠
+아들
+딸
+와이프
+각자 프로필
+
+4. Import / Export 위치
+features/settings/
+ExportData.tsx
+ImportData.tsx
+여기서
+
+가족정보 내보내기
+가족정보 불러오기
+5. README.md 구성
+README.md
+포함 내용
+
+소개
+기능
+설치방법
+개발환경
+구조설명
+로드맵
+6. 기술 스택 (추천)
+추천 구조
+
+React
+TypeScript
+Vite
+IndexedDB
+PWA
+이유
+
+로컬 저장
+빠름
+모바일 사용 가능
+7. 데이터 저장 방식
+추천
+
+IndexedDB
+이유
+
+대용량 가능
+로컬 저장
+빠름
+8. 실제 개발 순서 (추천)
+1단계
+
+가족 그룹 생성
+2단계
+
+가족 구성원 추가
+3단계
+
+프로필 생성
+4단계
+
+필터 엔진
+5단계
+
+혜택 연결
+6단계
+
+Import / Export

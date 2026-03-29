@@ -1,0 +1,36 @@
+[
+  {
+    "id": "welfare_0003",
+    "title": "용인시 장애인 지원금(샘플)",
+    "description": "장애인 가구 지원금 예시 항목",
+    "region": ["용인시"],
+    "target": ["장애인"],
+    "age": ["무관"],
+    "income": ["중위소득150"],
+    "tags": ["장애인", "용인시", "지원금"],
+    "benefit": "월 지원(예시)",
+    "period": "2026-01-01 ~ 2026-12-31",
+    "apply_url": "",
+    "status": "active",
+    "created_at": "2026-03-27",
+    "updated_at": "2026-03-27",
+    "source": "용인시"
+  },
+  {
+    "id": "welfare_0004",
+    "title": "용인시 대학생 장학(샘플)",
+    "description": "거주 지역 기반 교육 지원 예시",
+    "region": ["용인시"],
+    "target": ["대학생"],
+    "age": ["무관"],
+    "income": ["무관"],
+    "tags": ["용인시", "대학생", "교육"],
+    "benefit": "등록금 일부 지원(예시)",
+    "period": "2026-01-01 ~ 2026-12-31",
+    "apply_url": "",
+    "status": "active",
+    "created_at": "2026-03-27",
+    "updated_at": "2026-03-27",
+    "source": "용인시"
+  }
+]

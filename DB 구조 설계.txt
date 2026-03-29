@@ -1,0 +1,191 @@
+복지 알림 시스템 DB 구조 설계
+1. 전체 구조
+DB는 4가지 영역으로 구성
+
+welfare-db/
+ ├─ welfare/
+ ├─ tags/
+ ├─ region/
+ └─ meta/
+2. 복지 데이터 구조 (핵심)
+파일 위치
+
+welfare/
+ ├─ national.json
+ ├─ gyeonggi.json
+ ├─ yongin.json
+복지 데이터 구조
+{
+  "id": "welfare_0001",
+  "title": "용인 장애인 지원금",
+  "description": "장애인 가구 지원금",
+  "region": ["용인시"],
+  "target": ["장애인"],
+  "age": ["무관"],
+  "income": ["중위소득150"],
+  "tags": [
+    "장애인",
+    "용인시",
+    "지원금"
+  ],
+  "benefit": "월 20만원",
+  "period": "2026-01-01 ~ 2026-12-31",
+  "apply_url": "",
+  "created_at": "2026-03-27",
+  "updated_at": "2026-03-27",
+  "source": "정부24"
+}
+3. 태그 DB
+파일 위치
+
+tags/
+ └─ tags.json
+구조
+
+{
+  "tags": [
+    "장애인",
+    "청년",
+    "노인",
+    "대학생",
+    "용인시",
+    "경기도",
+    "기초수급",
+    "차상위"
+  ]
+}
+4. 지역 DB
+파일 위치
+
+region/
+ └─ region.json
+구조
+
+{
+  "regions": [
+    "전국",
+    "경기도",
+    "용인시",
+    "수원시",
+    "성남시"
+  ]
+}
+5. 메타 DB
+파일 위치
+
+meta/
+ └─ categories.json
+구조
+
+{
+  "categories": [
+    "지원금",
+    "주거",
+    "교육",
+    "취업",
+    "의료"
+  ]
+}
+6. 태그 분류 체계
+태그 종류
+대상 태그
+장애인
+청년
+노인
+대학생
+부모
+다자녀
+지역 태그
+전국
+경기도
+용인시
+소득 태그
+기초수급
+차상위
+중위소득150
+연령 태그
+청년
+중장년
+노인
+이벤트 태그
+결혼
+출산
+실직
+은퇴
+7. AI 생성 필드
+AI가 자동 생성하는 필드
+
+tags
+target
+age
+income
+8. 필터 검색 구조
+검색 방식
+
+포함 태그
+제외 태그
+예
+
+포함
+- 장애인
+- 용인시
+
+제외
+- 차상위
+9. ID 규칙
+welfare_0001
+welfare_0002
+welfare_0003
+10. 파일 분리 전략
+초기
+
+welfare.json
+사용자 증가
+
+welfare/
+ ├─ yongin.json
+ ├─ gyeonggi.json
+ ├─ national.json
+11. DB 성장 구조
+사용자 증가 → DB 증가
+
+사용자 검색
+↓
+AI 생성
+↓
+DB 저장
+12. 중복 처리
+중복 체크 기준
+
+title
+region
+period
+13. 만료 처리
+기간 만료 시
+
+status: expired
+예
+
+{
+  "status": "active"
+}
+14. 추천 점수 (확장)
+예
+
+{
+  "score": 0.9
+}
+15. 최종 DB 구조
+welfare-db/
+ ├─ welfare/
+ ├─ tags/
+ ├─ region/
+ └─ meta/
+16. MVP 최소 구조
+필수
+
+welfare.json
+tags.json
+이것만으로 시작 가능
+
+DB 버전

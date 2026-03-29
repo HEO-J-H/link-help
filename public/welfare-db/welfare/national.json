@@ -1,0 +1,19 @@
+[
+  {
+    "id": "welfare_0001",
+    "title": "국민건강검진 지원",
+    "description": "만 40세 이상 대상 건강검진",
+    "region": ["전국"],
+    "target": ["중장년", "노인"],
+    "age": ["40세이상"],
+    "income": ["무관"],
+    "tags": ["전국", "의료", "중장년"],
+    "benefit": "검진 비용 일부 또는 전액",
+    "period": "2026-01-01 ~ 2026-12-31",
+    "apply_url": "https://www.nhis.or.kr",
+    "status": "active",
+    "created_at": "2026-03-27",
+    "updated_at": "2026-03-27",
+    "source": "건강보험공단"
+  }
+]

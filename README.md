@@ -1,0 +1,46 @@
+# Link-Help
+
+로컬 저장 기반 가족 복지·혜택 알림 웹앱입니다. 로그인 없이 브라우저에만 가족 프로필을 저장하고, 정적 복지 DB(JSON)와 태그 매칭으로 추천 목록을 보여 줍니다.
+
+- **GitHub**: [https://github.com/HEO-J-H/link-help](https://github.com/HEO-J-H/link-help)
+- **설계 메모**: 저장소 루트의 `복지 알림 시스템 Link-Help.txt`, `전체 앱 구조.txt`, `DB 구조 설계.txt`, `GitHub Repository 구조.txt`
+
+## 기능 (MVP)
+
+- 가족 구성원 추가·삭제, 프로필(생년월일·지역·소득 구간·학생·장애·포함/제외 태그)
+- 혜택 목록·검색·상세 (`public/welfare-db`)
+- 구성원별 추천(프로필에서 파생한 태그와 복지 항목 태그 교차)
+- 가족 데이터 JSON보내기 / 불러오기 / 초기화
+- 하단 탭: 가족 · 혜택 · 추천 · 설정
+- PWA용 `manifest.json` (아이콘·테마)
+
+## 기술 스택
+
+React 19, TypeScript, Vite, React Router, `localStorage`
+
+## 설치 및 실행
+
+```bash
+cd Link-Help
+npm install
+npm run dev
+```
+
+빌드:
+
+```bash
+npm run build
+npm run preview
+```
+
+## 프로젝트 구조 요약
+
+- `src/core` — 저장소, 가족 도우미, 필터, 복지 로더
+- `src/features` — 화면(가족·혜택·추천·설정)
+- `src/components/layout` — 하단 네비게이션
+- `public/welfare-db` — 복지·태그·지역·메타 JSON
+- `data/sample` — 샘플보내기 JSON
+
+## 라이선스
+
+MIT — `LICENSE` 참고.
