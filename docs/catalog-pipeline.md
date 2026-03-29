@@ -30,7 +30,7 @@
 
 ## `WelfareRecord` 확장 필드 (AI·운영용)
 
-앱 타입 `WelfareRecord`(`src/types/benefit.ts`)에 **선택(optional)** 필드로 정의됩니다. 기존 `public/welfare-db` 샘플은 필드 없이도 동작합니다.
+앱 타입 `WelfareRecord`(`src/types/benefit.ts`)에 **선택(optional)** 필드로 정의됩니다. 기존 `public/welfare-db` 번들 행은 이 필드 없이도 동작합니다.
 
 | 필드 | 용도 |
 |------|------|
@@ -42,28 +42,30 @@
 | `ai_confidence` | AI 파싱 신뢰도 0~1 (선택) |
 | `catalog_origin` | `bundled` \| `crowd` \| `import` 등 출처 구분 (선택) |
 
-## AI 출력 예시 (서버 계약 참고)
+## AI 출력 형태 (서버 계약 참고)
+
+아래는 **필드 조합을 보여 주는 계약용 스케치**입니다. 실제 URL·금액·기간은 공고마다 다릅니다. 단일 레코드의 정의는 항상 `src/types/benefit.ts`의 `WelfareRecord`를 따릅니다.
 
 ```json
 {
-  "id": "welfare_yongin_youth_housing_202603",
-  "title": "용인 청년 주거 지원",
-  "description": "만 19~39세 청년 대상 주거비 지원 사업 요약",
-  "region": ["경기", "용인"],
-  "target": ["청년"],
-  "age": ["19세이상", "39세이하"],
-  "income": ["중위소득150"],
-  "tags": ["주거", "청년", "용인"],
-  "benefit": "월 20만원 내외(예시)",
-  "period": "2026-03-01 ~ 2026-05-31",
-  "apply_url": "https://example.go.kr/apply",
-  "created_at": "2026-03-29",
-  "updated_at": "2026-03-29",
-  "source": "용인시",
+  "id": "welfare_…",
+  "title": "…",
+  "description": "…",
+  "region": ["…"],
+  "target": ["…"],
+  "age": ["…"],
+  "income": ["…"],
+  "tags": ["…"],
+  "benefit": "…",
+  "period": "YYYY-MM-DD ~ YYYY-MM-DD",
+  "apply_url": "https://…",
+  "created_at": "…",
+  "updated_at": "…",
+  "source": "…",
   "schema_version": 1,
   "dedupe_key": "sha256:…",
-  "source_url": "https://example.go.kr/notice/123",
-  "source_fetched_at": "2026-03-29T12:00:00+09:00",
+  "source_url": "https://…",
+  "source_fetched_at": "…",
   "ai_confidence": 0.86,
   "catalog_origin": "crowd"
 }
@@ -95,4 +97,4 @@
 
 클라이언트는 **설정**에 API URL·토큰·기여 동의를 두고, `src/core/api/linkHelpServer.ts`로 호출합니다. **스마트** 탭에서 매칭 결과만 기여할 수 있습니다.
 
-JSON 예시 파일: `docs/schemas/welfare-record.example.json`.
+스키마·필수 필드는 `src/types/benefit.ts`의 `WelfareRecord`를 기준으로 합니다.

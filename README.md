@@ -16,7 +16,7 @@
 - PWA: Vite가 생성하는 `manifest.webmanifest` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
 - 타임라인: 만 50·55·60… 도래 시점별 추천 미리보기
 - 알림: 복지 기반 예약 목록, 브라우저 알림(설정에서 허용)
-- 추천 점수: 태그 자카드 일치율(%) 표시, 혜택 목록 인기도(샘플) 정렬
+- 추천 점수: 태그 자카드 일치율(%) 표시, 혜택 목록 인기도(번들 메타) 정렬
 - 태그 힌트: 공고문 붙여넣기 + 로컬 태그 사전 매칭(서버 없음)
 - **복지 JSON 가져오기**: 설정에서 `WelfareRecord` 배열 파일 → IndexedDB에 합쳐 통합 목록에 반영(서버 없음)
 - **(선택) 자가 호스팅 API**: `server/`를 띄우면 공용 복지 DB(`GET /welfare`), 공고 AI 분석(`POST /welfare/analyze`), 기여(`POST /welfare/contribute`) — 앱 설정에 URL·토큰·동의 후 사용
@@ -60,8 +60,7 @@ npm run preview:lan
 - `src/components/layout` — 하단 네비게이션
 - `public/welfare-db` — 복지·태그·지역·메타 JSON(전국·경기·용인 등 **공식 안내 기준** 요약, 출처는 `docs/data-sources.md`)
 - `src/sw.ts` — Workbox 프리캐시·내비게이션 폴백·`welfare-db` 런타임 캐시
-- `server/` — (선택·레거시) 예전 HTTP API 예시
-- `data/sample` — 샘플보내기 JSON
+- `server/` — (선택·레거시) 자가 호스팅 API
 
 ## GitHub Pages (`https://<user>.github.io/link-help/`)
 
@@ -75,7 +74,7 @@ npm run build:gh
 
 **자동 배포(선택):** 저장소 **Settings → Pages → Build and deployment → Source: GitHub Actions**로 바꾼 뒤, `main`에 푸시하면 `.github/workflows/deploy-pages.yml`이 `build:gh` 결과를 게시합니다.
 
-**참고:** GitHub Pages는 **정적 파일만** 호스팅합니다. 복지 샘플은 번들 JSON이며, 이용자가 설정에
+**참고:** GitHub Pages는 **정적 파일만** 호스팅합니다. 복지 데이터는 `public/welfare-db` 번들 JSON·IndexedDB 누적이며, 이용자가 설정에
 **별도 API URL**을 넣으면 브라우저가 그 주소로 공용 목록·분석·기여 요청을 보낼 수 있습니다(CORS·서버
 필요).
 

@@ -23,7 +23,8 @@ family-benefit-manager/
 │
 ├── public/
 │   ├── icons/
-│   └── manifest.json
+│   ├── manifest.json
+│   └── welfare-db/   ← 번들 복지·지역·태그 JSON (공개 안내 기준 요약, docs/data-sources.md)
 │
 ├── src/
 │   ├── main.tsx
@@ -89,11 +90,7 @@ family-benefit-manager/
 │       ├── date.ts
 │       ├── format.ts
 │       └── validator.ts
-│
-└── data/
-    ├── sample/
-    │   ├── sample_family.json
-    │   └── sample_benefits.json
+
 2. 핵심 설계 개념
 1. core 폴더 (핵심 엔진)
 여기가 핵심입니다

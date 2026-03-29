@@ -266,9 +266,9 @@ export function SettingsPage() {
       <div className="card" style={{ marginBottom: 20 }}>
         <p className="muted" style={{ marginTop: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
           <code>WelfareRecord</code> 객체의 <strong>JSON 배열</strong> 파일을 불러오면{' '}
-          <code>link-help-welfare-cache</code>(IndexedDB)에 합쳐지고, 번들 샘플과 통합 목록으로
-          표시됩니다(번들 JSON과 병합). 서버로 전송되지 않습니다. 형식은{' '}
-          <code>docs/schemas/welfare-record.example.json</code> 참고.
+          <code>link-help-welfare-cache</code>(IndexedDB)에 합쳐지고, 번들 카탈로그와 통합 목록으로
+          표시됩니다(번들 JSON과 병합). 서버로 전송되지 않습니다. 필드 정의는{' '}
+          <code>src/types/benefit.ts</code>의 <code>WelfareRecord</code>를 참고하세요.
         </p>
         <button
           type="button"

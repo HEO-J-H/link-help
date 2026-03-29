@@ -3,7 +3,7 @@
 ## Done (current `main`)
 
 - 가족·프로필·정적 복지 목록·검색·상세(번들 JSON은 공개 기관 안내 기준 **참고 요약**, `docs/data-sources.md`)
-- 구성원별 추천(태그 교차)·추천 점수·인기도(샘플)
+- 구성원별 추천(태그 교차)·추천 점수·인기도(번들 메타)
 - 타임라인(연령별 미리보기)
 - 알림 예약 + 브라우저 알림(로컬)
 - 가족 JSON 보내기/불러오기/초기화
@@ -13,7 +13,7 @@
 - **기간·종료 처리**: `period` 파싱 + `status: expired`로 추천·타임라인에서 제외, 혜택 목록에서 선택적으로 표시
 - **스마트 매칭**: 프로필+포함·제외 키워드, 소스별 진행 UI, 전부 클라이언트; 결과 **IndexedDB** 누적 후 `loadMergedWelfareCatalog()`로 번들과 병합
 - **설정**: 복지 `WelfareRecord[]` JSON 파일 가져오기·누적 캐시 비우기 (`normalizeWelfareImport.ts`)
-- **`WelfareRecord` 확장 필드** + **`docs/catalog-pipeline.md`**(공고→AI→공용 DB 설계)·예시 JSON
+- **`WelfareRecord` 확장 필드** + **`docs/catalog-pipeline.md`**(공고→AI→공용 DB 설계), 타입은 `src/types/benefit.ts`
 - **혜택 상세**: `source_url`, 카탈로그 메타(출처 유형·스키마·AI 신뢰도·dedupe_key) 표시
 - **`server/link-help-api`**: `GET /welfare`, `POST /welfare/analyze`, `POST /welfare/contribute`, OpenAI 선택, `API_SHARED_TOKEN` 선택, VAPID 선택(없으면 Push 비활성)
 - **앱 연동**: 설정(API URL·토큰·동의)·`linkHelpServer.ts`·스마트 매칭 결과 서버 기여
