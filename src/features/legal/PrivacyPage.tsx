@@ -24,6 +24,11 @@ export function PrivacyPage() {
             <strong>복지 샘플 데이터:</strong> 앱에 포함된 JSON 파일을 브라우저에서 읽어 옵니다. 가족
             프로필이 그 파일이나 외부 서버로 자동 전송되지는 않습니다.
           </li>
+          <li>
+            <strong>스마트 매칭 누적(IndexedDB):</strong> 매칭으로 걸린 복지 항목 메타데이터는 같은
+            기기의 <code>link-help-welfare-cache</code> DB에 저장되어, 다음에 앱을 열면 통합 목록에
+            합쳐집니다. 브라우저에서 사이트 데이터를 지우면 함께 삭제됩니다.
+          </li>
         </ul>
       </section>
       <section>

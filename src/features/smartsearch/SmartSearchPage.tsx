@@ -5,20 +5,35 @@ import { useWelfare } from '@/context/WelfareContext';
 import { profileToDerivedTags } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/core/filter/smartMatchEngine';
+import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
+import type { WelfareRecord } from '@/types/benefit';
 
 const STAGES = [
   { id: 'prep', label: '프로필·포함·제외 조건 정리' },
-  { id: 'local', label: '복지 DB 스캔·매칭' },
-  { id: 'rank', label: '점수·정렬' },
+  { id: 'scan', label: '데이터 소스 스캔' },
+  { id: 'match', label: '매칭·점수·정렬' },
+  { id: 'persist', label: '로컬 카탈로그(IndexedDB) 동기화' },
+] as const;
+
+const SCAN_SOURCES = [
+  'national.json · 전국',
+  'gyeonggi.json · 경기',
+  'yongin.json · 용인',
+  'IndexedDB · 이전 매칭 누적',
 ] as const;
 
 function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function toPersistable(w: SmartMatchedWelfare): WelfareRecord {
+  const { smartScore: _s, ...r } = w;
+  return r;
+}
+
 export function SmartSearchPage() {
   const { state } = useFamily();
-  const { list, loading, error } = useWelfare();
+  const { list, loading, error, refreshWelfareCatalog } = useWelfare();
   const [memberId, setMemberId] = useState(state.members[0]?.id ?? '');
   const [includeRaw, setIncludeRaw] = useState('');
   const [excludeRaw, setExcludeRaw] = useState('');
@@ -28,6 +43,7 @@ export function SmartSearchPage() {
   const [statusLine, setStatusLine] = useState('');
   const [results, setResults] = useState<SmartMatchedWelfare[]>([]);
   const [foundCount, setFoundCount] = useState<number | null>(null);
+  const [persistNote, setPersistNote] = useState<string | null>(null);
 
   const member = useMemo(
     () => state.members.find((m) => m.id === memberId) ?? state.members[0],
@@ -46,16 +62,22 @@ export function SmartSearchPage() {
     setRunning(true);
     setResults([]);
     setFoundCount(null);
+    setPersistNote(null);
     setProgress(0);
     setStageIndex(0);
     setStatusLine(STAGES[0].label);
 
     await sleep(220);
     setStageIndex(1);
-    setStatusLine(STAGES[1].label);
-    for (let p = 0; p <= 100; p += 14) {
-      setProgress(p);
-      await sleep(40);
+    const n = SCAN_SOURCES.length;
+    for (let i = 0; i < n; i++) {
+      setStatusLine(`스캔 중: ${SCAN_SOURCES[i]} · 통합 카탈로그 ${list.length}건`);
+      const base = (i / n) * 100;
+      const seg = 100 / n;
+      for (let p = 0; p <= 100; p += 25) {
+        setProgress(Math.min(100, Math.round(base + (seg * p) / 100)));
+        await sleep(38);
+      }
     }
 
     const eff = getEffectiveProfile(member, state.household);
@@ -69,19 +91,41 @@ export function SmartSearchPage() {
     const matched = runSmartMatch(list, { profileTags, includeKeywords, excludeKeywords });
 
     setStageIndex(2);
-    setStatusLine(STAGES[2].label);
+    setStatusLine(`매칭·정렬 중… (${matched.length}건 후보)`);
     setProgress(0);
     for (let p = 0; p <= 100; p += 20) {
       setProgress(p);
-      await sleep(45);
+      await sleep(40);
     }
+
+    setStageIndex(3);
+    setStatusLine(STAGES[3].label);
+    setProgress(0);
+    for (let p = 0; p <= 50; p += 25) {
+      setProgress(p);
+      await sleep(35);
+    }
+
+    try {
+      await upsertWelfareRecords(matched.map(toPersistable));
+      refreshWelfareCatalog();
+      setPersistNote(
+        matched.length > 0
+          ? '매칭 결과를 이 기기 IndexedDB에 맞춰 두었습니다. (추후 가져오기·새 id가 붙으면 통합 목록이 늘어납니다.)'
+          : '조건에 맞는 항목이 없어 저장할 매칭 결과가 없습니다.'
+      );
+    } catch {
+      setPersistNote('로컬 저장을 건너뛰었습니다. 비공개 창이나 저장소 제한일 수 있습니다.');
+    }
+
+    setProgress(100);
+    await sleep(120);
 
     setResults(matched);
     setFoundCount(matched.length);
     setRunning(false);
-    setProgress(100);
     setStatusLine('완료');
-  }, [member, list, includeRaw, excludeRaw, state.household]);
+  }, [member, list, includeRaw, excludeRaw, state.household, refreshWelfareCatalog]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -102,8 +146,13 @@ export function SmartSearchPage() {
       <h1 className="page-title">스마트 매칭</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.92rem', lineHeight: 1.55 }}>
         <strong>기본 프로필 태그</strong> + <strong>추가 포함</strong>(예: 자동차) + <strong>추가 제외</strong>(예:
-        차상위, 장애인)를 조합해 복지·혜택을 찾습니다. 결과는 <strong>이 기기·이 탭 안에서만</strong> 계산되며
-        서버로 전송되지 않습니다.
+        차상위, 장애인)를 조합해 통합 카탈로그에서 찾습니다. 핵심은 붙여넣기가 아니라{' '}
+        <strong>이 조건으로 스캔·매칭</strong>하는 흐름입니다. 매칭으로 걸린 항목은{' '}
+        <strong>이 기기 IndexedDB</strong>에 쌓여 다음 로드부터 같은 목록에 합쳐지며, 외부 서버로는 보내지
+        않습니다.
+      </p>
+      <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.85rem' }}>
+        통합 카탈로그 <strong>{list.length}</strong>건 로드됨 (번들 JSON + 로컬 누적).
       </p>
 
       <div className="card" style={{ marginBottom: 16 }}>
@@ -172,13 +221,14 @@ export function SmartSearchPage() {
       )}
 
       {!running && foundCount !== null && (
-        <p style={{ marginBottom: 12, fontWeight: 600 }}>
+        <p style={{ marginBottom: 8, fontWeight: 600 }}>
           {foundCount}개를 찾았습니다.
           <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>
-            전부 브라우저에서만 처리됩니다.
+            진행 중 어디를 스캔했는지·진행률은 위 단계에서 표시됩니다.
           </span>
         </p>
       )}
+      {!running && persistNote && <p className="muted" style={{ marginBottom: 12 }}>{persistNote}</p>}
 
       <div className="stack">
         {results.map((w) => (
