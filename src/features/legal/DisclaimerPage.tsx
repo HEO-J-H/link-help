@@ -25,6 +25,13 @@ export function DisclaimerPage() {
           문의하십시오.
         </p>
       </section>
+      <section>
+        <h2>문서 성격</h2>
+        <p style={{ marginBottom: 0 }}>
+          본 면책·안내 문구는 <strong>일반적인 참고용 견본</strong>이며, 서비스 실제 운영 방식·책임
+          범위에 맞게 법무 검토 후 조정해야 합니다.
+        </p>
+      </section>
     </LegalLayout>
   );
 }

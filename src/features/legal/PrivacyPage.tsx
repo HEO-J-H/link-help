@@ -47,8 +47,16 @@ export function PrivacyPage() {
       <section>
         <h2>5. 문의</h2>
         <p>
-          상용 서비스 시 실제 운영 주체의 연락처·개인정보 보호책임자 정보를 이 항목에 기재하는 것이
-          좋습니다.
+          개인정보 관련 문의·열람·정정·삭제 요청은 <strong>실제 운영 주체의 공식 연락처</strong> 및{' '}
+          <strong>개인정보 보호책임자</strong> 안내를 따르는 것이 좋습니다. (현재 본 화면은 참고용
+          견본입니다.)
+        </p>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          오픈소스 저장소 관련 기술 이슈는 GitHub{' '}
+          <a href="https://github.com/HEO-J-H/link-help/issues" rel="noopener noreferrer">
+            Issues
+          </a>
+          를 이용할 수 있습니다. 민감한 개인정보는 이슈에 올리지 마세요.
         </p>
       </section>
     </LegalLayout>

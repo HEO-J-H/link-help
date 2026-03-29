@@ -92,6 +92,15 @@ npm run build:gh
 
 **한계:** GitHub Pages는 **정적 파일만** 제공합니다. `npm run server` API는 여기서 돌아가지 않습니다. 배포본에서 원격 복지·푸시를 쓰려면 **별도 서버 URL**을 설정에 넣어야 합니다.
 
+## 남은 작업·백로그
+
+구현 여부와 우선순위는 [`docs/roadmap.md`](docs/roadmap.md)를 기준으로 합니다. 요약하면: **AI/운영 복지 DB 파이프라인**, **앱 내 AI 검색·서버 저장 UX**, **공식 API 연동**, **관리자**, **법무 확정**, **테스트·보안 점검** 등은 아직 범위에 없거나 미구현입니다. 아키텍처 개요는 [`docs/architecture.md`](docs/architecture.md)입니다.
+
+## 스크립트
+
+- `npm run test` — 단위 테스트(Vitest)
+- `npm run build` / `npm run build:gh` — 일반 빌드 / GitHub Pages용
+
 ## 라이선스
 
 MIT — `LICENSE` 참고.

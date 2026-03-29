@@ -12,7 +12,9 @@
     "preview:lan": "vite preview --host",
     "dev:lan": "vite --host",
     "server": "npm run start --prefix server",
-    "server:install": "npm install --prefix server"
+    "server:install": "npm install --prefix server",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -24,6 +26,7 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "~5.7.2",
+    "vitest": "^3.0.9",
     "concurrently": "^9.1.2",
     "vite": "^6.2.0",
     "vite-plugin-pwa": "^0.21.2",

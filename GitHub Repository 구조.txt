@@ -105,13 +105,15 @@ storage
 storage/
 기능
 
-localStorage 관리
-indexedDB 관리
+localStorage (레거시)
+sessionStorage 가족 세션 (familySessionStorage.ts)
+IndexedDB (레거시 마이그레이션·삭제용, familyIndexedDb.ts)
 import/export
 파일
 
 localStorage.ts
-indexedDB.ts
+familySessionStorage.ts
+familyIndexedDb.ts / indexedDB.ts
 exportImport.ts
 family
 family/

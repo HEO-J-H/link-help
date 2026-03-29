@@ -39,6 +39,14 @@ export function TermsPage() {
           내용은 <strong>면책·정보 안내</strong> 화면을 참고하세요.
         </p>
       </section>
+      <section>
+        <h2>제6조 (약관 문서의 성격)</h2>
+        <p style={{ marginBottom: 0 }}>
+          본 약관은 <strong>참고용 초안</strong>입니다. 상용·대외 서비스로 운영하기 전에{' '}
+          <strong>변호사 등 전문가의 검토</strong>를 받고, 실제 운영 주체·연락처·분쟁 관할 등을
+          반영해 수정하는 것이 좋습니다.
+        </p>
+      </section>
     </LegalLayout>
   );
 }
