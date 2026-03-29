@@ -2,7 +2,7 @@ import type { FamilyState } from '@/types/family';
 import { normalizeFamilyState } from '@/core/family/normalizeFamilyState';
 import { FAMILY_STORAGE_KEY } from './localStorageKeys';
 import { loadFamilyFromStorage } from './localStorage';
-import { initialFamilyState } from '@/core/family/familyManager';
+import { emptySessionFamilyState } from '@/core/family/familyManager';
 
 const DB_NAME = 'link-help';
 const DB_VERSION = 1;
@@ -59,8 +59,19 @@ export async function saveFamilyToIndexedDb(state: FamilyState): Promise<void> {
   db.close();
 }
 
+/** Remove legacy DB after migrating to sessionStorage (one-time per browser). */
+export function clearFamilyIndexedDb(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.deleteDatabase(DB_NAME);
+    req.onsuccess = () => resolve();
+    req.onerror = () => reject(req.error ?? new Error('indexedDB delete failed'));
+    req.onblocked = () => resolve();
+  });
+}
+
 /**
- * Prefer IndexedDB; if empty, migrate from legacy localStorage once, then persist to IDB.
+ * Legacy: prefer IndexedDB, else migrate from localStorage once into IDB. (App now uses sessionStorage;
+ * FamilyContext migrates from IDB/localStorage once then deletes IDB.)
  */
 export async function loadFamilyWithMigration(): Promise<FamilyState> {
   const fromIdb = await loadFamilyFromIndexedDb();
@@ -78,5 +89,5 @@ export async function loadFamilyWithMigration(): Promise<FamilyState> {
     return normalized;
   }
 
-  return initialFamilyState();
+  return emptySessionFamilyState();
 }

@@ -1,6 +1,6 @@
 # Link-Help API (production)
 
-SQLite에 Web Push 구독과 복지 행을 저장하는 Express 서버입니다. 첫 기동 시 `public/welfare-db/welfare/*.json`을 읽어 `welfare_items` 테이블을 채웁니다.
+SQLite에 Web Push 구독과 복지 행을 저장하는 Express 서버입니다. 첫 기동 시 `public/welfare-db/welfare/*.json`을 읽어 `welfare_items` 테이블을 채웁니다. 운영에서는 **AI 검색·큐레이션 파이프라인**으로 이 테이블을 갱신하는 전제를 두고, **이용자 가족 프로필은 서버에 저장하지 않습니다.**
 
 **요구 사항:** Node.js **22.5 이상**(권장 24 LTS). DB는 네이티브 애드온 없이 내장 모듈 [`node:sqlite`](https://nodejs.org/api/sqlite.html)를 사용합니다.
 

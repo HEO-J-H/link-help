@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
-import { initialFamilyState } from '@/core/family/familyManager';
+import { emptySessionFamilyState } from '@/core/family/familyManager';
 import { LOCAL_DEV_API_BASE } from '@/config/localDev';
 import { isWebPushConfigured } from '@/config/pushPublic';
 import { postPushSubscription, subscribeWebPush, unsubscribeWebPush } from '@/core/push/pushClient';
@@ -39,7 +39,7 @@ export function SettingsPage() {
 
   const reset = () => {
     if (window.confirm('로컬에 저장된 가족 데이터를 초기화할까요?')) {
-      setState(initialFamilyState());
+      setState(emptySessionFamilyState());
     }
   };
 
@@ -133,8 +133,10 @@ export function SettingsPage() {
     <div>
       <h1 className="page-title">설정</h1>
       <p className="muted" style={{ marginBottom: 20 }}>
-        가족·알림 데이터는 브라우저 IndexedDB에만 저장됩니다. 예전 버전(localStorage)은 첫
-        실행 시 자동으로 옮겨집니다. 백업은 JSON보내기를 사용하세요.
+        가족·알림·설정(앱 안)은 <strong>이 탭이 열려 있는 동안만</strong> 브라우저{' '}
+        <strong>sessionStorage</strong>에 JSON 형태로 보관됩니다. 탭이나 창을 닫으면 비워지고, 다시
+        열면 빈 상태에서 시작합니다. 이전에 저장해 둔 내용은 <strong>JSON 불러오기</strong>로
+        복원하세요. (회원 가입 없음)
       </p>
 
       <div className="card" style={{ marginBottom: 22 }}>

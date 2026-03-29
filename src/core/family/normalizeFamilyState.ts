@@ -1,7 +1,7 @@
 import type { FamilyState } from '@/types/family';
 import type { Reminder } from '@/types/reminder';
 import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
-import { initialFamilyState } from './familyManager';
+import { emptySessionFamilyState } from './familyManager';
 
 function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   const base = defaultAppSettings();
@@ -16,15 +16,19 @@ function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   };
 }
 
-/** Ensure new fields exist after IDB / import / legacy JSON. */
+/** Ensure new fields exist after import / legacy JSON. Allows zero members (session mode). */
 export function normalizeFamilyState(raw: unknown): FamilyState {
   const data = raw as Record<string, unknown> | null;
-  if (!data || !Array.isArray(data.members) || data.members.length === 0) {
-    return initialFamilyState();
+  if (!data || !Array.isArray(data.members)) {
+    return emptySessionFamilyState();
   }
   const members = data.members as FamilyState['members'];
   const reminders = Array.isArray(data.reminders) ? (data.reminders as Reminder[]) : [];
   const appSettings = mergeAppSettingsFromRaw(data.appSettings);
+
+  if (members.length === 0) {
+    return { members: [], reminders, appSettings };
+  }
 
   return { members, reminders, appSettings };
 }

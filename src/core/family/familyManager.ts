@@ -38,3 +38,12 @@ export function initialFamilyState(): FamilyState {
     appSettings: defaultAppSettings(),
   };
 }
+
+/** New tab / after closing the window — no members until import or add. */
+export function emptySessionFamilyState(): FamilyState {
+  return {
+    members: [],
+    reminders: [],
+    appSettings: defaultAppSettings(),
+  };
+}

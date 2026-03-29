@@ -1,6 +1,7 @@
-/** Family persistence in IndexedDB (see `familyIndexedDb.ts`). */
+/** Legacy IndexedDB helpers (migration only; live data uses sessionStorage). */
 export {
+  clearFamilyIndexedDb,
   loadFamilyFromIndexedDb,
-  saveFamilyToIndexedDb,
   loadFamilyWithMigration,
+  saveFamilyToIndexedDb,
 } from './familyIndexedDb';

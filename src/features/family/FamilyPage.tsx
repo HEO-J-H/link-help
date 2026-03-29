@@ -17,8 +17,15 @@ export function FamilyPage() {
     <div>
       <h1 className="page-title">가족</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        구성원을 눌러 프로필을 입력하면 추천에 반영됩니다.
+        구성원을 눌러 프로필을 입력하면 추천에 반영됩니다. 탭을 닫기 전에 필요하면 설정에서
+        JSON보내기로 백업하세요.
       </p>
+      {state.members.length === 0 && (
+        <p className="muted" style={{ marginBottom: 14, fontSize: '0.92rem' }}>
+          아직 구성원이 없습니다. 아래에서 추가하거나, 설정의 <strong>가족 정보 불러오기</strong>로
+          JSON을 넣으면 이전 입력을 복원할 수 있습니다.
+        </p>
+      )}
       <div className="card" style={{ marginBottom: 16, padding: '12px 14px' }}>
         <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
           처음이면 <Link to="/start">빠른 시작</Link>에서 실행 방법을 보거나,{' '}

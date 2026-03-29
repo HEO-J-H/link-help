@@ -98,16 +98,20 @@ npm run dev`}
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>내 데이터는 어디에 있나요?</h2>
         <ul style={{ marginBottom: 0, paddingLeft: '1.2rem' }}>
           <li>
-            <strong>가족·알림·설정</strong> → 대부분 <strong>이 기기 브라우저 안(IndexedDB)</strong>에만
-            있습니다.
+            <strong>가족·알림·설정</strong> → <strong>sessionStorage</strong>(탭·창 단위). 창을 닫으면
+            지워지고, <strong>JSON 불러오기</strong>로만 다시 채웁니다. 회원 가입 없음.
           </li>
           <li>
-            <strong>복지 목록(JSON)</strong> → 앱과 함께 배포되거나, 설정한 주소의 서버에서 추가로
-            불러와 합쳐 집니다.
+            <strong>복지 목록(서버 DB)</strong> → 운영·AI 검색 등으로 확보·정리한 항목을 DB에 두고
+            앱은 <code>GET /welfare</code> 등으로 받아 보여 줄 수 있습니다. 가족 프로필은 그 DB에
+            자동 저장되지 않습니다.
           </li>
           <li>
-            <strong>Web Push</strong>를 켜고 서버 주소를 넣은 경우 → 푸시 구독 정보가{' '}
-            <strong>그 서버</strong>로 전송될 수 있습니다.
+            <strong>로컬 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽어 옵니다.
+          </li>
+          <li>
+            <strong>Web Push</strong>를 켜고 API 주소를 넣은 경우 → 구독 정보가{' '}
+            <strong>그 서버</strong>로 전송될 수 있습니다(가족 프로필 본문과는 별개).
           </li>
         </ul>
       </div>

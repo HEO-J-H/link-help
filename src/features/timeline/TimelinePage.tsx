@@ -37,6 +37,18 @@ export function TimelinePage() {
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
 
+  if (state.members.length === 0) {
+    return (
+      <div>
+        <h1 className="page-title">타임라인</h1>
+        <p className="muted">
+          타임라인을 보려면 <Link to="/">가족</Link>에서 구성원을 추가하거나,{' '}
+          <Link to="/settings">설정</Link>에서 JSON을 불러오세요.
+        </p>
+      </div>
+    );
+  }
+
   const currentAge = member ? ageFromBirthDate(member.profile.birthDate) : null;
 
   return (

@@ -10,7 +10,7 @@
 - 가족 구성원 추가·삭제, 프로필(생년월일·지역·소득 구간·학생·장애·포함/제외 태그)
 - 혜택 목록·검색·상세 (`public/welfare-db`)
 - 구성원별 추천(프로필에서 파생한 태그와 복지 항목 태그 교차)
-- 가족 데이터 JSON보내기 / 불러오기 / 초기화
+- 가족 데이터 JSON보내기 / 불러오기 / 초기화(탭·창을 닫으면 입력값은 사라지고, 불러오기로 복원)
 - 하단 탭: 가족 · 혜택 · 추천 · 타임라인 · 알림 · 설정
 - PWA: Vite가 생성하는 `manifest.webmanifest` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
 - 타임라인: 만 50·55·60… 도래 시점별 추천 미리보기
@@ -24,7 +24,7 @@
 
 ## 기술 스택
 
-React 19, TypeScript, Vite, React Router, IndexedDB(가족), `vite-plugin-pwa`
+React 19, TypeScript, Vite, React Router, sessionStorage(가족·알림·세션), `vite-plugin-pwa`
 
 ## 설치 및 실행
 

@@ -8,8 +8,12 @@ import {
   type ReactNode,
 } from 'react';
 import type { FamilyMember, FamilyState } from '@/types/family';
-import { createMember, initialFamilyState } from '@/core/family/familyManager';
-import { loadFamilyWithMigration, saveFamilyToIndexedDb } from '@/core/storage/familyIndexedDb';
+import { createMember, emptySessionFamilyState } from '@/core/family/familyManager';
+import { normalizeFamilyState } from '@/core/family/normalizeFamilyState';
+import { clearFamilyIndexedDb, loadFamilyFromIndexedDb } from '@/core/storage/familyIndexedDb';
+import { FAMILY_STORAGE_KEY } from '@/core/storage/localStorageKeys';
+import { loadFamilyFromStorage } from '@/core/storage/localStorage';
+import { loadFamilyFromSession, saveFamilyToSession } from '@/core/storage/familySessionStorage';
 
 type FamilyContextValue = {
   state: FamilyState;
@@ -30,10 +34,37 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
     (async () => {
       try {
-        const next = await loadFamilyWithMigration();
-        if (!cancelled) setStateInternal(next);
+        const fromSession = loadFamilyFromSession();
+        if (fromSession !== null) {
+          if (!cancelled) setStateInternal(fromSession);
+          return;
+        }
+
+        const fromIdb = await loadFamilyFromIndexedDb();
+        if (fromIdb) {
+          saveFamilyToSession(fromIdb);
+          await clearFamilyIndexedDb();
+          if (!cancelled) setStateInternal(fromIdb);
+          return;
+        }
+
+        const fromLs = loadFamilyFromStorage();
+        if (fromLs) {
+          const normalized = normalizeFamilyState(fromLs);
+          saveFamilyToSession(normalized);
+          try {
+            localStorage.removeItem(FAMILY_STORAGE_KEY);
+          } catch {
+            /* ignore */
+          }
+          await clearFamilyIndexedDb();
+          if (!cancelled) setStateInternal(normalized);
+          return;
+        }
+
+        if (!cancelled) setStateInternal(emptySessionFamilyState());
       } catch {
-        if (!cancelled) setStateInternal(initialFamilyState());
+        if (!cancelled) setStateInternal(emptySessionFamilyState());
       } finally {
         if (!cancelled) setHydrated(true);
       }
@@ -45,7 +76,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!state) return;
-    void saveFamilyToIndexedDb(state);
+    saveFamilyToSession(state);
   }, [state]);
 
   const setState = useCallback((s: FamilyState) => setStateInternal(s), []);
@@ -59,7 +90,7 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
 
   const addMember = useCallback((name: string) => {
     setStateInternal((prev) => {
-      const base = prev ?? initialFamilyState();
+      const base = prev ?? emptySessionFamilyState();
       return {
         ...base,
         members: [...base.members, createMember({ displayName: name, relationship: 'other' })],
@@ -83,7 +114,6 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     setStateInternal((prev) => {
       if (!prev) return prev;
       const next = prev.members.filter((m) => m.id !== id);
-      if (next.length === 0) return initialFamilyState();
       return {
         ...prev,
         members: next,
