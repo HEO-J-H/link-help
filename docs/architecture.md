@@ -30,3 +30,4 @@
 - **welfareLifecycle**: parse `period` strings, `isWelfareEffectivelyExpired`, list sort for discovery (active first).
 - **Reminders**: `ReminderRunner` + Notification API.
 - **Tag hints**: `core/ai/suggestTags.ts` — client-only vocabulary match (not a hosted “AI search” product).
+- **Smart match**: `features/smartsearch/SmartSearchPage.tsx` + `core/filter/smartMatchEngine.ts` — profile tags + include/exclude keywords, staged progress UI, optional `POST /smart-match` to log runs and increment `welfare_match_boost` on the server (no PII in payload).

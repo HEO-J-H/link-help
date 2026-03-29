@@ -15,6 +15,7 @@ import { AboutPage } from '@/features/about/AboutPage';
 import { TermsPage } from '@/features/legal/TermsPage';
 import { PrivacyPage } from '@/features/legal/PrivacyPage';
 import { DisclaimerPage } from '@/features/legal/DisclaimerPage';
+import { SmartSearchPage } from '@/features/smartsearch/SmartSearchPage';
 
 const routerBasename =
   import.meta.env.BASE_URL === '/' ? undefined : import.meta.env.BASE_URL.replace(/\/$/, '');
@@ -32,6 +33,7 @@ export default function App() {
               <Route path="/benefits" element={<BenefitListPage />} />
               <Route path="/benefits/:id" element={<BenefitDetailPage />} />
               <Route path="/recommend" element={<RecommendPage />} />
+              <Route path="/smart-find" element={<SmartSearchPage />} />
               <Route path="/timeline" element={<TimelinePage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

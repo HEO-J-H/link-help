@@ -15,6 +15,9 @@ export function BottomNav() {
       <NavLink to="/recommend" className={linkClass}>
         추천
       </NavLink>
+      <NavLink to="/smart-find" className={linkClass}>
+        스마트
+      </NavLink>
       <NavLink to="/timeline" className={linkClass}>
         타임라인
       </NavLink>

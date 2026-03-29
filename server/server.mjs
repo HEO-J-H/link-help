@@ -10,6 +10,8 @@ import express from 'express';
 import cors from 'cors';
 import { DatabaseSync } from 'node:sqlite';
 import webpush from 'web-push';
+import crypto from 'node:crypto';
+import { runSmartMatch } from './smartMatchCore.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -46,6 +48,20 @@ function openDb() {
       id TEXT PRIMARY KEY,
       payload TEXT NOT NULL,
       updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS smart_match_runs (
+      id TEXT PRIMARY KEY,
+      profile_tags TEXT NOT NULL,
+      include_keywords TEXT NOT NULL,
+      exclude_keywords TEXT NOT NULL,
+      result_ids TEXT NOT NULL,
+      found_count INTEGER NOT NULL,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE TABLE IF NOT EXISTS welfare_match_boost (
+      welfare_id TEXT PRIMARY KEY,
+      hit_count INTEGER NOT NULL DEFAULT 0,
+      last_hit TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
   return db;
@@ -127,6 +143,75 @@ app.get('/welfare', (_req, res) => {
   res.json(items);
 });
 
+/**
+ * Smart match: either body.resultIds (client-computed) for persistence only,
+ * or profileTags/includeKeywords/excludeKeywords only → server computes from SQLite welfare.
+ */
+app.post('/smart-match', (req, res) => {
+  const profileTags = Array.isArray(req.body?.profileTags)
+    ? req.body.profileTags.map((s) => String(s).trim()).filter(Boolean)
+    : [];
+  const includeKeywords = Array.isArray(req.body?.includeKeywords)
+    ? req.body.includeKeywords.map((s) => String(s).trim()).filter(Boolean)
+    : [];
+  const excludeKeywords = Array.isArray(req.body?.excludeKeywords)
+    ? req.body.excludeKeywords.map((s) => String(s).trim()).filter(Boolean)
+    : [];
+
+  let items = [];
+  let resultIds = [];
+  let foundCount = 0;
+
+  if (Array.isArray(req.body?.resultIds)) {
+    resultIds = req.body.resultIds.map((s) => String(s)).filter(Boolean);
+    foundCount = Number(req.body?.foundCount);
+    if (!Number.isFinite(foundCount)) foundCount = resultIds.length;
+  } else {
+    const rows = db.prepare('SELECT payload FROM welfare_items').all();
+    const all = rows.map((r) => JSON.parse(r.payload));
+    items = runSmartMatch(all, { profileTags, includeKeywords, excludeKeywords });
+    resultIds = items.map((w) => w.id);
+    foundCount = items.length;
+  }
+
+  const runId = crypto.randomUUID();
+  db.prepare(
+    `INSERT INTO smart_match_runs (id, profile_tags, include_keywords, exclude_keywords, result_ids, found_count)
+     VALUES (?, ?, ?, ?, ?, ?)`
+  ).run(
+    runId,
+    JSON.stringify(profileTags),
+    JSON.stringify(includeKeywords),
+    JSON.stringify(excludeKeywords),
+    JSON.stringify(resultIds),
+    foundCount
+  );
+
+  const boost = db.prepare(
+    `INSERT INTO welfare_match_boost (welfare_id, hit_count, last_hit) VALUES (?, 1, datetime('now'))
+     ON CONFLICT(welfare_id) DO UPDATE SET hit_count = hit_count + 1, last_hit = datetime('now')`
+  );
+  for (const wid of resultIds) boost.run(wid);
+
+  if (Array.isArray(req.body?.resultIds)) {
+    return res.json({
+      ok: true,
+      runId,
+      foundCount,
+      persisted: true,
+      stagesDone: ['smart_match_persist', 'welfare_match_boost'],
+    });
+  }
+
+  res.json({
+    ok: true,
+    runId,
+    foundCount,
+    items,
+    stagesDone: ['sqlite_welfare', 'smart_match_engine_v1', 'persist_run', 'boost_counts'],
+  });
+});
+
 app.post('/push/subscribe', (req, res) => {
   const sub = req.body?.subscription;
   if (!sub?.endpoint || !sub.keys?.p256dh || !sub.keys?.auth) {
@@ -170,7 +255,9 @@ app.use((_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`[link-help-api] http://localhost:${PORT}`);
-  console.log('[link-help-api] GET /health  GET /welfare  POST /push/subscribe  POST /push/send');
+  console.log(
+    '[link-help-api] GET /health  GET /welfare  POST /smart-match  POST /push/subscribe  POST /push/send'
+  );
   if (process.env.ADMIN_PUSH_SECRET) {
     console.log('[link-help-api] POST /push/send requires header X-Link-Help-Admin');
   }

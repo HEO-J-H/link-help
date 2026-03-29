@@ -98,8 +98,9 @@ npm run dev`}
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>지향하는 방향</h2>
         <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.65 }}>
           <li>
-            공식 API만으로는 닿지 않는 <strong>숨은 지원·공고</strong>까지 넓히기 위해, 지금은 로컬·원격
-            복지 DB와 태그 매칭을 키우고 <strong>(향후) AI 분석·임시 API</strong>와 병행하는 전략입니다.
+            공식 API만으로는 닿지 않는 <strong>숨은 지원</strong>을 넓히기 위해, 하단 <strong>스마트</strong>{' '}
+            탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>을 쓰고, 서버에 연결하면 검색
+            이력이 쌓여 같은 조건을 반복하기 쉬워집니다. 외부 LLM은 이 파이프라인에 이어 붙일 수 있습니다.
           </li>
           <li>
             사용·필터·공고 활동이 쌓이면 <strong>개인정보 없이</strong> 공용 복지 레코드가 늘어나, 모두의

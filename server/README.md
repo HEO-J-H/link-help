@@ -38,6 +38,11 @@ npm run server
 
 - `GET /health` — `{ ok, subscriptions, welfare_rows }`
 - `GET /welfare` — 복지 행 배열(JSON)
+- `POST /smart-match` — 스마트 매칭(키워드·제외, PII 없음)
+  - **A)** 클라이언트가 이미 계산한 경우:  
+    `profileTags`, `includeKeywords`, `excludeKeywords`, `resultIds`, `foundCount` → 실행 이력(`smart_match_runs`) + 항목별 누적(`welfare_match_boost`)만 저장.
+  - **B)** `resultIds` 없이 위 태그 배열만내면: 서버 SQLite의 복지 행에 대해 동일 규칙으로 매칭 후 응답 `items` + 위와 같이 저장.  
+  (외부 LLM은 이후 같은 엔드포인트 안에 끼울 수 있음.)
 - `POST /push/subscribe` — body `{ "subscription": { …PushSubscription JSON } }`
 - `POST /push/send` — body `{ "title": "…", "body": "…" }` (등록된 구독에 브로드캐스트)
 

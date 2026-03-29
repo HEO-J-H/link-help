@@ -12,6 +12,7 @@
 - 운영 API: `/welfare`, `/push/*`, SQLite
 - 법적/안내 화면(참고용 문구), `/start` 빠른 시작
 - **기간·종료 처리**: `period` 파싱 + `status: expired`로 추천·타임라인에서 제외, 혜택 목록에서 선택적으로 표시
+- **스마트 매칭**: 프로필+포함·제외 키워드, 진행 UI, `POST /smart-match`로 이력·`welfare_match_boost` 누적(PII 없음)
 
 ## Backlog (not implemented)
 
