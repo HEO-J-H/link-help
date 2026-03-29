@@ -17,8 +17,8 @@ export function FamilyPage() {
     <div>
       <h1 className="page-title">가족</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        <strong>이 주소만 열어도</strong> 가족·혜택·추천은 서버 없이 동작합니다. (설정의 API는 선택
-        사항입니다.) 구성원을 눌러 프로필을 입력하면 추천에 반영됩니다. 탭을 닫기 전에 필요하면 설정에서
+        <strong>이 주소만 열어도</strong> 가족·혜택·추천·스마트 매칭이 이 브라우저 안에서 동작합니다.
+        구성원을 눌러 프로필을 입력하면 추천에 반영됩니다. 탭을 닫기 전에 필요하면 설정에서
         JSON 보내기로 백업하세요.
       </p>
       {state.members.length === 0 && (
@@ -29,8 +29,8 @@ export function FamilyPage() {
       )}
       <div className="card" style={{ marginBottom: 16, padding: '12px 14px' }}>
         <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
-          처음이면 <Link to="/start">빠른 시작</Link>에서 실행 방법을 보거나,{' '}
-          <Link to="/settings">설정</Link>의 「로컬 API 주소 넣기」로 서버와 연결할 수 있습니다.
+          처음이면 <Link to="/start">빠른 시작</Link>에서 개발·배포 안내를 보거나,{' '}
+          <Link to="/settings">설정</Link>에서 JSON 백업을 쓸 수 있습니다.
         </p>
       </div>
       <div className="stack">

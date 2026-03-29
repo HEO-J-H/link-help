@@ -13,16 +13,15 @@
 
 ## Benefit catalog
 
-- **Static**: `public/welfare-db` — fetched via paths built with `import.meta.env.BASE_URL` (`publicAsset()`).
-- **Remote merge**: Optional `GET {syncApiBaseUrl}/welfare` (see `WelfareContext`).
+- **Static only**: `public/welfare-db` — fetched via paths built with `import.meta.env.BASE_URL` (`publicAsset()`). No remote merge in the web app.
 
 ## Service worker (`src/sw.ts`)
 
-- **injectManifest** (Workbox): precache, navigation fallback to `index.html` under `BASE_URL`, runtime cache for `welfare-db`, **Web Push** + `notificationclick`.
+- **injectManifest** (Workbox): precache, navigation fallback to `index.html` under `BASE_URL`, runtime cache for `welfare-db`.
 
 ## Server (`server/`)
 
-- Express + `node:sqlite` — `push_subscriptions`, `welfare_items` (seeded from bundled JSON on first run). **No family profile persistence** on server by design; welfare rows are intended to be curated (e.g. AI/ops pipeline), not user PII.
+- Optional / legacy sample (Express + SQLite) may remain in the repo for experiments; **not required** for the static app.
 
 ## Matching & helpers
 
@@ -30,4 +29,4 @@
 - **welfareLifecycle**: parse `period` strings, `isWelfareEffectivelyExpired`, list sort for discovery (active first).
 - **Reminders**: `ReminderRunner` + Notification API.
 - **Tag hints**: `core/ai/suggestTags.ts` — client-only vocabulary match (not a hosted “AI search” product).
-- **Smart match**: `features/smartsearch/SmartSearchPage.tsx` + `core/filter/smartMatchEngine.ts` — profile tags + include/exclude keywords, staged progress UI, optional `POST /smart-match` to log runs and increment `welfare_match_boost` on the server (no PII in payload).
+- **Smart match**: `features/smartsearch/SmartSearchPage.tsx` + `core/filter/smartMatchEngine.ts` — profile tags + include/exclude keywords, staged progress UI; all client-side (no server logging in app).

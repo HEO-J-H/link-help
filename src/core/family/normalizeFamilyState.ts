@@ -11,9 +11,6 @@ function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   return {
     browserNotifications:
       typeof o.browserNotifications === 'boolean' ? o.browserNotifications : base.browserNotifications,
-    syncApiBaseUrl: typeof o.syncApiBaseUrl === 'string' ? o.syncApiBaseUrl : base.syncApiBaseUrl,
-    pushSubscriptionJson:
-      typeof o.pushSubscriptionJson === 'string' ? o.pushSubscriptionJson : undefined,
   };
 }
 

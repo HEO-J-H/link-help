@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { LOCAL_DEV_API_BASE } from '@/config/localDev';
 
 export function AboutPage() {
   const location = useLocation();
@@ -22,13 +21,12 @@ export function AboutPage() {
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>인터넷 주소만으로 쓰기</h2>
         <p style={{ marginTop: 0, lineHeight: 1.6 }}>
           이 사이트 주소(예: GitHub Pages로 배포된 URL)를 브라우저에서 열면 됩니다.{' '}
-          <strong>별도 프로그램 설치·회원 가입·서버 실행은 없습니다.</strong> 가족과 프로필은 이 탭이
+          <strong>별도 프로그램 설치·회원 가입·서버·API 연결은 없습니다.</strong> 가족과 프로필은 이 탭이
           열려 있는 동안만 브라우저에 저장되며, 닫으면 비워질 수 있으니 필요하면 설정에서 JSON으로
           백업하세요.
         </p>
         <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
-          설정의 「원격 API」는 <strong>선택</strong>입니다. 비워 두면 앱에 포함된 복지 샘플 데이터만으로
-          목록·추천이 동작합니다.
+          복지 샘플 데이터는 앱에 포함된 JSON만 사용합니다. 스마트 매칭 결과도 서버로 보내지 않습니다.
         </p>
       </section>
 
@@ -38,10 +36,9 @@ export function AboutPage() {
           로컬에서 소스를 수정·실행할 때만 아래가 필요합니다. 일반 이용은 위 「인터넷 주소만」으로
           충분합니다.
         </p>
-        <h3 style={{ fontSize: '0.98rem', margin: '14px 0 8px' }}>로컬 웹만 (서버 없음)</h3>
         <pre
           style={{
-            margin: '0 0 12px',
+            margin: '12px 0',
             padding: 12,
             fontSize: '0.82rem',
             overflow: 'auto',
@@ -54,58 +51,20 @@ export function AboutPage() {
 npm run dev`}
         </pre>
         <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
-          브라우저에 나온 주소(보통 localhost:5173)로 접속합니다. 복지 JSON은 앱에 포함된 것만 사용합니다.
-        </p>
-
-        <h3 style={{ fontSize: '0.98rem', margin: '16px 0 8px' }}>API·푸시까지 (로컬)</h3>
-        <ol style={{ margin: '0 0 10px', paddingLeft: '1.25rem', lineHeight: 1.65 }}>
-          <li>
-            <code>npm run server:install</code> (최초 1회)
-          </li>
-          <li>
-            <code>server/.env.example</code>을 복사해 <code>server/.env</code>로 두고,{' '}
-            <code>npx web-push generate-vapid-keys</code>로 만든 키를 넣습니다.
-          </li>
-          <li>
-            루트에 <code>.env</code>를 두고 <code>VITE_VAPID_PUBLIC_KEY</code>에{' '}
-            <strong>서버와 같은 공개 키</strong>를 넣습니다. 그다음 <code>npm run dev</code>를 다시 켭니다.
-          </li>
-          <li>
-            아래 중 편한 방법으로 <strong>API와 웹을 같이</strong> 띄웁니다.
-          </li>
-        </ol>
-        <pre
-          style={{
-            margin: '0 0 8px',
-            padding: 12,
-            fontSize: '0.82rem',
-            overflow: 'auto',
-            background: 'var(--color-surface-muted, #f4f6f4)',
-            borderRadius: 8,
-            border: '1px solid var(--color-border)',
-          }}
-        >
-          {`npm run dev:full`}
-        </pre>
-        <p className="muted" style={{ margin: '0 0 10px', fontSize: '0.88rem' }}>
-          Windows에서는 탐색기에서 <code>scripts\\dev-full.cmd</code>을 더블 클릭해도 됩니다(같은 효과).
-        </p>
-        <p style={{ marginBottom: 0 }}>
-          앱 <Link to="/settings">설정</Link>에서 <strong>「로컬 API 주소 넣기」</strong>를 누르거나, API 베이스
-          URL에 <code>{LOCAL_DEV_API_BASE}</code>를 입력합니다.
+          브라우저에 나온 주소(보통 localhost:5173)로 접속합니다. GitHub Pages 배포는{' '}
+          <code>npm run build:gh</code> 후 저장소 워크플로를 사용합니다.
         </p>
         <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
-          GitHub Pages 등 <strong>웹에만</strong> 올린 주소에서는 앱·복지 JSON은 동작하지만, API는 별도
-          서버를 두고 설정에 그 URL을 넣어야 합니다. 저장소에서는 <code>npm run build:gh</code>로 배포용
-          빌드를 만듭니다.
+          저장소의 <code>server/</code> 폴더는 예전 실험용 백엔드 예시로 남겨 두었을 수 있으나, 현재 웹
+          앱 동작에는 필요하지 않습니다.
         </p>
       </section>
 
       <div className="card" style={{ marginBottom: 14 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>Link-Help가 하는 일</h2>
         <p style={{ marginBottom: 0 }}>
-          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·추천·타임라인으로 놓치기
-          쉬운 정보를 <strong>참고용</strong>으로 모아 두는 도구입니다.
+          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·추천·타임라인·스마트 매칭으로
+          놓치기 쉬운 정보를 <strong>참고용</strong>으로 모아 두는 도구입니다.
         </p>
       </div>
 
@@ -113,13 +72,8 @@ npm run dev`}
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>지향하는 방향</h2>
         <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.65 }}>
           <li>
-            공식 API만으로는 닿지 않는 <strong>숨은 지원</strong>을 넓히기 위해, 하단 <strong>스마트</strong>{' '}
-            탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>을 쓰고, 서버에 연결하면 검색
-            이력이 쌓여 같은 조건을 반복하기 쉬워집니다. 외부 LLM은 이 파이프라인에 이어 붙일 수 있습니다.
-          </li>
-          <li>
-            사용·필터·공고 활동이 쌓이면 <strong>개인정보 없이</strong> 공용 복지 레코드가 늘어나, 모두의
-            후보 풀이 커지는 효과를 노립니다.
+            하단 <strong>스마트</strong> 탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>을
+            브라우저에서만 돌립니다. 외부 LLM을 붙이려면 별도 확장이 필요합니다.
           </li>
           <li>
             <strong>기간이 끝난 혜택</strong>은 추천·타임라인에서 제외하고, 혜택 탭에서만 &quot;종료·기간
@@ -136,16 +90,7 @@ npm run dev`}
             지워지고, <strong>JSON 불러오기</strong>로만 다시 채웁니다. 회원 가입 없음.
           </li>
           <li>
-            <strong>복지 목록(서버 DB)</strong> → 운영·AI 검색 등으로 확보·정리한 항목을 DB에 두고
-            앱은 <code>GET /welfare</code> 등으로 받아 보여 줄 수 있습니다. 가족 프로필은 그 DB에
-            자동 저장되지 않습니다.
-          </li>
-          <li>
-            <strong>로컬 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽어 옵니다.
-          </li>
-          <li>
-            <strong>Web Push</strong>를 켜고 API 주소를 넣은 경우 → 구독 정보가{' '}
-            <strong>그 서버</strong>로 전송될 수 있습니다(가족 프로필 본문과는 별개).
+            <strong>로컬 복지 JSON</strong> → 앱과 함께 배포된 파일을 브라우저에서 읽습니다.
           </li>
         </ul>
       </div>

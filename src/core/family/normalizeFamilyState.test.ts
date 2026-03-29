@@ -19,12 +19,11 @@ describe('normalizeFamilyState', () => {
     const out = normalizeFamilyState({
       members: [m],
       reminders: [],
-      appSettings: { browserNotifications: true, syncApiBaseUrl: 'http://x' },
+      appSettings: { browserNotifications: true },
     });
     expect(out.members).toHaveLength(1);
     expect(out.members[0].displayName).toBe('A');
     expect(out.appSettings.browserNotifications).toBe(true);
-    expect(out.appSettings.syncApiBaseUrl).toBe('http://x');
   });
 
   it('matches emptySessionFamilyState defaults for invalid', () => {

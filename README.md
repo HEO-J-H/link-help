@@ -1,6 +1,6 @@
 # Link-Help
 
-로컬·세션 기반 가족 복지·혜택 웹앱입니다. **놓치기 쉬운 지원**을 더 찾는 방향으로, 태그·프로필 매칭과 (선택) 원격 복지 API를 쓰고, 기간이 지난 항목은 추천에서 빼고 목록에서만 참고할 수 있게 합니다.
+로컬·세션 기반 가족 복지·혜택 웹앱입니다. **브라우저만** 열면 동작하며, 태그·프로필 매칭과 스마트 매칭은 **서버 전송 없이** 클라이언트에서만 처리합니다. 기간이 지난 항목은 추천에서 빼고 목록에서만 참고할 수 있게 합니다.
 
 - **GitHub**: [https://github.com/HEO-J-H/link-help](https://github.com/HEO-J-H/link-help)
 - **설계 메모**: 저장소 루트의 `복지 알림 시스템 Link-Help.txt`, `전체 앱 구조.txt`, `DB 구조 설계.txt`, `GitHub Repository 구조.txt`
@@ -10,7 +10,7 @@
 - 가족 구성원 추가·삭제, 프로필(생년월일·지역·소득 구간·학생·장애·포함/제외 태그)
 - 혜택 목록·검색·상세 (`public/welfare-db`)
 - 구성원별 추천(프로필에서 파생한 태그와 복지 항목 태그 교차)
-- **스마트 매칭**(하단 스마트): 프로필 태그 + 포함·제외 키워드 조합, 단계별 진행 표시·발견 개수, API 연결 시 검색 이력·매칭 누적을 서버 DB에 저장
+- **스마트 매칭**(하단 스마트): 프로필 태그 + 포함·제외 키워드 조합, 단계별 진행 표시·발견 개수(전부 클라이언트만)
 - 가족 데이터 JSON보내기 / 불러오기 / 초기화(탭·창을 닫으면 입력값은 사라지고, 불러오기로 복원)
 - 하단 탭: 가족 · 혜택 · 추천 · 타임라인 · 알림 · 설정
 - PWA: Vite가 생성하는 `manifest.webmanifest` + 서비스 워커(프리캐시·`welfare-db` 런타임 캐시)
@@ -18,9 +18,7 @@
 - 알림: 복지 기반 예약 목록, 브라우저 알림(설정에서 허용)
 - 추천 점수: 태그 자카드 일치율(%) 표시, 혜택 목록 인기도(샘플) 정렬
 - 태그 힌트: 공고문 붙여넣기 + 로컬 태그 사전 매칭(서버 없음)
-- **원격 API**: 베이스 URL 설정 시 `GET /welfare`로 원격 복지를 불러와 로컬 JSON과 병합
-- **Web Push**: `injectManifest` SW가 `push` 이벤트를 알림으로 표시. 설정에서 구독 시 `POST /push/subscribe` 호출
-- **운영 API**: `npm run server:install` 후 `server/.env` 설정, `npm run server` → `server/README.md` 참고
+- **예전 실험용 백엔드**: `server/` 폴더(Express·SQLite 등)는 저장소에 남아 있을 수 있으나 **현재 웹앱 필수 아님**
 - 설정에서 **서비스 안내**, **이용약관**, **개인정보 처리 안내**, **면책** 화면으로 이동 가능 (상용 전 법무 검토 권장)
 
 ## 기술 스택
@@ -35,13 +33,7 @@ npm install
 npm run dev
 ```
 
-**앱 안에서** `/start` 또는 **설정 → 빠른 시작 안내**로 실행 순서를 볼 수 있습니다. 로컬 API까지 한 번에 켜려면(터미널 하나, `server/.env` 필요):
-
-```bash
-npm run dev:full
-```
-
-Windows에서는 `scripts\dev-full.cmd` 더블 클릭도 동일합니다(최초에 서버 패키지 자동 설치 시도).
+**앱 안에서** `/start` 또는 **설정 → 빠른 시작 안내**로 실행 순서를 볼 수 있습니다.
 
 빌드:
 
@@ -59,24 +51,14 @@ npm run preview:lan
 
 터미널에 나온 `Network:` 주소(예: `http://192.168.0.10:4173`)를 휴대폰 브라우저에서 엽니다. 방화벽에서 Node/Vite를 허용해야 할 수 있습니다.
 
-원격·푸시 테스트(로컬):
-
-1. `server/.env.example`을 복사해 VAPID 키·`CORS_ORIGIN` 등을 채웁니다.
-2. 루트 `.env`에 `VITE_VAPID_PUBLIC_KEY`(서버 공개 키와 동일)를 넣습니다.
-3. `npm run dev:full` (또는 터미널 두 개로 `npm run server` + `npm run dev` / `preview`)
-
-앱 **설정**에서 **「로컬 API 주소 넣기」**를 누르거나, API 베이스 URL을 `http://localhost:8787`로 두고, **Web Push 구독** 후 터미널에서(관리 시크릿을 쓴 경우 헤더 추가):
-
-`curl -X POST http://localhost:8787/push/send -H "Content-Type: application/json" -d "{\"title\":\"Link-Help\",\"body\":\"테스트\"}"`
-
 ## 프로젝트 구조 요약
 
 - `src/core` — 저장소, 가족 도우미, 필터, 복지 로더
 - `src/features` — 화면(가족·혜택·추천·설정)
 - `src/components/layout` — 하단 네비게이션
 - `public/welfare-db` — 복지·태그·지역·메타 JSON
-- `src/sw.ts` — Workbox + Web Push / 알림 클릭
-- `server/` — 운영 HTTP API (`/welfare`, `/push/*`, SQLite)
+- `src/sw.ts` — Workbox 프리캐시·내비게이션 폴백·`welfare-db` 런타임 캐시
+- `server/` — (선택·레거시) 예전 HTTP API 예시
 - `data/sample` — 샘플보내기 JSON
 
 ## GitHub Pages (`https://<user>.github.io/link-help/`)
@@ -91,7 +73,7 @@ npm run build:gh
 
 **자동 배포(선택):** 저장소 **Settings → Pages → Build and deployment → Source: GitHub Actions**로 바꾼 뒤, `main`에 푸시하면 `.github/workflows/deploy-pages.yml`이 `build:gh` 결과를 게시합니다.
 
-**한계:** GitHub Pages는 **정적 파일만** 제공합니다. `npm run server` API는 여기서 돌아가지 않습니다. 배포본에서 원격 복지·푸시를 쓰려면 **별도 서버 URL**을 설정에 넣어야 합니다.
+**참고:** GitHub Pages는 **정적 파일만** 제공합니다. 배포된 앱은 포함된 복지 JSON만 사용합니다.
 
 ## 남은 작업·백로그
 

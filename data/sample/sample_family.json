@@ -21,7 +21,6 @@
   ],
   "reminders": [],
   "appSettings": {
-    "browserNotifications": false,
-    "syncApiBaseUrl": ""
+    "browserNotifications": false
   }
 }

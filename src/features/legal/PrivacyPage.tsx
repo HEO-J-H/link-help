@@ -21,14 +21,8 @@ export function PrivacyPage() {
             태그, 알림 예약, 앱 설정 등 — sessionStorage에만 보관됩니다.
           </li>
           <li>
-            <strong>운영 서버 DB(복지 목록):</strong> 서비스에서 제공하는 복지·혜택 항목 데이터는
-            운영·<strong>AI 검색·큐레이션 파이프라인</strong> 등을 통해 DB에 적재·갱신하는 형태를
-            전제로 하며, 이용자가 입력한 가족 프로필을 이 DB에 자동 저장하는 구조는 아닙니다.
-          </li>
-          <li>
-            <strong>선택 기능:</strong> API 베이스 URL을 설정한 경우, 원격 복지 목록 조회·Web Push
-            구독 전송이 가능합니다. 푸시 구독 시 엔드포인트 등 기술 정보가 해당 서버 DB에 남을 수
-            있습니다.
+            <strong>복지 샘플 데이터:</strong> 앱에 포함된 JSON 파일을 브라우저에서 읽어 옵니다. 가족
+            프로필이 그 파일이나 외부 서버로 자동 전송되지는 않습니다.
           </li>
         </ul>
       </section>
