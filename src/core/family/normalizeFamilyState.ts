@@ -34,6 +34,18 @@ function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
       typeof o.welfareContributeConsent === 'boolean'
         ? o.welfareContributeConsent
         : base.welfareContributeConsent,
+    hiddenBenefitIncludeDraft:
+      typeof o.hiddenBenefitIncludeDraft === 'string'
+        ? o.hiddenBenefitIncludeDraft
+        : base.hiddenBenefitIncludeDraft,
+    hiddenBenefitExcludeDraft:
+      typeof o.hiddenBenefitExcludeDraft === 'string'
+        ? o.hiddenBenefitExcludeDraft
+        : base.hiddenBenefitExcludeDraft,
+    hiddenBenefitMemberId:
+      typeof o.hiddenBenefitMemberId === 'string'
+        ? o.hiddenBenefitMemberId
+        : base.hiddenBenefitMemberId,
   };
 }
 

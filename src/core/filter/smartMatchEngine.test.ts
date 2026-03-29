@@ -25,13 +25,14 @@ describe('parseKeywordInput', () => {
     expect(parseKeywordInput('a, b')).toEqual(['a', 'b']);
   });
 
-  it('splits spaced phrase in one chunk into OR tokens', () => {
-    expect(parseKeywordInput('전기 요금')).toEqual(['전기', '요금']);
+  it('keeps spaced phrase as one keyword (comma splits only)', () => {
+    expect(parseKeywordInput('전기 요금')).toEqual(['전기 요금']);
+    expect(parseKeywordInput('전기요금, 수도')).toEqual(['전기요금', '수도']);
   });
 });
 
 describe('runSmartMatch', () => {
-  it('when profile and include both set, passes if either matches (OR)', () => {
+  it('when include keywords are set, only rows matching those keywords pass (profile does not bypass)', () => {
     const list = [
       w({ id: '1', title: '자동차 보조금', tags: ['용인'], benefit: '지원' }),
       w({ id: '2', title: '청년 통장', tags: ['용인'], benefit: '적금' }),
@@ -41,7 +42,7 @@ describe('runSmartMatch', () => {
       includeKeywords: ['자동차'],
       excludeKeywords: [],
     });
-    expect(out.map((x) => x.id).sort()).toEqual(['1', '2']);
+    expect(out.map((x) => x.id).sort()).toEqual(['1']);
   });
 
   it('include keywords are OR: any keyword hitting blob is enough', () => {

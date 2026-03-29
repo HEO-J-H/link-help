@@ -21,10 +21,10 @@ export function FamilyPage() {
       <h1 className="page-title">가족</h1>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
         <strong>가구 기본 정보</strong>(지역·소득)은 구성원 전체가 함께 쓰는 값입니다. 구성원 프로필에서
-        「가구와 동일」을 켜 두면 혜택·스마트 매칭에 이 값이 반영됩니다.
+        「가구와 동일」을 켜 두면 혜택·숨은 복지·혜택찾기에 이 값이 반영됩니다.
       </p>
       <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        <strong>이 주소만 열어도</strong> 가족·혜택·스마트 매칭이 이 브라우저 안에서 동작합니다.
+        <strong>이 주소만 열어도</strong> 가족·혜택·숨은 복지·혜택찾기가 이 브라우저 안에서 동작합니다.
         탭을 닫기 전에 필요하면 설정에서 JSON 백업을 하세요.
       </p>
 

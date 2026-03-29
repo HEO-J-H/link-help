@@ -3,12 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { suggestTagsFromText } from '@/core/ai/suggestTags';
-import type { Reminder } from '@/types/reminder';
-import { makeId } from '@/utils/uid';
+import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { googleCalendarUrlForApplicationPeriod } from '@/core/calendar/googleCalendar';
-import { isWelfareEffectivelyExpired, parseApplicationPeriodRange } from '@/core/welfare/welfareLifecycle';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
-import { formatDatetimeLocalValue } from '@/utils/format';
 import type { WelfareCatalogOrigin } from '@/types/benefit';
 import { WelfareStatusControls } from '@/components/WelfareStatusControls';
 import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
@@ -26,10 +23,9 @@ function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
 export function BenefitDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { list, loading } = useWelfare();
-  const { state, setState } = useFamily();
+  const { state } = useFamily();
   const w = list.find((x) => x.id === id);
 
-  const [remindAt, setRemindAt] = useState('');
   const [paste, setPaste] = useState('');
   const [suggested, setSuggested] = useState<string[]>([]);
   const [suggestBusy, setSuggestBusy] = useState(false);
@@ -50,17 +46,6 @@ export function BenefitDetailPage() {
     }
   }, [state.members, trackMemberId, defaultTrackMemberId]);
 
-  useEffect(() => {
-    if (!w) return;
-    const r = parseApplicationPeriodRange(w.period);
-    if (!r) {
-      setRemindAt('');
-      return;
-    }
-    const d = new Date(r.start.getFullYear(), r.start.getMonth(), r.start.getDate(), 9, 0, 0, 0);
-    setRemindAt(formatDatetimeLocalValue(d));
-  }, [w?.id, w?.period]);
-
   if (loading) return <p className="muted">불러오는 중…</p>;
   if (!w) {
     return (
@@ -70,30 +55,6 @@ export function BenefitDetailPage() {
       </div>
     );
   }
-
-  const addReminder = () => {
-    if (!remindAt) {
-      alert('알림 날짜·시간을 선택하세요.');
-      return;
-    }
-    const fireAt = new Date(remindAt);
-    if (Number.isNaN(fireAt.getTime())) {
-      alert('날짜 형식을 확인하세요.');
-      return;
-    }
-    const r: Reminder = {
-      id: makeId('rem'),
-      kind: 'benefit',
-      title: `복지 알림: ${w.title}`,
-      body: w.period || w.benefit,
-      fireAt: fireAt.toISOString(),
-      refId: w.id,
-      createdAt: new Date().toISOString(),
-    };
-    setState({ ...state, reminders: [...state.reminders, r] });
-    setRemindAt('');
-    alert('알림 목록에 추가했습니다.');
-  };
 
   const runSuggest = async () => {
     setSuggestBusy(true);
@@ -107,7 +68,7 @@ export function BenefitDetailPage() {
   };
 
   const ended = isWelfareEffectivelyExpired(w);
-  const gcalHref = googleCalendarUrlForApplicationPeriod(w);
+  const hasGcal = !!googleCalendarUrlForApplicationPeriod(w);
   const sameApplyAndSource =
     w.apply_url &&
     w.source_url &&
@@ -136,11 +97,11 @@ export function BenefitDetailPage() {
           바로가기
         </p>
         <div className="benefit-action-bar__buttons">
-          {gcalHref ? (
+          {hasGcal ? (
             <GoogleCalendarPeriodButton record={w} className="btn secondary" label="Google 캘린더" />
           ) : (
-            <span className="btn secondary" style={{ opacity: 0.5, pointerEvents: 'none' }} aria-disabled>
-              캘린더 (기간 없음)
+            <span className="btn secondary" style={{ opacity: 0.5, cursor: 'not-allowed' }} aria-disabled>
+              캘린더(기간 없음)
             </span>
           )}
           {w.source_url && (
@@ -244,37 +205,6 @@ export function BenefitDetailPage() {
             <WelfareStatusControls welfare={w} memberId={trackMemberId} />
           </>
         )}
-      </div>
-
-      <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>알림·캘린더</h2>
-      <div className="card">
-        {gcalHref ? (
-          <p className="muted" style={{ marginTop: 0 }}>
-            위 <strong>바로가기</strong>에서도 캘린더를 열 수 있습니다. 아래는 이 앱 알림입니다.
-          </p>
-        ) : (
-          <p className="muted" style={{ marginTop: 0 }}>
-            기간 문구에서 날짜 범위를 읽을 수 없어 캘린더 링크를 만들 수 없습니다.
-          </p>
-        )}
-        <p className="muted" style={{ marginTop: 0, fontSize: '0.88rem', lineHeight: 1.55 }}>
-          신청 기간의 <strong>시작일 오전 9시</strong>로 자동 채웁니다(파싱 가능할 때).
-        </p>
-        <div className="field">
-          <label htmlFor="ben-rem">알림 시각</label>
-          <input
-            id="ben-rem"
-            type="datetime-local"
-            value={remindAt}
-            onChange={(e) => setRemindAt(e.target.value)}
-          />
-        </div>
-        <button type="button" className="btn secondary" style={{ width: '100%' }} onClick={addReminder}>
-          알림 추가
-        </button>
-        <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.88rem' }}>
-          <Link to="/settings#reminders">예정 알림 보기</Link>
-        </p>
       </div>
 
       <h2 style={{ fontSize: '1.1rem', margin: '20px 0 10px' }}>태그 힌트 (로컬)</h2>

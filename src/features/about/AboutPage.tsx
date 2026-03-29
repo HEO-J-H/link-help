@@ -25,7 +25,7 @@ export function AboutPage() {
           브라우저에 저장되며, 닫으면 비워질 수 있으니 필요하면 설정에서 JSON으로 백업하세요.
         </p>
         <p className="muted" style={{ marginBottom: 0, fontSize: '0.9rem', lineHeight: 1.55 }}>
-          번들 복지 데이터는 공개 기관 안내를 요약한 JSON이며, 스마트 매칭으로 쌓인 항목은 이 기기 IndexedDB에만
+          번들 복지 데이터는 공개 기관 안내를 요약한 JSON이며, 숨은 복지·혜택찾기로 쌓인 항목은 이 기기 IndexedDB에만
           둡니다. 공용 서버 연동은 <strong>자가 빌드·호스팅</strong>할 때만 선택적으로 켤 수 있습니다.
         </p>
       </section>
@@ -67,7 +67,7 @@ npm run server`}
       <div className="card" style={{ marginBottom: 14 }}>
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>Link-Help가 하는 일</h2>
         <p style={{ marginBottom: 0 }}>
-          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·타임라인·스마트 매칭으로
+          가족 프로필과 태그를 바탕으로 복지·혜택 목록을 보여 주고, 알림·타임라인·숨은 복지·혜택찾기로
           놓치기 쉬운 정보를 <strong>참고용</strong>으로 모아 두는 도구입니다.
         </p>
       </div>
@@ -76,7 +76,7 @@ npm run server`}
         <h2 style={{ marginTop: 0, fontSize: '1.05rem' }}>지향하는 방향</h2>
         <ul style={{ margin: 0, paddingLeft: '1.25rem', lineHeight: 1.65 }}>
           <li>
-            하단 <strong>스마트</strong> 탭에서 프로필·포함·제외 키워드를 조합한 <strong>매칭 엔진</strong>은
+            하단 <strong>복지찾기</strong> 탭에서 프로필·키워드로 찾은 항목을 이 기기에 쌓는 <strong>매칭</strong>은
             브라우저에서 돌립니다. 공고 전문 구조화는 <strong>선택</strong>으로 자가 호스팅{' '}
             <code>server/</code>(OpenAI 키 있으면 LLM, 없으면 휴리스틱) 등으로 연결합니다.
           </li>

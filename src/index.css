@@ -7,8 +7,8 @@
   --color-primary-contrast: #f4fbf8;
   --color-border: #d5e0da;
   --radius: 12px;
-  --tap-min: 48px;
-  --font-base: 16px;
+  --tap-min: 52px;
+  --font-base: 17px;
   font-family: system-ui, 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
   font-size: var(--font-base);
   line-height: 1.45;
@@ -101,8 +101,8 @@ button:disabled {
 
 .app-main {
   flex: 1;
-  padding: 16px;
-  max-width: 560px;
+  padding: 18px 16px 24px;
+  max-width: 600px;
   margin: 0 auto;
   width: 100%;
 }
@@ -118,9 +118,129 @@ button:disabled {
 }
 
 .page-title {
-  font-size: 1.35rem;
+  font-size: 1.42rem;
   font-weight: 700;
   margin: 0 0 16px;
+  letter-spacing: -0.02em;
+}
+
+.page-comfort .page-title {
+  font-size: 1.55rem;
+  margin-bottom: 14px;
+}
+
+.smart-find-page .smart-find-lead {
+  font-size: 1.02rem;
+  line-height: 1.6;
+  margin: -4px 0 12px;
+}
+
+.smart-find-meta {
+  font-size: 0.95rem;
+  margin-bottom: 18px;
+}
+
+.smart-find-card {
+  padding: 18px 16px;
+}
+
+.smart-find-field .field {
+  margin-bottom: 16px;
+}
+
+.smart-find-field .field:last-of-type {
+  margin-bottom: 18px;
+}
+
+.smart-find-page .input-touch {
+  min-height: 52px;
+  font-size: 1.05rem;
+  padding: 12px 14px;
+  border-radius: 10px;
+  width: 100%;
+  border: 1px solid var(--color-border);
+}
+
+.smart-find-primary {
+  min-height: 56px;
+  font-size: 1.08rem;
+  font-weight: 700;
+  width: 100%;
+  border-radius: 14px;
+  margin-top: 4px;
+}
+
+.smart-find-progress__status {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.smart-progress-track--lg {
+  height: 12px;
+  border-radius: 6px;
+}
+
+.smart-find-stages {
+  margin: 14px 0 0;
+  padding-left: 1.25rem;
+  font-size: 0.95rem;
+  color: var(--color-muted);
+  line-height: 1.65;
+}
+
+.smart-find-stages__active {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.smart-find-stages__todo {
+  opacity: 0.65;
+}
+
+.smart-find-result-count {
+  margin-bottom: 10px;
+  font-weight: 700;
+  font-size: 1.12rem;
+}
+
+.smart-find-note {
+  margin-bottom: 14px;
+  font-size: 0.98rem;
+}
+
+.smart-find-result-card__title {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.12rem;
+  line-height: 1.35;
+}
+
+.smart-find-result-card__benefit {
+  margin: 10px 0 0;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.smart-find-result-card__tags {
+  margin-top: 8px;
+  font-size: 0.92rem;
+}
+
+.smart-find-result-card {
+  padding: 16px 14px;
+}
+
+.smart-find-result-card__actions {
+  margin-top: 12px;
+}
+
+.smart-find-empty {
+  font-size: 1rem;
+  line-height: 1.55;
 }
 
 .subsection-title {

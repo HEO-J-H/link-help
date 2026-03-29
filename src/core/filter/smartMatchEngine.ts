@@ -18,16 +18,13 @@ export type SmartMatchedWelfare = WelfareRecord & {
   matchedIncludeKeywords: string[];
 };
 
-/** Split by comma / ideographic comma / newline; multi-word chunks become OR tokens. */
+/**
+ * Split only on comma / ideographic comma / newline — spaces keep one phrase
+ * (e.g. "전기 요금" stays one token; avoids loose OR on every word).
+ */
 export function parseKeywordInput(raw: string): string[] {
   const chunks = raw.split(/[,，、\n]/u).map((s) => s.trim()).filter(Boolean);
-  const out: string[] = [];
-  for (const c of chunks) {
-    const parts = c.split(/\s+/u).filter(Boolean);
-    if (parts.length > 1) out.push(...parts);
-    else out.push(c);
-  }
-  return [...new Set(out.map((x) => x.trim()).filter(Boolean))];
+  return [...new Set(chunks)];
 }
 
 const MAX_BROAD_RESULTS = 200;
@@ -45,13 +42,25 @@ function profileMatchesBlob(w: WelfareRecord, blob: string, profileTags: string[
   return hits;
 }
 
-function includeMatchesBlob(blob: string, includeKeywords: string[]): string[] {
+/** Include match: synonym expansion; count literal substring hits for ranking. */
+function includeMatchDetail(
+  blob: string,
+  includeKeywords: string[]
+): { hits: string[]; literalBonus: number } {
+  const b = blob.toLowerCase();
   const hits: string[] = [];
+  let literalBonus = 0;
   for (const kw of includeKeywords) {
-    const terms = relatedMatchTerms(kw);
-    if (blobMatchesAnyTerm(blob, terms)) hits.push(kw);
+    const trimmed = kw.trim();
+    if (!trimmed) continue;
+    const terms = relatedMatchTerms(trimmed);
+    if (!blobMatchesAnyTerm(b, terms)) continue;
+    hits.push(trimmed);
+    const kl = trimmed.toLowerCase();
+    if (kl.length >= 2 && b.includes(kl)) literalBonus += 3;
+    else if (kl.length === 1 && b.includes(kl)) literalBonus += 1;
   }
-  return hits;
+  return { hits, literalBonus };
 }
 
 function excludeHits(blob: string, excludeKeywords: string[]): string[] {
@@ -64,10 +73,8 @@ function excludeHits(blob: string, excludeKeywords: string[]): string[] {
 }
 
 /**
- * Profile tags and include keywords use OR within each list; when both lists are non-empty,
- * a row passes if profile matched OR include matched. Synonym clusters widen utility terms
- * (전기요금, 수도, 통신, 장애인 등).
- * If both lists are empty, returns up to MAX_BROAD_RESULTS items sorted by popularity.
+ * When the user types include keywords, only rows that match at least one keyword (synonyms OK) pass.
+ * Profile-only mode when include list is empty: match profile tags or broad cap.
  */
 export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): SmartMatchedWelfare[] {
   const profileTags = (q.profileTags ?? []).map((t) => t.trim()).filter(Boolean);
@@ -86,6 +93,7 @@ export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): Sma
     smartScore: number;
     matchedProfileTags: string[];
     matchedIncludeKeywords: string[];
+    literalBonus: number;
   };
   const rows: Row[] = [];
 
@@ -98,19 +106,21 @@ export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): Sma
     if (ex.length > 0) continue;
 
     const profHits = noProfile ? [] : profileMatchesBlob(w, blob, profileTags);
-    const incHits = noInclude ? [] : includeMatchesBlob(blob, includeKeywords);
+    const { hits: incHits, literalBonus } = noInclude
+      ? { hits: [] as string[], literalBonus: 0 }
+      : includeMatchDetail(blob, includeKeywords);
 
     let passes = false;
     if (noProfile && noInclude) passes = true;
-    else if (noProfile) passes = incHits.length > 0;
-    else if (noInclude) passes = profHits.length > 0;
-    else passes = profHits.length > 0 || incHits.length > 0;
+    else if (!noInclude) passes = incHits.length > 0;
+    else passes = profHits.length > 0;
 
     if (!passes) continue;
 
     const pop = typeof w.popularity === 'number' && Number.isFinite(w.popularity) ? w.popularity : 0;
     const smartScore =
       pop +
+      literalBonus +
       profHits.length * 12 +
       incHits.length * 10 +
       (w.tags?.length ?? 0) * 0.5;
@@ -120,10 +130,13 @@ export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): Sma
       smartScore: Math.round(smartScore * 10) / 10,
       matchedProfileTags: profHits,
       matchedIncludeKeywords: incHits,
+      literalBonus,
     });
   }
 
   rows.sort((a, b) => {
+    const ld = b.literalBonus - a.literalBonus;
+    if (ld !== 0) return ld;
     const d = b.smartScore - a.smartScore;
     if (d !== 0) return d;
     return (b.w.popularity ?? 0) - (a.w.popularity ?? 0);

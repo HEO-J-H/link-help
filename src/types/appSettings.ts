@@ -10,6 +10,10 @@ export interface AppSettings {
   linkHelpApiToken: string;
   /** User opts in to POST anonymized welfare records (no family profile) to linkHelpApiBaseUrl. */
   welfareContributeConsent: boolean;
+  /** Last drafts for 숨은 복지·혜택찾기 (saved with family session JSON / IndexedDB). */
+  hiddenBenefitIncludeDraft: string;
+  hiddenBenefitExcludeDraft: string;
+  hiddenBenefitMemberId: string;
 }
 
 export function defaultAppSettings(): AppSettings {
@@ -22,5 +26,8 @@ export function defaultAppSettings(): AppSettings {
     linkHelpApiBaseUrl: viteBase,
     linkHelpApiToken: '',
     welfareContributeConsent: false,
+    hiddenBenefitIncludeDraft: '',
+    hiddenBenefitExcludeDraft: '',
+    hiddenBenefitMemberId: '',
   };
 }

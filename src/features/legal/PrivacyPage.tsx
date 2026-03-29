@@ -25,7 +25,7 @@ export function PrivacyPage() {
             프로필이 그 파일이나 외부 서버로 자동 전송되지는 않습니다.
           </li>
           <li>
-            <strong>복지 카탈로그 누적(IndexedDB):</strong> 스마트 매칭 등으로 이 기기에 쌓인 복지 메타(
+            <strong>복지 카탈로그 누적(IndexedDB):</strong> 숨은 복지·혜택찾기 등으로 이 기기에 쌓인 복지 메타(
             <code>WelfareRecord</code>)가 <code>link-help-welfare-cache</code>에 저장되어 번들 JSON과
             합쳐집니다. 브라우저에서 사이트 데이터를 지우면 누적은 함께 삭제될 수 있습니다.
           </li>

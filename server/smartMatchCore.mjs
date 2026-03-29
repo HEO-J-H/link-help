@@ -1,11 +1,11 @@
 /**
- * Smart match aligned with src/core/filter/smartMatchEngine.ts (OR + topic clusters).
+ * Aligned with src/core/filter/smartMatchEngine.ts (keyword-required when include set).
  */
 
 const TOPIC_CLUSTERS = [
   ['전기요금', '전기', '전력', '한전', '에너지', '바우처', '전기료', '요금감면', '누진', '전기사용'],
   ['상하수도', '수도', '상수도', '하수도', '수도요금', '수도세', '물이용', '상수도요금'],
-  ['휴대폰', '통신', '이동통신', '휴대전화', '스마트폰', '통신비', '단통', '할인', '요금지원'],
+  ['휴대폰', '통신', '이동통신', '휴대전화', '스마트폰', '통신비', '단통', '요금지원'],
   ['장애인', '장애', '등록장애', '중증장애', '장애수당', '복지카드', '장애인복지'],
   ['차상위', '차상위계층', '차상위층'],
   ['자동차', '전기차', '하이브리드', '친환경차', '면세', '보조금', '차량'],
@@ -78,13 +78,21 @@ function profileMatchesBlob(w, blob, profileTags) {
   return hits;
 }
 
-function includeMatchesBlob(blob, includeKeywords) {
+function includeMatchDetail(blob, includeKeywords) {
+  const b = blob.toLowerCase();
   const hits = [];
+  let literalBonus = 0;
   for (const kw of includeKeywords) {
-    const terms = relatedMatchTerms(kw);
-    if (blobMatchesAnyTerm(blob, terms)) hits.push(kw);
+    const trimmed = String(kw || '').trim();
+    if (!trimmed) continue;
+    const terms = relatedMatchTerms(trimmed);
+    if (!blobMatchesAnyTerm(b, terms)) continue;
+    hits.push(trimmed);
+    const kl = trimmed.toLowerCase();
+    if (kl.length >= 2 && b.includes(kl)) literalBonus += 3;
+    else if (kl.length === 1 && b.includes(kl)) literalBonus += 1;
   }
-  return hits;
+  return { hits, literalBonus };
 }
 
 function excludeHits(blob, excludeKeywords) {
@@ -120,27 +128,31 @@ export function runSmartMatch(items, q) {
     if (excludeHits(blob, excludeKeywords).length > 0) continue;
 
     const profHits = noProfile ? [] : profileMatchesBlob(w, blob, profileTags);
-    const incHits = noInclude ? [] : includeMatchesBlob(blob, includeKeywords);
+    const { hits: incHits, literalBonus } = noInclude
+      ? { hits: [], literalBonus: 0 }
+      : includeMatchDetail(blob, includeKeywords);
 
     let passes = false;
     if (noProfile && noInclude) passes = true;
-    else if (noProfile) passes = incHits.length > 0;
-    else if (noInclude) passes = profHits.length > 0;
-    else passes = profHits.length > 0 || incHits.length > 0;
+    else if (!noInclude) passes = incHits.length > 0;
+    else passes = profHits.length > 0;
 
     if (!passes) continue;
 
     const pop = typeof w.popularity === 'number' && Number.isFinite(w.popularity) ? w.popularity : 0;
     const smartScore =
       pop +
+      literalBonus +
       profHits.length * 12 +
       incHits.length * 10 +
       (w.tags?.length ?? 0) * 0.5;
 
-    rows.push({ w, smartScore: Math.round(smartScore * 10) / 10 });
+    rows.push({ w, smartScore: Math.round(smartScore * 10) / 10, literalBonus });
   }
 
   rows.sort((a, b) => {
+    const ld = b.literalBonus - a.literalBonus;
+    if (ld !== 0) return ld;
     const d = b.smartScore - a.smartScore;
     if (d !== 0) return d;
     return (b.w.popularity ?? 0) - (a.w.popularity ?? 0);
