@@ -4,10 +4,17 @@ import type { Reminder } from '@/types/reminder';
 import { defaultAppSettings, type AppSettings } from '@/types/appSettings';
 import { initialFamilyState } from './familyManager';
 
-function isAppSettings(x: unknown): x is AppSettings {
-  if (!x || typeof x !== 'object') return false;
-  const o = x as Record<string, unknown>;
-  return typeof o.browserNotifications === 'boolean' && typeof o.syncApiBaseUrl === 'string';
+function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
+  const base = defaultAppSettings();
+  if (!raw || typeof raw !== 'object') return base;
+  const o = raw as Record<string, unknown>;
+  return {
+    browserNotifications:
+      typeof o.browserNotifications === 'boolean' ? o.browserNotifications : base.browserNotifications,
+    syncApiBaseUrl: typeof o.syncApiBaseUrl === 'string' ? o.syncApiBaseUrl : base.syncApiBaseUrl,
+    pushSubscriptionJson:
+      typeof o.pushSubscriptionJson === 'string' ? o.pushSubscriptionJson : undefined,
+  };
 }
 
 /** Ensure new fields exist after IDB / import / legacy JSON. */
@@ -20,7 +27,7 @@ export function normalizeFamilyState(raw: unknown): FamilyState {
   const insurancePolicies =
     Array.isArray(data.insurancePolicies) ? (data.insurancePolicies as InsurancePolicy[]) : [];
   const reminders = Array.isArray(data.reminders) ? (data.reminders as Reminder[]) : [];
-  const appSettings = isAppSettings(data.appSettings) ? data.appSettings : defaultAppSettings();
+  const appSettings = mergeAppSettingsFromRaw(data.appSettings);
 
   return { members, insurancePolicies, reminders, appSettings };
 }

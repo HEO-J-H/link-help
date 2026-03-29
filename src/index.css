@@ -54,6 +54,16 @@ button {
   width: 100%;
 }
 
+.remote-warn {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: #fff8e6;
+  border: 1px solid #e8d4a8;
+  color: #5c4a20;
+  font-size: 0.9rem;
+}
+
 .page-title {
   font-size: 1.35rem;
   font-weight: 700;

@@ -1,11 +1,13 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useFamily } from '@/context/FamilyContext';
 import { exportFamilyJson, parseFamilyImportJson } from '@/core/storage/exportImport';
 import { initialFamilyState } from '@/core/family/familyManager';
+import { postPushSubscription, subscribeWebPush, unsubscribeWebPush } from '@/core/push/pushClient';
 
 export function SettingsPage() {
-  const { state, setState } = useFamily();
+  const { state, setState, updateState } = useFamily();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [pushBusy, setPushBusy] = useState(false);
 
   const download = () => {
     const blob = new Blob([exportFamilyJson(state)], { type: 'application/json' });
@@ -64,6 +66,63 @@ export function SettingsPage() {
     });
   };
 
+  const registerPush = async () => {
+    const base = state.appSettings.syncApiBaseUrl.trim();
+    if (!base) {
+      alert('먼저 아래에 API 베이스 URL(예: http://localhost:8787)을 입력하세요.');
+      return;
+    }
+    if (!('serviceWorker' in navigator)) {
+      alert('이 환경에서는 서비스 워커를 사용할 수 없습니다. 빌드 미리보기(HTTPS 또는 localhost)에서 시도하세요.');
+      return;
+    }
+    setPushBusy(true);
+    try {
+      if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+      if (typeof Notification !== 'undefined' && Notification.permission !== 'granted') {
+        alert('알림 권한이 필요합니다.');
+        return;
+      }
+      await navigator.serviceWorker.ready;
+      const sub = await subscribeWebPush();
+      const json = JSON.stringify(sub.toJSON());
+      await postPushSubscription(base, sub);
+      updateState((prev) => ({
+        ...prev,
+        appSettings: {
+          ...prev.appSettings,
+          pushSubscriptionJson: json,
+          browserNotifications: true,
+        },
+      }));
+      alert('푸시 구독이 등록되었습니다. 서버에서 테스트 발송을 할 수 있습니다.');
+    } catch (e) {
+      alert(e instanceof Error ? e.message : '푸시 구독에 실패했습니다.');
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
+  const clearPush = async () => {
+    setPushBusy(true);
+    try {
+      await unsubscribeWebPush();
+      updateState((prev) => ({
+        ...prev,
+        appSettings: {
+          ...prev.appSettings,
+          pushSubscriptionJson: undefined,
+        },
+      }));
+    } catch {
+      /* ignore */
+    } finally {
+      setPushBusy(false);
+    }
+  };
+
   return (
     <div>
       <h1 className="page-title">설정</h1>
@@ -87,13 +146,36 @@ export function SettingsPage() {
           알림 권한 요청
         </button>
         <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.88rem' }}>
-          알림은 앱이 열려 있을 때 주기적으로 확인합니다. OS·브라우저 설정도 확인하세요.
+          예약 알림은 앱이 열려 있을 때 주기적으로 확인합니다. 앱을 닫아도 받으려면 아래 Web Push를 사용하세요.
         </p>
+        <button
+          type="button"
+          className="btn secondary"
+          style={{ width: '100%', marginTop: 12 }}
+          disabled={pushBusy}
+          onClick={registerPush}
+        >
+          {pushBusy ? '처리 중…' : 'Web Push 구독 (서버 등록)'}
+        </button>
+        <button
+          type="button"
+          className="btn ghost"
+          style={{ width: '100%', marginTop: 8, border: '1px solid var(--color-border)' }}
+          disabled={pushBusy}
+          onClick={clearPush}
+        >
+          푸시 구독 해제
+        </button>
+        {state.appSettings.pushSubscriptionJson && (
+          <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.85rem' }}>
+            구독 정보가 저장되어 있습니다. 서비스 워커가 푸시 페이로드를 알림으로 표시합니다.
+          </p>
+        )}
       </div>
 
-      <h2 style={{ fontSize: '1.1rem', margin: '0 0 10px' }}>연동 (예약)</h2>
+      <h2 style={{ fontSize: '1.1rem', margin: '0 0 10px' }}>원격 API</h2>
       <div className="field" style={{ marginBottom: 20 }}>
-        <label htmlFor="api-base">동기화/API 베이스 URL</label>
+        <label htmlFor="api-base">API 베이스 URL</label>
         <input
           id="api-base"
           value={state.appSettings.syncApiBaseUrl}
@@ -103,11 +185,12 @@ export function SettingsPage() {
               appSettings: { ...state.appSettings, syncApiBaseUrl: e.target.value },
             })
           }
-          placeholder="비워 두면 사용 안 함"
+          placeholder="예: http://localhost:8787"
           autoComplete="off"
         />
         <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem' }}>
-          향후 서버·AI 연동용 필드입니다. 현재 요청은 전송하지 않습니다.
+          설정 시 <code>GET …/welfare</code>로 원격 복지 목록을 불러와 로컬 JSON과 병합합니다. 푸시 구독은{' '}
+          <code>POST …/push/subscribe</code>로 전송됩니다. 데모 서버: <code>npm run server:demo</code>
         </p>
       </div>
 
