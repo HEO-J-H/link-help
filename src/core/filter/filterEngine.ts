@@ -120,3 +120,17 @@ export function filterWelfareByText(list: WelfareRecord[], q: string): WelfareRe
       w.tags.some((t) => t.toLowerCase().includes(s))
   );
 }
+
+/** Lowercased text blob for keyword / smart matching (title, body, tags, region, target, period). */
+export function blobFromWelfare(w: WelfareRecord): string {
+  const parts = [
+    w.title,
+    w.description,
+    w.benefit,
+    w.period,
+    ...(w.tags ?? []),
+    ...(w.region ?? []),
+    ...(w.target ?? []),
+  ];
+  return parts.join(' ').toLowerCase();
+}

@@ -291,28 +291,6 @@ export function MemberDetailPage() {
             }}
           />
           {incomeHint && <p className="field-hint">{incomeHint}</p>}
-          <details className="details-help">
-            <summary className="details-help__summary">중위소득·금액이 헷갈려요</summary>
-            <div className="details-help__body">
-              <p>
-                <strong>중위소득 150%는 고정 금액이 아닙니다.</strong> 가구원 수·연도·공고마다 달라집니다.
-              </p>
-              <p>
-                이 앱의 「소득 구간」은 <strong>복지 카탈로그 태그</strong>와 맞추기 위한 선택입니다.
-              </p>
-              <p className="details-help__links">
-                <a
-                  href="https://www.bokjiro.go.kr/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-link"
-                >
-                  복지로(정부복지포털)
-                </a>
-                에서 「중위소득」으로 검색해 보세요.
-              </p>
-            </div>
-          </details>
         </>
       )}
 

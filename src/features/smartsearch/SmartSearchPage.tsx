@@ -31,7 +31,7 @@ function sleep(ms: number) {
 }
 
 function toPersistable(w: SmartMatchedWelfare): WelfareRecord {
-  const { smartScore: _s, ...r } = w;
+  const { smartScore: _s, matchedProfileTags: _p, matchedIncludeKeywords: _i, ...r } = w;
   return r;
 }
 
@@ -95,7 +95,12 @@ export function SmartSearchPage() {
       ...eff.extraExcludeTags.map((t) => t.trim()).filter(Boolean),
     ];
 
-    const matched = runSmartMatch(list, { profileTags, includeKeywords, excludeKeywords });
+    const matched = runSmartMatch(list, {
+      profileTags,
+      includeKeywords,
+      excludeKeywords,
+      hideExpired: true,
+    });
 
     setStageIndex(2);
     setStatusLine(`매칭·정렬 중… (${matched.length}건 후보)`);
@@ -117,9 +122,7 @@ export function SmartSearchPage() {
       await upsertWelfareRecords(matched.map(toPersistable));
       refreshWelfareCatalog();
       setPersistNote(
-        matched.length > 0
-          ? '매칭 결과를 이 기기 IndexedDB에 맞춰 두었습니다. (추후 가져오기·새 id가 붙으면 통합 목록이 늘어납니다.)'
-          : '조건에 맞는 항목이 없어 저장할 매칭 결과가 없습니다.'
+        matched.length > 0 ? 'IndexedDB에 반영했습니다.' : '맞는 항목이 없어 저장할 결과가 없습니다.'
       );
     } catch {
       setPersistNote('로컬 저장을 건너뛰었습니다. 비공개 창이나 저장소 제한일 수 있습니다.');
@@ -151,15 +154,12 @@ export function SmartSearchPage() {
   return (
     <div>
       <h1 className="page-title">스마트 매칭</h1>
-      <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.92rem', lineHeight: 1.55 }}>
-        <strong>기본 프로필 태그</strong> + <strong>추가 포함</strong>(예: 자동차) + <strong>추가 제외</strong>(예:
-        차상위, 장애인)를 조합해 통합 카탈로그에서 찾습니다. 핵심은 붙여넣기가 아니라{' '}
-        <strong>이 조건으로 스캔·매칭</strong>하는 흐름입니다. 매칭으로 걸린 항목은{' '}
-        <strong>이 기기 IndexedDB</strong>에 쌓입니다. (서버 기여는 자가 빌드·호스팅 시에만 켜질 수 있어요.) 신청 기간이 파싱되면 결과 카드에서{' '}
-        <strong>Google 캘린더</strong>로 종일 일정을 넣을 수 있습니다.
+      <p className="muted" style={{ marginTop: -8, marginBottom: 12, fontSize: '0.9rem', lineHeight: 1.5 }}>
+        프로필 태그와 <strong>포함 키워드는 각각 OR</strong>이며, 둘 다 넣으면 <strong>한쪽만 맞아도</strong> 나옵니다. 전기·수도·통신·장애 등은
+        관련 단어로 넓혀 맞춥니다. 결과는 이 기기 IndexedDB에 반영됩니다.
       </p>
-      <p className="muted" style={{ marginTop: -8, marginBottom: 16, fontSize: '0.85rem' }}>
-        통합 카탈로그 <strong>{list.length}</strong>건 로드됨 (번들 JSON + 로컬 누적).
+      <p className="muted" style={{ marginBottom: 16, fontSize: '0.85rem' }}>
+        카탈로그 <strong>{list.length}</strong>건
       </p>
 
       <div className="card" style={{ marginBottom: 16 }}>
@@ -207,9 +207,6 @@ export function SmartSearchPage() {
             autoComplete="off"
           />
         </div>
-        <p className="muted" style={{ marginTop: 0, marginBottom: 12, fontSize: '0.85rem' }}>
-          프로필의 <strong>제외 태그</strong>는 자동으로 제외 조건에 합쳐집니다.
-        </p>
         <button type="button" className="btn" style={{ width: '100%' }} onClick={run} disabled={running}>
           {running ? '매칭 중…' : '스마트 매칭 시작'}
         </button>
@@ -240,9 +237,6 @@ export function SmartSearchPage() {
       {!running && foundCount !== null && (
         <p style={{ marginBottom: 8, fontWeight: 600 }}>
           {foundCount}개를 찾았습니다.
-          <span className="muted" style={{ fontWeight: 400, marginLeft: 8 }}>
-            진행 중 어디를 스캔했는지·진행률은 위 단계에서 표시됩니다.
-          </span>
         </p>
       )}
       {!running && persistNote && <p className="muted" style={{ marginBottom: 12 }}>{persistNote}</p>}

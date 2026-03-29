@@ -76,15 +76,7 @@ export function SettingsPage() {
     <div>
       <h1 className="page-title">설정</h1>
 
-      <details className="settings-hint-details">
-        <summary>데이터는 어디에 저장되나요?</summary>
-        <p className="muted" style={{ margin: '10px 0 0', fontSize: '0.88rem', lineHeight: 1.55 }}>
-          이 탭이 열려 있는 동안만 브라우저에 보관됩니다. 창을 닫으면 비워지므로 필요하면{' '}
-          <strong>보내기</strong>로 파일을 남겨 두세요.
-        </p>
-      </details>
-
-      <div className="settings-hub" style={{ marginTop: 16 }}>
+      <div className="settings-hub">
         <button type="button" className="settings-hub__tile btn" onClick={download}>
           <span className="settings-hub__emoji" aria-hidden>
             💾
