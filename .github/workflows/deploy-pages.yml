@@ -48,8 +48,11 @@ jobs:
         id: deployment
 
   # Lets Pages work when Settings → Pages uses branch "gh-pages" (not main root).
+  # Does not fail the whole workflow if branch protection / token blocks this path
+  # (primary deploy job uses actions/deploy-pages when Source = GitHub Actions).
   push-gh-pages:
     needs: build
+    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
