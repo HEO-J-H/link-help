@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      (function () {
+        try {
+          var raw = sessionStorage.getItem('link-help-family-session-v1');
+          if (!raw) return;
+          var data = JSON.parse(raw);
+          var t = data && data.appSettings && data.appSettings.uiTheme;
+          if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="icon" type="image/svg+xml" href="/link-help/icons/icon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <link
+      rel="stylesheet"
+      href="https://hangeul.pstatic.net/hangeul_static/css/nanum-square-neo.css"
+      crossorigin="anonymous"
+    />
+    <meta name="theme-color" content="#050b18" />
+    <meta name="description" content="Link-Help — 놓치기 쉬운 가족 복지·혜택 찾기 (로컬·PWA)" />
+    <meta name="application-name" content="Link-Help" />
+    <title>Link-Help · 복지 알림</title>
+    <script type="module" crossorigin src="/link-help/assets/index-G_ZVnulg.js"></script>
+    <link rel="stylesheet" crossorigin href="/link-help/assets/index-DQfX9eyf.css">
+  <link rel="manifest" href="/link-help/manifest.webmanifest"></head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

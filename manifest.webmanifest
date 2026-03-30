@@ -1,0 +1,1 @@
+{"name":"Link-Help — 복지·혜택 알림","short_name":"LinkHelp","description":"놓치기 쉬운 가족 복지·혜택을 찾기 위한 로컬·PWA 도구","start_url":"/link-help/","display":"standalone","background_color":"#eef4f0","theme_color":"#050b18","lang":"ko","scope":"/link-help/","icons":[{"src":"icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
