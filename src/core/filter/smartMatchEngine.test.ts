@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { WelfareRecord } from '@/types/benefit';
-import { parseKeywordInput, runSmartMatch } from './smartMatchEngine';
+import { buildSmartSearchExcludeKeywords, parseKeywordInput, runSmartMatch } from './smartMatchEngine';
 
 function w(p: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 'title'>): WelfareRecord {
   return {
@@ -28,6 +28,23 @@ describe('parseKeywordInput', () => {
   it('keeps spaced phrase as one keyword (comma splits only)', () => {
     expect(parseKeywordInput('전기 요금')).toEqual(['전기 요금']);
     expect(parseKeywordInput('전기요금, 수도')).toEqual(['전기요금', '수도']);
+  });
+});
+
+describe('buildSmartSearchExcludeKeywords', () => {
+  it('drops profile exclude when it overlaps include topic (장애인)', () => {
+    const out = buildSmartSearchExcludeKeywords('', ['장애인'], ['장애인', '대중교통']);
+    expect(out).toEqual([]);
+  });
+
+  it('keeps unrelated profile excludes', () => {
+    const out = buildSmartSearchExcludeKeywords('', ['차상위'], ['장애인']);
+    expect(out).toEqual(['차상위']);
+  });
+
+  it('merges manual exclude line', () => {
+    const out = buildSmartSearchExcludeKeywords('노인', ['차상위'], ['청년']);
+    expect(out.sort()).toEqual(['노인', '차상위'].sort());
   });
 });
 
@@ -103,6 +120,33 @@ describe('runSmartMatch', () => {
       excludeKeywords: ['장애인'],
     });
     expect(out.map((x) => x.id)).toEqual(['2']);
+  });
+
+  it('includeMatchAll requires every keyword when enabled', () => {
+    const list = [
+      w({ id: '1', title: '장애인 연금', description: '장애인', tags: ['장애인'], benefit: '' }),
+      w({
+        id: '2',
+        title: '교통',
+        description: '장애인 대중교통 무임 안내',
+        tags: ['장애인', '대중교통'],
+        benefit: '',
+      }),
+    ];
+    const anyKw = runSmartMatch(list, {
+      profileTags: [],
+      includeKeywords: ['장애인', '대중교통'],
+      excludeKeywords: [],
+      includeMatchAll: false,
+    });
+    expect(anyKw.map((x) => x.id).sort()).toEqual(['1', '2']);
+    const allKw = runSmartMatch(list, {
+      profileTags: [],
+      includeKeywords: ['장애인', '대중교통'],
+      excludeKeywords: [],
+      includeMatchAll: true,
+    });
+    expect(allKw.map((x) => x.id)).toEqual(['2']);
   });
 
   it('region token matches catalog region text (경기도 vs 경기)', () => {

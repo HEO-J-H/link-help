@@ -4,7 +4,12 @@ import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { profileToDerivedTags } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
-import { parseKeywordInput, runSmartMatch, type SmartMatchedWelfare } from '@/core/filter/smartMatchEngine';
+import {
+  buildSmartSearchExcludeKeywords,
+  parseKeywordInput,
+  runSmartMatch,
+  type SmartMatchedWelfare,
+} from '@/core/filter/smartMatchEngine';
 import {
   SMART_SEARCH_PRESETS,
   SMART_QUICK_CHIPS,
@@ -59,6 +64,8 @@ export function SmartSearchPage() {
   const [persistNote, setPersistNote] = useState<string | null>(null);
   const [contribBusy, setContribBusy] = useState(false);
   const [contribNote, setContribNote] = useState<string | null>(null);
+  /** When several include keywords, require every keyword to match (Gemini-style combined query). */
+  const [includeMatchAll, setIncludeMatchAll] = useState(false);
   const skipNextPersistRef = useRef(true);
 
   const member = useMemo(
@@ -84,6 +91,10 @@ export function SmartSearchPage() {
     const mid = state.appSettings.hiddenBenefitMemberId;
     if (mid && state.members.some((m) => m.id === mid)) setMemberId(mid);
   }, [state.appSettings.hiddenBenefitMemberId, state.members]);
+
+  useEffect(() => {
+    if (includeKeywordsDraft.length < 2) setIncludeMatchAll(false);
+  }, [includeKeywordsDraft.length]);
 
   useEffect(() => {
     const id = window.setTimeout(() => {
@@ -141,16 +152,14 @@ export function SmartSearchPage() {
     const eff = getEffectiveProfile(member, state.household);
     const profileTags = profileToDerivedTags(eff);
     const includeKeywords = parseKeywordInput(includeRaw);
-    const excludeKeywords = [
-      ...parseKeywordInput(excludeRaw),
-      ...eff.extraExcludeTags.map((t) => t.trim()).filter(Boolean),
-    ];
+    const excludeKeywords = buildSmartSearchExcludeKeywords(excludeRaw, eff.extraExcludeTags, includeKeywords);
 
     const matched = runSmartMatch(list, {
       profileTags,
       includeKeywords,
       excludeKeywords,
       hideExpired: true,
+      includeMatchAll,
     });
 
     setStageIndex(2);
@@ -195,6 +204,7 @@ export function SmartSearchPage() {
     refreshWelfareCatalog,
     memberId,
     updateState,
+    includeMatchAll,
   ]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
@@ -318,7 +328,25 @@ export function SmartSearchPage() {
             placeholder="예: 차상위 (선택)"
             autoComplete="off"
           />
+          <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem', lineHeight: 1.5 }}>
+            프로필 <strong>제외 태그</strong>는 여기에도 붙이되, <strong>포함 칸 키워드와 같은 주제</strong>는 검색이 막히지
+            않게 자동으로 뺍니다.
+          </p>
         </div>
+
+        <label className="field-row smart-find-and-row" style={{ marginTop: 4, marginBottom: 0, alignItems: 'flex-start', gap: 10 }}>
+          <input
+            type="checkbox"
+            className="input-checkbox"
+            checked={includeMatchAll}
+            onChange={(e) => setIncludeMatchAll(e.target.checked)}
+            disabled={includeKeywordsDraft.length < 2}
+          />
+          <span style={{ fontSize: '0.95rem', lineHeight: 1.55 }}>
+            쉼표로 여러 단어를 넣었을 때 <strong>모두 들어간 항목만</strong> (AND). 장애인·대중교통처럼 같이 묶어 찾을 때
+            켜 보세요.
+          </span>
+        </label>
 
         {includeKeywordsDraft.length > 0 && drilldownGuides.length > 0 && (
           <div className="smart-find-drill-wrap">

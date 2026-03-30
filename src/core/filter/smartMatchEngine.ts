@@ -10,6 +10,11 @@ export type SmartMatchQuery = {
   excludeIds?: string[];
   /** Default true: skip expired programs (same idea as bundled server match). */
   hideExpired?: boolean;
+  /**
+   * When true and there are multiple include keywords, every keyword must match the row (AND).
+   * Single keyword behaves the same as false.
+   */
+  includeMatchAll?: boolean;
 };
 
 export type SmartMatchedWelfare = WelfareRecord & {
@@ -25,6 +30,33 @@ export type SmartMatchedWelfare = WelfareRecord & {
 export function parseKeywordInput(raw: string): string[] {
   const chunks = raw.split(/[,，、\n]/u).map((s) => s.trim()).filter(Boolean);
   return [...new Set(chunks)];
+}
+
+/**
+ * Merge manual exclude field with profile 제외 태그, but drop profile excludes that overlap the user's
+ * include keywords (same topic clusters). Otherwise searching "장애인" while the profile excludes
+ * "장애인" would delete every hit.
+ */
+export function buildSmartSearchExcludeKeywords(
+  manualExcludeRaw: string,
+  profileExcludeTags: string[],
+  includeKeywords: string[]
+): string[] {
+  const manual = parseKeywordInput(manualExcludeRaw);
+  const incTermLc = new Set<string>();
+  for (const kw of includeKeywords) {
+    for (const t of relatedMatchTerms(kw)) {
+      if (t) incTermLc.add(String(t).toLowerCase());
+    }
+  }
+  const fromProfile: string[] = [];
+  for (const ex of profileExcludeTags) {
+    const trimmed = ex.trim();
+    if (!trimmed) continue;
+    const conflicts = relatedMatchTerms(trimmed).some((t) => incTermLc.has(String(t).toLowerCase()));
+    if (!conflicts) fromProfile.push(trimmed);
+  }
+  return [...new Set([...manual, ...fromProfile])];
 }
 
 const MAX_BROAD_RESULTS = 200;
@@ -82,6 +114,7 @@ export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): Sma
   const excludeKeywords = (q.excludeKeywords ?? []).map((t) => t.trim()).filter(Boolean);
   const excludeIdSet = new Set(q.excludeIds ?? []);
   const hideExpired = q.hideExpired !== false;
+  const includeMatchAll = q.includeMatchAll === true;
 
   const noProfile = profileTags.length === 0;
   const noInclude = includeKeywords.length === 0;
@@ -112,8 +145,13 @@ export function runSmartMatch(catalog: WelfareRecord[], q: SmartMatchQuery): Sma
 
     let passes = false;
     if (noProfile && noInclude) passes = true;
-    else if (!noInclude) passes = incHits.length > 0;
-    else passes = profHits.length > 0;
+    else if (!noInclude) {
+      if (includeMatchAll && includeKeywords.length > 1) {
+        passes = incHits.length === includeKeywords.length;
+      } else {
+        passes = incHits.length > 0;
+      }
+    } else passes = profHits.length > 0;
 
     if (!passes) continue;
 

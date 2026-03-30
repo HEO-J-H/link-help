@@ -13,6 +13,27 @@ const TOPIC_CLUSTERS = [
   ['아동', '영유아', '육아', '보육'],
   ['노인', '어르신', '기초연금', '노령'],
   ['주거', '전세', '월세', '임대', '주택'],
+  [
+    '대중교통',
+    '교통',
+    '버스',
+    '시내버스',
+    '지하철',
+    '도시철도',
+    '전철',
+    '철도',
+    'ktx',
+    'srt',
+    '무임승차',
+    '교통비',
+    '교통약자',
+    '특별교통수단',
+    '콜택시',
+    '이동지원',
+    '저상버스',
+    '하이패스',
+    '환급',
+  ],
 ];
 
 function relatedMatchTerms(userToken) {
@@ -114,6 +135,7 @@ export function runSmartMatch(items, q) {
   const profileTags = (q.profileTags || []).map((s) => String(s).trim()).filter(Boolean);
   const includeKeywords = (q.includeKeywords || []).map((s) => String(s).trim()).filter(Boolean);
   const excludeKeywords = (q.excludeKeywords || []).map((s) => String(s).trim()).filter(Boolean);
+  const includeMatchAll = q.includeMatchAll === true;
 
   const noProfile = profileTags.length === 0;
   const noInclude = includeKeywords.length === 0;
@@ -134,8 +156,13 @@ export function runSmartMatch(items, q) {
 
     let passes = false;
     if (noProfile && noInclude) passes = true;
-    else if (!noInclude) passes = incHits.length > 0;
-    else passes = profHits.length > 0;
+    else if (!noInclude) {
+      if (includeMatchAll && includeKeywords.length > 1) {
+        passes = incHits.length === includeKeywords.length;
+      } else {
+        passes = incHits.length > 0;
+      }
+    } else passes = profHits.length > 0;
 
     if (!passes) continue;
 

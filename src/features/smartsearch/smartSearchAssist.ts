@@ -78,6 +78,7 @@ export const SMART_QUICK_CHIPS: string[] = [
   '임신출산',
   '통신비',
   '기초연금',
+  '대중교통',
 ];
 
 export type DrilldownGuide = {

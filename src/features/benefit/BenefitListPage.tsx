@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
-import { filterWelfareByText, welfareBlockedByMemberProfile } from '@/core/filter/filterEngine';
+import {
+  filterWelfareByText,
+  recommendForProfile,
+  welfareBlockedByMemberProfile,
+} from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired, sortWelfareForDiscovery } from '@/core/welfare/welfareLifecycle';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
@@ -45,6 +49,21 @@ function filterOutProfileExcluded(
   return sorted.filter((w) => !welfareBlockedByMemberProfile(w, eff));
 }
 
+/** Optional: only rows that recommendForProfile would surface (지역·포함 태그 등이 맞는 항목). */
+function filterToProfileRecommendations(
+  sorted: WelfareRecord[],
+  memberId: string,
+  members: FamilyMember[],
+  household: HouseholdDefaults,
+  catalog: WelfareRecord[]
+): WelfareRecord[] {
+  const m = members.find((x) => x.id === memberId);
+  if (!m) return sorted;
+  const eff = getEffectiveProfile(m, household);
+  const allowed = new Set(recommendForProfile(catalog, eff).map((w) => w.id));
+  return sorted.filter((w) => allowed.has(w.id));
+}
+
 function filterRowsForMemberView(
   sorted: WelfareRecord[],
   memberId: string,
@@ -65,10 +84,15 @@ function memberVisibleCount(
   tracking: WelfareTrackingEntry[],
   statusFilter: StatusFilter,
   members: FamilyMember[],
-  household: HouseholdDefaults
+  household: HouseholdDefaults,
+  profileFitOnly: boolean,
+  catalog: WelfareRecord[]
 ): number {
-  const afterExclude = filterOutProfileExcluded(sorted, memberId, members, household);
-  return filterRowsForMemberView(afterExclude, memberId, tracking, statusFilter).length;
+  let base = filterOutProfileExcluded(sorted, memberId, members, household);
+  if (profileFitOnly) {
+    base = filterToProfileRecommendations(base, memberId, members, household, catalog);
+  }
+  return filterRowsForMemberView(base, memberId, tracking, statusFilter).length;
 }
 
 export function BenefitListPage() {
@@ -81,6 +105,8 @@ export function BenefitListPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   /** Portal / 종합 안내 행(복지로 메인, 시·도 총괄 안내 등) — 기본 숨김 */
   const [showPortalRows, setShowPortalRows] = useState(false);
+  /** Narrow list to recommendForProfile (reacts to 포함·제외·지역·학생 등 프로필 변경). */
+  const [profileFitOnly, setProfileFitOnly] = useState(false);
 
   useEffect(() => {
     if (state.members.length === 0) return;
@@ -101,9 +127,12 @@ export function BenefitListPage() {
   }, [list, q, sortPopular, showEnded, showPortalRows]);
 
   const filtered = useMemo(() => {
-    const afterExclude = filterOutProfileExcluded(sortedBase, memberId, state.members, state.household);
-    return filterRowsForMemberView(afterExclude, memberId, state.welfareTracking, statusFilter);
-  }, [sortedBase, memberId, state.members, state.household, state.welfareTracking, statusFilter]);
+    let base = filterOutProfileExcluded(sortedBase, memberId, state.members, state.household);
+    if (profileFitOnly) {
+      base = filterToProfileRecommendations(base, memberId, state.members, state.household, list);
+    }
+    return filterRowsForMemberView(base, memberId, state.welfareTracking, statusFilter);
+  }, [sortedBase, memberId, state.members, state.household, state.welfareTracking, statusFilter, profileFitOnly, list]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -118,8 +147,8 @@ export function BenefitListPage() {
           🎁
         </span>
         <span className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
-          구성원 박스를 눌러 목록을 바꿉니다. 가족 프로필의 <strong>제외 태그</strong>(예: 장애인)에 해당하는
-          항목은 이 목록에서 빼고, 제외함·나중에 볼게요는 추가로 숨깁니다.
+          구성원 박스를 눌러 목록을 바꿉니다. <strong>제외 태그</strong>는 항상 반영되고, 아래「프로필에 맞는 항목만」을
+          켜면 포함 태그·지역·학생 등이 바뀔 때마다 목록이 좁혀집니다. 제외함·나중에 볼게요는 추가로 숨깁니다.
         </span>
       </p>
 
@@ -132,7 +161,9 @@ export function BenefitListPage() {
               state.welfareTracking,
               statusFilter,
               state.members,
-              state.household
+              state.household,
+              profileFitOnly,
+              list
             );
             const selected = m.id === memberId;
             return (
@@ -213,6 +244,17 @@ export function BenefitListPage() {
           />
           <label htmlFor="show-portals">포털·종합 안내 항목 포함</label>
         </span>
+        {state.members.length > 0 && (
+          <span className="field-row" style={{ marginBottom: 0 }}>
+            <input
+              id="profile-fit-only"
+              type="checkbox"
+              checked={profileFitOnly}
+              onChange={(e) => setProfileFitOnly(e.target.checked)}
+            />
+            <label htmlFor="profile-fit-only">프로필에 맞는 항목만 (포함·지역·직업 등)</label>
+          </span>
+        )}
       </div>
       <div className="stack">
         {filtered.map((w) => {
