@@ -19,6 +19,13 @@ import {
   appendKeywordToDraft,
   fallbackChipsForEmpty,
 } from '@/features/smartsearch/smartSearchAssist';
+import {
+  BOKJI_PORTAL_URL,
+  buildWelfareWebQuery,
+  daumWebSearchUrl,
+  googleWebSearchUrl,
+  naverWebSearchUrl,
+} from '@/features/smartsearch/publicWelfareSearch';
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { contributeRecords, discoverWebWelfare, type WebDiscoverResult } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
@@ -79,6 +86,10 @@ export function SmartSearchPage() {
   const includeKeywordsDraft = useMemo(() => parseKeywordInput(includeRaw), [includeRaw]);
   const drilldownGuides = useMemo(() => collectDrilldownGuides(includeRaw), [includeRaw]);
   const emptySuggestChips = useMemo(() => fallbackChipsForEmpty(includeRaw), [includeRaw]);
+  const publicWebQuery = useMemo(() => {
+    const eff = member ? getEffectiveProfile(member, state.household) : null;
+    return buildWelfareWebQuery(includeRaw, eff?.region?.trim() || undefined);
+  }, [includeRaw, member, state.household]);
 
   const hydratedMemberRef = useRef(false);
   useEffect(() => {
@@ -228,13 +239,12 @@ export function SmartSearchPage() {
     <div className="page-comfort smart-find-page">
       <h1 className="page-title">숨은 복지·혜택찾기</h1>
       <p className="smart-find-subtitle muted">
-        한 줄에 상황을 적듯이 쓰고, 안내에 따라 <strong>세부 단어로 바꿔 가며</strong> 찾아 보세요. 챗봇처럼 한 번에 답이
-        나오기보다, <strong>주제를 좁히는 질문</strong>을 스스로 던지는 흐름에 가깝게 설계했습니다.
+        <strong>가입이나 API 설정 없이</strong> 쓸 수 있어요. 아래에서 앱 안 검색 후, 필요하면{' '}
+        <strong>네이버·Google</strong>로 더 넓게 찾을 수 있습니다.
       </p>
       <p className="muted smart-find-lead">
-        <strong>포함 키워드</strong>는 제목·내용·태그에서 비슷한 말까지 넓게 짝지어 찾습니다. <strong>쉼표(,)</strong>로
-        나눈 단어는 <strong>하나만 맞아도</strong> 나옵니다(OR). 건수가 많으면 단어를 줄이거나 <strong>제외</strong> 칸을
-        쓰세요. 띄어쓰기 있는 문장은 한 덩어리로 둡니다. 입력은 이 브라우저에 저장됩니다.
+        <strong>포함 키워드</strong> 칸에 상황을 적고 <strong>혜택 찾기</strong>를 누르세요. 쉼표(,)로 나눈 단어는{' '}
+        <strong>하나만 맞아도</strong> 나옵니다. 어려우면 위의 묶음·빠른 키워드를 눌러 보세요.
       </p>
 
       <div className="card smart-find-coach" aria-labelledby="smart-find-coach-title">
@@ -281,13 +291,7 @@ export function SmartSearchPage() {
       </div>
 
       <p className="muted smart-find-meta">
-        통합 카탈로그 <strong>{list.length}</strong>건
-        {!state.appSettings.linkHelpApiBaseUrl.trim() && (
-          <>
-            {' '}
-            · <strong>웹 검색</strong>은 설정에 Link-Help API 주소가 있을 때만 씁니다(서버에 Google 검색 키 필요).
-          </>
-        )}
+        이 앱 안 자료 <strong>{list.length}</strong>건 — 부족하면 아래 <strong>인터넷에서 더 찾기</strong>만 눌러도 됩니다.
       </p>
 
       <div className="card smart-find-card">
@@ -384,6 +388,48 @@ export function SmartSearchPage() {
         </button>
       </div>
 
+      <div className="card smart-find-public-web">
+        <h2 className="subsection-title smart-find-public-web__title">인터넷에서 더 찾기</h2>
+        <p className="muted smart-find-public-web__lead">
+          별도 앱 키 없이, 익숙한 검색 사이트가 새 탭으로 열립니다. 위에 적은 말과 거주 지역이 검색어에 섞입니다.
+        </p>
+        <p className="smart-find-public-web__query" aria-live="polite">
+          검색어: <strong>{publicWebQuery}</strong>
+        </p>
+        <div className="smart-find-public-grid">
+          <a
+            className="btn secondary smart-find-public-btn"
+            href={naverWebSearchUrl(publicWebQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            네이버에서 검색
+          </a>
+          <a
+            className="btn secondary smart-find-public-btn"
+            href={googleWebSearchUrl(publicWebQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Google에서 검색
+          </a>
+          <a
+            className="btn secondary smart-find-public-btn"
+            href={daumWebSearchUrl(publicWebQuery)}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Daum에서 검색
+          </a>
+          <a className="btn secondary smart-find-public-btn" href={BOKJI_PORTAL_URL} target="_blank" rel="noopener noreferrer">
+            복지로(정부 맞춤 복지)
+          </a>
+        </div>
+        <p className="muted smart-find-public-web__helplines" style={{ marginBottom: 0 }}>
+          힘들 때 전화: 청소년 <a href="tel:1388">1388</a> · 보건복지 <a href="tel:129">129</a>
+        </p>
+      </div>
+
       {running && (
         <div className="card smart-find-progress" aria-live="polite">
           <p className="smart-find-progress__status">{statusLine}</p>
@@ -422,14 +468,10 @@ export function SmartSearchPage() {
       {!running && persistNote && <p className="muted smart-find-note">{persistNote}</p>}
 
       {!running && state.appSettings.linkHelpApiBaseUrl.trim() && (
-        <div className="card smart-find-web-discover" style={{ marginBottom: 16 }}>
-          <h2 className="subsection-title" style={{ marginTop: 0 }}>
-            웹에서 후보 찾기
-          </h2>
-          <p className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.55, marginTop: -6 }}>
-            자가 호스팅 API가 <strong>Google 맞춤 검색</strong>으로 공개 웹에서 관련 페이지를 찾습니다.{' '}
-            <strong>OpenAI</strong>가 서버에 설정된 경우 제목·스니펫만 보고 참고 요약을 덧붙입니다. 자격·기한은 링크의 공식
-            공고로 반드시 확인하세요.
+        <details className="card smart-find-web-discover-advanced" style={{ marginBottom: 16 }}>
+          <summary className="smart-find-advanced-summary">고급: 서버에서 검색 결과 목록 받기 (선택)</summary>
+          <p className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.55, marginTop: 12 }}>
+            자가 호스팅 API와 Google 검색 키가 있을 때만 동작합니다. 일반 사용자는 위의 네이버·Google 버튼만 쓰면 됩니다.
           </p>
           <button
             type="button"
@@ -462,7 +504,7 @@ export function SmartSearchPage() {
               }
             }}
           >
-            {webDiscoverBusy ? '웹 검색 중…' : '포함 키워드로 웹 검색'}
+            {webDiscoverBusy ? '불러오는 중…' : '서버 웹 검색 실행'}
           </button>
           {webDiscoverErr && (
             <p className="muted" role="alert" style={{ marginTop: 12, marginBottom: 0 }}>
@@ -518,7 +560,7 @@ export function SmartSearchPage() {
               검색 결과가 없습니다. 키워드를 바꿔 보세요.
             </p>
           )}
-        </div>
+        </details>
       )}
 
       {!running && results.length > 0 && state.appSettings.linkHelpApiBaseUrl.trim() && (
@@ -615,7 +657,10 @@ export function SmartSearchPage() {
 
       {!running && results.length === 0 && foundCount === 0 && (
         <div className="smart-find-empty-block">
-          <p className="muted smart-find-empty">조건에 맞는 항목이 없습니다. 동의어·철자를 바꾸거나, 아래를 눌러 포함 칸을 그 단어로 바꾼 뒤 다시 찾아 보세요.</p>
+          <p className="muted smart-find-empty">
+            조건에 맞는 항목이 없습니다. 아래 칩으로 바꿔 보거나, 위의 <strong>인터넷에서 더 찾기</strong>에서 네이버·Google을
+            눌러 보세요.
+          </p>
           <div className="smart-find-chip-row" role="group" aria-label="다시 시도할 키워드">
             {emptySuggestChips.map((chip) => (
               <button key={chip} type="button" className="smart-find-chip" onClick={() => setIncludeRaw(chip)}>

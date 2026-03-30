@@ -216,9 +216,9 @@ export function fallbackChipsForEmpty(includeRaw: string): string[] {
 }
 
 export const SMART_SEARCH_COACH_STEPS: string[] = [
-  '먼저 상황을 한 단어로 적어 보세요. (예: 전기요금, 한부모, 장애인)',
-  '포함 칸에서 쉼표로 나눈 단어는 하나만 맞아도 나옵니다(OR). 건수를 줄이려면 단어를 줄이거나, 제외 칸으로 거르세요.',
-  '아래 안내·칩으로 세부 표현을 골라 포함 키워드를 바꿔 다시 찾기를 눌러 보세요. 카드 상세에서 공고를 꼭 확인하세요.',
+  '포함 칸에 짧게 적어 보세요. (예: 장학금, 전기요금, 버스)',
+  '결과가 많으면 단어를 줄이거나, 아래 칩으로 바꿔 다시 「혜택 찾기」를 누르세요.',
+  '앱에서 못 찾겠으면 같은 화면의 네이버·Google 버튼으로 더 찾을 수 있어요. 공식 사이트 내용을 꼭 확인하세요.',
 ];
 
 /** Above this count, suggest narrowing (OR semantics). */
