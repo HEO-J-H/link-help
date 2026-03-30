@@ -192,6 +192,19 @@ export function recommendForProfile(
   return recommendScoredForProfile(list, profile).map(({ matchScore: _score, ...w }) => w);
 }
 
+/**
+ * Jaccard overlap (0–1) between profile-derived tags and welfare.tags.
+ * `null` when the profile yields no tags (matching % is not applicable).
+ */
+export function welfareProfileTagMatchScore01(
+  w: WelfareRecord,
+  profile: MemberProfile
+): number | null {
+  const derived = new Set(profileToDerivedTags(profile));
+  if (derived.size === 0) return null;
+  return jaccardMatchScore(derived, w.tags);
+}
+
 /** Recommend as if the member were `ageYears` years old (timeline). */
 export function recommendForProfileAtAge(
   list: WelfareRecord[],
