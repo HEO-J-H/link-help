@@ -10,6 +10,7 @@ describe('normalizeFamilyState', () => {
     expect(out.reminders).toEqual([]);
     expect(out.appSettings.linkHelpApiBaseUrl).toBe('');
     expect(out.appSettings.welfareContributeConsent).toBe(false);
+    expect(out.appSettings.uiTheme).toBe('dark');
     expect(out.welfareTracking).toEqual([]);
   });
 

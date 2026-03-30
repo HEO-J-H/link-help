@@ -14,8 +14,8 @@ export default defineConfig({
         short_name: 'LinkHelp',
         description: '놓치기 쉬운 가족 복지·혜택을 찾기 위한 로컬·PWA 도구',
         display: 'standalone',
-        background_color: '#f4f7f5',
-        theme_color: '#1a5f4a',
+        background_color: '#eef4f0',
+        theme_color: '#0f1814',
         lang: 'ko',
         icons: [
           {

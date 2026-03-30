@@ -16,6 +16,7 @@ import { loadFamilyFromStorage } from '@/core/storage/localStorage';
 import { loadFamilyFromSession, saveFamilyToSession } from '@/core/storage/familySessionStorage';
 import { loadFamilyLocalBackupRaw } from '@/core/storage/familyLocalBackup';
 import { parseFamilyImportJson } from '@/core/storage/exportImport';
+import { applyDocumentTheme } from '@/utils/theme';
 
 type FamilyContextValue = {
   state: FamilyState;
@@ -96,6 +97,11 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!state) return;
     saveFamilyToSession(state);
+  }, [state]);
+
+  useEffect(() => {
+    if (!state) return;
+    applyDocumentTheme(state.appSettings.uiTheme);
   }, [state]);
 
   const setState = useCallback((s: FamilyState) => setStateInternal(s), []);

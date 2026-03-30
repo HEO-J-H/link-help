@@ -1,6 +1,11 @@
+/** Visual theme for the whole app (stored in session family state). */
+export type UiTheme = 'dark' | 'light';
+
 export interface AppSettings {
   /** Request browser Notification API when due reminders fire (tab open) */
   browserNotifications: boolean;
+  /** Default dark for comfortable reading; switch to light in 설정. */
+  uiTheme: UiTheme;
   /**
    * Optional hosted API origin, e.g. https://api.example.com:8787 (no trailing slash).
    * Used for public catalog fetch, notice analyze, and crowd contribute.
@@ -23,6 +28,7 @@ export function defaultAppSettings(): AppSettings {
       : '';
   return {
     browserNotifications: false,
+    uiTheme: 'dark',
     linkHelpApiBaseUrl: viteBase,
     linkHelpApiToken: '',
     welfareContributeConsent: false,

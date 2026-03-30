@@ -27,6 +27,7 @@ function mergeAppSettingsFromRaw(raw: unknown): AppSettings {
   return {
     browserNotifications:
       typeof o.browserNotifications === 'boolean' ? o.browserNotifications : base.browserNotifications,
+    uiTheme: o.uiTheme === 'light' || o.uiTheme === 'dark' ? o.uiTheme : base.uiTheme,
     linkHelpApiBaseUrl:
       typeof o.linkHelpApiBaseUrl === 'string' ? o.linkHelpApiBaseUrl : base.linkHelpApiBaseUrl,
     linkHelpApiToken: typeof o.linkHelpApiToken === 'string' ? o.linkHelpApiToken : base.linkHelpApiToken,

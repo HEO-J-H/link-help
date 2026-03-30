@@ -48,6 +48,48 @@ export function SettingsPage() {
         세션 데이터가 사라질 수 있어요.)
       </p>
 
+      <section className="settings-section" style={{ marginTop: 0 }}>
+        <h2 className="settings-section__h">
+          <span className="settings-section__icon" aria-hidden>
+            🌓
+          </span>
+          화면 테마
+        </h2>
+        <div className="card settings-alert-card">
+          <p className="muted" style={{ margin: '0 0 12px', fontSize: '0.9rem', lineHeight: 1.55 }}>
+            기본은 어두운 배경입니다. 밝은 화면을 원하면 아래에서 바꿀 수 있어요.
+          </p>
+          <div className="segmented" style={{ gap: 10 }}>
+            <button
+              type="button"
+              className={`segmented__btn${state.appSettings.uiTheme === 'dark' ? ' segmented__btn--active' : ''}`}
+              onClick={() =>
+                setState({
+                  ...state,
+                  appSettings: { ...state.appSettings, uiTheme: 'dark' },
+                })
+              }
+            >
+              <span className="segmented__title">어두운 테마</span>
+              <span className="segmented__hint">눈에 부담이 덜한 기본값</span>
+            </button>
+            <button
+              type="button"
+              className={`segmented__btn${state.appSettings.uiTheme === 'light' ? ' segmented__btn--active' : ''}`}
+              onClick={() =>
+                setState({
+                  ...state,
+                  appSettings: { ...state.appSettings, uiTheme: 'light' },
+                })
+              }
+            >
+              <span className="segmented__title">밝은 테마</span>
+              <span className="segmented__hint">밝은 배경·대비</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section id="settings-alerts" className="settings-section" style={{ marginTop: 24 }}>
         <h2 className="settings-section__h">
           <span className="settings-section__icon" aria-hidden>
