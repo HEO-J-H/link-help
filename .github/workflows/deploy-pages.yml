@@ -29,9 +29,11 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:gh
-      - uses: actions/upload-pages-artifact@v3
+      # GitHub Pages: upload-pages-artifact v4 + Artifact Actions v4 요구 (v3 단계적 폐기)
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: dist
+          include-hidden-files: true
       - uses: actions/upload-artifact@v4
         with:
           name: link-help-dist
