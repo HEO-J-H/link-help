@@ -39,6 +39,12 @@ export type EmploymentContractKind = '' | 'regular' | 'contract' | 'daily' | 'sp
 /** 건강보험·의료급여 구분(참고용). */
 export type HealthInsuranceKind = '' | 'employee' | 'local' | 'medical_aid';
 
+/** 생계급여·차상위 등 복지 DB 저소득 태그 연결(참고). '' = 미선택. */
+export type LivelihoodSupportTier = '' | 'none' | 'basic_livelihood' | 'near_poverty';
+
+/** 농어촌·산업 공고 태그 보강. '' = 미선택. */
+export type PrimarySectorContext = '' | 'none' | 'agriculture' | 'fishery';
+
 export interface MemberProfile {
   birthDate: string;
   /** When false, use regionSido/regionSigungu (or legacy region) instead of 가구 기본. */
@@ -85,6 +91,21 @@ export interface MemberProfile {
   employmentInsurance: AssetAnswer;
   nationalPension: AssetAnswer;
   healthInsurance: HealthInsuranceKind;
+
+  /** 기초생활수급 등 — 「기초생활」「생계급여」 태그와 맞춤. */
+  livelihoodSupportTier: LivelihoodSupportTier;
+  /** 농업·어업 복지 공고 — 「농촌」「어촌」 등 태그와 맞춤. */
+  primarySectorContext: PrimarySectorContext;
+  /** 가족 돌봄(요양·장기요양 대상 부양 등) — 「돌봄」 태그. */
+  unpaidFamilyCaregiver: boolean;
+  /** 에너지·주거 비용 부담 큼 — 「에너지」「취약계층」 등과 맞춤. */
+  energyOrHousingVulnerable: boolean;
+
+  /**
+   * 복지로·정부24 분류 참고 관심 영역 id (`filterEngine`의 WELFARE_INTEREST_CATEGORY_DEFS).
+   * 선택 시 해당 카테고리 대표 태그가 파생 태그에 합쳐져 엄격 매칭에 사용됩니다.
+   */
+  welfareInterestCategoryIds: string[];
 
   extraIncludeTags: string[];
   extraExcludeTags: string[];

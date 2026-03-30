@@ -70,6 +70,18 @@ export function profileMatchReadiness(member: FamilyMember, household: Household
     { label: '출산·육아 단계', ok: Boolean(p.parentingStage) },
     { label: '주거 형태(자가·전세·월세 등)', ok: Boolean(p.housingTenure) },
     { label: '건강보험 유형', ok: Boolean(p.healthInsurance) },
+    {
+      label: '기초생계·차상위 여부 (미지정이면 목록에서 약한 일치가 늘 수 있음)',
+      ok: Boolean(p.livelihoodSupportTier),
+    },
+    {
+      label: '농·어업 생계 힌트 (미지정이면 농어촌 공고와 겹침이 줄어듦)',
+      ok: Boolean(p.primarySectorContext),
+    },
+    {
+      label: '관심 복지 영역 1개 이상 (복지로 분류; 혜택 100% 일치에 도움)',
+      ok: (p.welfareInterestCategoryIds?.length ?? 0) > 0,
+    },
   );
 
   if (p.hasDisability) {

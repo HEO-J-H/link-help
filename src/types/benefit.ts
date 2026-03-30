@@ -25,7 +25,7 @@ export interface WelfareRecord {
   source: string;
   /** Computed match score (0–1) when recommending */
   score?: number;
-  /** Static popularity hint for sorting (0–100) */
+  /** Catalog meta: list sort / tie-break hint (0–100). Not the user's profile match %. */
   popularity?: number;
 
   // --- Optional: AI analysis server + shared catalog (see docs/catalog-pipeline.md) ---

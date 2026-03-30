@@ -15,7 +15,8 @@
     "server:install": "npm install --prefix server",
     "test": "vitest run",
     "test:watch": "vitest",
-    "data:welfare:national": "node scripts/fetch-national-welfare.mjs"
+    "data:welfare:national": "node scripts/fetch-national-welfare.mjs",
+    "data:sync:data-go-kr-files": "node scripts/sync-data-go-kr-filedata.mjs"
   },
   "dependencies": {
     "react": "^19.0.0",
@@ -27,6 +28,7 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.2",
+    "csv-parse": "^6.2.1",
     "fast-xml-parser": "^5.5.9",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",

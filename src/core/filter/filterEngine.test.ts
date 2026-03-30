@@ -5,6 +5,9 @@ import {
   profileToDerivedTags,
   recommendForProfile,
   welfareBlockedByMemberProfile,
+  welfareProfileTagMatchScore01,
+  welfareStrictFullCatalogTagCoverage,
+  welfareStrictMissingCatalogTags,
 } from '@/core/filter/filterEngine';
 
 function record(partial: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 'title'>): WelfareRecord {
@@ -35,13 +38,27 @@ describe('filterEngine profile tags', () => {
     expect(tags).toContain('경기도');
   });
 
+  it('welfareProfileTagMatchScore01 is null when profile yields no tags', () => {
+    const p = emptyProfile();
+    const w = record({ id: '1', title: 't', tags: ['전국'] });
+    expect(welfareProfileTagMatchScore01(w, p)).toBeNull();
+  });
+
+  it('welfareProfileTagMatchScore01 is Jaccard overlap 0–1', () => {
+    const p = emptyProfile();
+    p.region = '전국';
+    const w = record({ id: '1', title: 't', tags: ['전국', '청년'] });
+    expect(welfareProfileTagMatchScore01(w, p)).toBeCloseTo(0.5, 5);
+  });
+
   it('excludes car-tagged welfare when hasCar is no', () => {
     const list: WelfareRecord[] = [
       record({ id: '1', title: '전기차', tags: ['전국', '자동차', '전기차'] }),
       record({ id: '2', title: '청년', tags: ['청년', '주택'] }),
     ];
     const p = emptyProfile();
-    p.extraIncludeTags = ['청년', '전국'];
+    p.region = '경기도';
+    p.extraIncludeTags = ['청년', '주택'];
     p.hasCar = 'no';
     const out = recommendForProfile(list, p);
     expect(out.map((w) => w.id)).not.toContain('1');
@@ -73,6 +90,29 @@ describe('filterEngine profile tags', () => {
     p.occupation = '3D 디자인, 그래픽';
     const tags = profileToDerivedTags(p);
     expect(tags.some((t) => t.includes('3D') || t.includes('디자인'))).toBe(true);
+  });
+
+  it('strict recommendForProfile: 전체 태그가 프로필로 설명될 때만 포함', () => {
+    const p = emptyProfile();
+    p.birthDate = '1955-06-01';
+    p.region = '경기도';
+    p.occupationKind = 'retired';
+    p.extraIncludeTags = ['노인', '지원금', '일자리', '고령'];
+    const strong = record({
+      id: 's',
+      title: '노인 일자리',
+      tags: ['전국', '노인', '일자리', '고령', '지원금'],
+    });
+    const weak = record({
+      id: 'w',
+      title: '단일 겹침',
+      tags: ['전국', '어업'],
+    });
+    expect(welfareStrictFullCatalogTagCoverage(strong, p)).toBe(true);
+    expect(welfareStrictFullCatalogTagCoverage(weak, p)).toBe(false);
+    expect(welfareStrictMissingCatalogTags(weak, p)).toContain('어업');
+    const out = recommendForProfile([strong, weak], p);
+    expect(out.map((w) => w.id)).toEqual(['s']);
   });
 
   it('한부모·다문화·보훈 스위치로 태그를 붙인다', () => {

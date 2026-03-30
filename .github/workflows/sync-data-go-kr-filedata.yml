@@ -1,0 +1,45 @@
+# Periodically sync file-data CSV URLs (data.go.kr 등) into bundled welfare JSON.
+# 추가·수정: scripts/data-go-kr-filedata.manifest.json — csvUrl 및 컬럼 매핑.
+name: Sync data.go.kr file-data welfare
+
+on:
+  schedule:
+    - cron: '0 16 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-data-go-kr-filedata
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Sync file-data sources
+        env:
+          FORCE_DATA_SYNC: ${{ vars.FORCE_DATA_SYNC }}
+        run: npm run data:sync:data-go-kr-files
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/welfare-db/welfare/data-go-kr-filedata.json scripts/data-go-kr-filedata.state.json
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore(data): sync data.go.kr file-data welfare bundle"
+            git push
+          fi

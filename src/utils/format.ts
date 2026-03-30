@@ -1,8 +1,10 @@
+import { parseBirthDateMs } from '@/utils/date';
+
 export function formatDateKR(iso: string): string {
   if (!iso) return '—';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return iso;
-  return d.toLocaleDateString('ko-KR');
+  const ms = parseBirthDateMs(iso);
+  if (ms == null) return iso;
+  return new Date(ms).toLocaleDateString('ko-KR');
 }
 
 /** For `<input type="datetime-local" />` value (local timezone). */

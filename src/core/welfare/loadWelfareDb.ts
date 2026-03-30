@@ -8,6 +8,8 @@ const WELFARE_FILES = [
   'welfare-db/welfare/national.json',
   'welfare-db/welfare/gyeonggi.json',
   'welfare-db/welfare/yongin.json',
+  /** Auto-synced from manifest (GitHub Actions / scripts/sync-data-go-kr-filedata.mjs). */
+  'welfare-db/welfare/data-go-kr-filedata.json',
 ];
 
 /** Static JSON shipped with the app (curated from public agency references; see docs/data-sources.md). */

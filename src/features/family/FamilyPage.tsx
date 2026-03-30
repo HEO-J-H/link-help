@@ -93,14 +93,16 @@ export function FamilyPage() {
   return (
     <div>
       <h1 className="page-title">가족</h1>
-      <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        <strong>가구 기본 정보</strong>(지역·소득)은 구성원 전체가 함께 쓰는 값입니다. 구성원 프로필에서
-        「가구와 동일」을 켜 두면 혜택·숨은 복지·혜택찾기에 이 값이 반영됩니다.
-      </p>
-      <p className="muted" style={{ marginTop: -8, marginBottom: 16 }}>
-        <strong>데이터는 이 탭 세션에만</strong> 유지됩니다. 탭을 닫으면 사라질 수 있으니 아래에서 JSON으로
-        내려받거나 브라우저 백업을 해 두세요.
-      </p>
+      <div className="page-lead card card--soft">
+        <p>
+          <strong>가구 기본 정보</strong>(지역·소득)은 구성원 전체가 함께 쓰는 값입니다. 구성원 프로필에서 「가구와
+          동일」을 켜 두면 혜택·복지찾기에 이 값이 반영됩니다.
+        </p>
+        <p>
+          <strong>데이터는 이 탭 세션에만</strong> 유지됩니다. 탭을 닫기 전에 아래에서 JSON으로 내려받거나 브라우저
+          백업을 해 두세요.
+        </p>
+      </div>
 
       {saveNudgeVisible && (
         <div
@@ -178,9 +180,16 @@ export function FamilyPage() {
           이전 입력을 복원할 수 있습니다.
         </p>
       )}
-      <div className="card" style={{ marginBottom: 16, padding: '12px 14px' }}>
-        <p style={{ margin: 0, fontSize: '0.92rem', lineHeight: 1.55 }}>
-          <Link to="/start">빠른 시작</Link> · <Link to="/settings">설정</Link> (알림·약관)
+      <div className="link-card-row">
+        <p>
+          <Link to="/start" className="text-link">
+            빠른 시작
+          </Link>
+          {' · '}
+          <Link to="/settings" className="text-link">
+            설정
+          </Link>{' '}
+          <span className="muted">(알림·약관)</span>
         </p>
       </div>
       <div className="stack">
@@ -224,7 +233,7 @@ export function FamilyPage() {
           if (name?.trim()) addMember(name.trim());
         }}
       >
-        + 구성원 추가
+        구성원 추가
       </button>
     </div>
   );

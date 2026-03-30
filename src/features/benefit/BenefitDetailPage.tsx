@@ -3,7 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { suggestTagsFromText } from '@/core/ai/suggestTags';
-import { welfareProfileTagMatchScore01 } from '@/core/filter/filterEngine';
+import {
+  profileToDerivedTags,
+  welfareProfileTagMatchScore01,
+  welfareStrictFullCatalogTagCoverage,
+  welfareStrictMissingCatalogTags,
+} from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { googleCalendarUrlForApplicationPeriod } from '@/core/calendar/googleCalendar';
@@ -11,6 +16,7 @@ import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodBut
 import type { WelfareCatalogOrigin } from '@/types/benefit';
 import { WelfareStatusControls } from '@/components/WelfareStatusControls';
 import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
+import { WelfareTagChips } from '@/components/WelfareTagChips';
 
 function catalogOriginLabel(origin?: WelfareCatalogOrigin): string | null {
   if (!origin) return null;
@@ -56,6 +62,25 @@ export function BenefitDetailPage() {
     const s01 = welfareProfileTagMatchScore01(w, getEffectiveProfile(m, state.household));
     if (s01 === null) return { kind: 'empty-profile' as const };
     return { kind: 'ok' as const, pct: Math.round(s01 * 100) };
+  }, [w, trackMemberId, state.members, state.household]);
+
+  const detailTagProfileSet = useMemo(() => {
+    if (!trackMemberId || state.members.length === 0) return null;
+    const m = state.members.find((x) => x.id === trackMemberId);
+    if (!m) return null;
+    const eff = getEffectiveProfile(m, state.household);
+    const arr = profileToDerivedTags(eff);
+    return arr.length > 0 ? new Set(arr) : null;
+  }, [trackMemberId, state.members, state.household]);
+
+  const strictGapForDetail = useMemo(() => {
+    if (!w || !trackMemberId) return null;
+    const m = state.members.find((x) => x.id === trackMemberId);
+    if (!m) return null;
+    const eff = getEffectiveProfile(m, state.household);
+    if (profileToDerivedTags(eff).length === 0) return null;
+    if (welfareStrictFullCatalogTagCoverage(w, eff)) return { ok: true as const, missing: [] as string[] };
+    return { ok: false as const, missing: welfareStrictMissingCatalogTags(w, eff) };
   }, [w, trackMemberId, state.members, state.household]);
 
   if (loading) return <p className="muted">불러오는 중…</p>;
@@ -160,15 +185,27 @@ export function BenefitDetailPage() {
         <p>
           <strong>지역</strong> {w.region.join(', ')}
         </p>
-        <p>
-          <strong>태그</strong> {w.tags.join(', ')}
+        <p className="benefit-detail-tags">
+          <strong>태그</strong>{' '}
+          {w.tags.length > 0 ? (
+            <WelfareTagChips record={w} profileDerived={detailTagProfileSet} />
+          ) : (
+            <span className="muted">—</span>
+          )}
         </p>
         {state.members.length > 0 && profileMatchDetail.kind === 'ok' && (
           <p className="muted" style={{ marginTop: 8 }}>
-            <strong>프로필 매칭</strong> {profileMatchDetail.pct}%{' '}
+            <strong>프로필 매칭</strong>{' '}
+            {strictGapForDetail?.ok ? '100% (엄격: 혜택 태그 전부 설명 가능)' : `${profileMatchDetail.pct}%`}{' '}
             <span style={{ fontSize: '0.92em' }}>
-              — 아래에서 고른 구성원의 연관 태그와 이 항목 태그의 겹침(참고). 공고 자격 판정이 아닙니다.
+              — 자카드·엄격 일치는 참고입니다. 공고 자격 판정이 아닙니다.
             </span>
+          </p>
+        )}
+        {strictGapForDetail && !strictGapForDetail.ok && strictGapForDetail.missing.length > 0 && (
+          <p className="benefit-detail-strict-gap" style={{ marginTop: 10, marginBottom: 0 }}>
+            <strong>엄격 기준 미충족</strong> — 프로필 키워드에 없는 혜택 태그: {strictGapForDetail.missing.join(', ')}.
+            구성원 프로필의 관심 영역·포함 태그 등을 채우면 혜택 목록에 나타날 수 있습니다.
           </p>
         )}
         {state.members.length > 0 && profileMatchDetail.kind === 'empty-profile' && (

@@ -6,10 +6,12 @@ export function AppShell() {
     <div className="app-shell">
       <header className="app-header">
         <div className="app-header-inner">
-          <span className="app-brand" translate="no">
-            Link-Help
-          </span>
-          <span className="app-tagline">놓치기 쉬운 복지·혜택 찾기</span>
+          <div className="app-header-brand-block">
+            <span className="app-brand" translate="no">
+              Link-Help
+            </span>
+            <span className="app-tagline">놓치기 쉬운 복지·혜택 찾기</span>
+          </div>
         </div>
       </header>
       <main className="app-main">

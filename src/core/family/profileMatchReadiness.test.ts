@@ -29,6 +29,9 @@ describe('profileMatchReadiness', () => {
         parentingStage: 'school_age',
         housingTenure: 'jeonse',
         healthInsurance: 'employee',
+        livelihoodSupportTier: 'none',
+        primarySectorContext: 'none',
+        welfareInterestCategoryIds: ['work'],
       },
     });
     const h = { ...emptyHousehold(), sido: '경기도', sigungu: '용인시', incomeBand: '일반' };

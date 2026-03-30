@@ -8,8 +8,10 @@ import type {
   EnrollmentStatus,
   HealthInsuranceKind,
   HousingTenure,
+  LivelihoodSupportTier,
   MemberProfile,
   ParentingStage,
+  PrimarySectorContext,
   Relationship,
   StudentLevel,
 } from '@/types/family';
@@ -19,6 +21,8 @@ import { ASSET_CHOICES, INCOME_CHOICES, OCCUPATION_KIND_CHOICES } from '@/featur
 import { HouseholdFormFields } from '@/features/family/HouseholdFormFields';
 import { useRegionCatalog } from '@/features/family/useRegionCatalog';
 import { MEMBER_COLOR_PRESETS, memberColorForInput } from '@/core/family/memberColors';
+import { sanitizeBirthDateCompactInput, normalizeBirthDateForStorage, birthDateStoredToCompact } from '@/utils/date';
+import { WELFARE_INTEREST_CATEGORY_DEFS } from '@/core/filter/filterEngine';
 
 const relationships: { value: Relationship; label: string }[] = [
   { value: 'self', label: '본인' },
@@ -81,6 +85,49 @@ const HEALTH_CHOICES: { value: HealthInsuranceKind; label: string }[] = [
   { value: 'medical_aid', label: '의료급여' },
 ];
 
+const LIVELIHOOD_TIER_CHOICES: { value: LivelihoodSupportTier; label: string }[] = [
+  { value: '', label: '선택 (미지정)' },
+  { value: 'none', label: '해당 없음 (기초생계·차상위 해당 아님)' },
+  { value: 'basic_livelihood', label: '기초생활수급·생계급여 등' },
+  { value: 'near_poverty', label: '차상위계층' },
+];
+
+const PRIMARY_SECTOR_CHOICES: { value: PrimarySectorContext; label: string }[] = [
+  { value: '', label: '선택 (미지정)' },
+  { value: 'none', label: '해당 없음' },
+  { value: 'agriculture', label: '농업·농촌 생계와 밀접' },
+  { value: 'fishery', label: '어업·어촌 생계와 밀접' },
+];
+
+/** One-tap tags — typing optional. */
+const INCLUDE_TAG_PRESETS = [
+  '청년',
+  '중장년',
+  '노인',
+  '학생',
+  '대학생',
+  '취업',
+  '주거',
+  '에너지',
+  '보육',
+  '임신',
+  '육아',
+  '돌봄',
+  '의료',
+] as const;
+
+const EXCLUDE_TAG_PRESETS = ['주택', '자동차', '전기차', '해외', '사업자'] as const;
+
+const OCCUPATION_DETAIL_PRESETS = [
+  '사무직',
+  '생산·현장',
+  '운전·배송',
+  '간호·돌봄',
+  '교사·강사',
+  '매장·서비스',
+  'IT·개발',
+] as const;
+
 function composeRegion(sido: string, sigungu: string): string {
   if (sido === '전국') return '전국';
   return [sido, sigungu].filter(Boolean).join(' ');
@@ -90,14 +137,33 @@ function TagsEditor({
   value,
   onChange,
   placeholder,
+  presets,
 }: {
   value: string[];
   onChange: (v: string[]) => void;
   placeholder: string;
+  presets?: readonly string[];
 }) {
   const [draft, setDraft] = useState('');
   return (
     <div>
+      {presets && presets.length > 0 && (
+        <div className="tag-presets-row" aria-label="빠른 선택">
+          {presets.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className="btn secondary btn--compact tag-preset-btn"
+              disabled={value.includes(p)}
+              onClick={() => {
+                if (!value.includes(p)) onChange([...value, p]);
+              }}
+            >
+              + {p}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="field-row field-row--wrap">
         {value.map((t) => (
           <span
@@ -162,6 +228,7 @@ export function MemberDetailPage() {
   const catalog = useRegionCatalog();
   const member = state.members.find((m) => m.id === id);
   const [local, setLocal] = useState<MemberProfile | null>(null);
+  const [birthDraft, setBirthDraft] = useState('');
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState<Relationship>('other');
   const [snackbar, setSnackbar] = useState(false);
@@ -170,6 +237,7 @@ export function MemberDetailPage() {
   useEffect(() => {
     if (!member) return;
     setLocal({ ...member.profile });
+    setBirthDraft(birthDateStoredToCompact(member.profile.birthDate));
     setName(member.displayName);
     setRelationship(member.relationship);
   }, [member]);
@@ -202,7 +270,15 @@ export function MemberDetailPage() {
   };
 
   const saveExplicit = () => {
-    persist(local);
+    const birthIso = normalizeBirthDateForStorage(birthDraft);
+    if (birthDraft.trim() && !birthIso) {
+      window.alert('생년월일은 8자리 숫자(YYYYMMDD)로 입력해 주세요. 예: 19780225');
+      return;
+    }
+    const profile = { ...local, birthDate: birthIso };
+    setLocal(profile);
+    persist(profile);
+    setBirthDraft(birthDateStoredToCompact(profile.birthDate));
     updateMember(member.id, { displayName: name, relationship });
     setSnackbar(true);
     if (snackTimerRef.current) clearTimeout(snackTimerRef.current);
@@ -241,7 +317,8 @@ export function MemberDetailPage() {
       <div className="card" style={{ marginBottom: 16 }}>
         <p style={{ marginTop: 0, fontWeight: 600 }}>매칭 100% 목표 — 프로필 완성도 (참고)</p>
         <p className="muted" style={{ marginBottom: 0 }}>
-          공고 자격을 대신 판정하지는 않지만, 채울수록 「연관 태그」가 늘어 추천·숨은 복지 찾기 정밀도가 올라갑니다.
+          입력은 <strong>선택·버튼</strong>을 우선 쓰고, 타이핑은 보조로 최소화했습니다. 생년월일만{' '}
+          <strong>여덟 자리 숫자(YYYYMMDD)</strong>로 넣습니다. 채울수록 「연관 태그」가 늘어 혜택 목록 정밀도가 올라갑니다.
         </p>
         <p style={{ marginTop: 10, marginBottom: 0, fontSize: '1.1rem', fontWeight: 700 }}>
           {readiness.percent}% <span className="muted">({readiness.filled}/{readiness.total} 항목)</span>
@@ -369,18 +446,32 @@ export function MemberDetailPage() {
       )}
 
       <div className="field">
-        <label htmlFor="m-bd">생년월일</label>
+        <label htmlFor="m-bd">생년월일 (숫자 8자리)</label>
         <input
           id="m-bd"
-          type="date"
-          value={local.birthDate}
-          onChange={(e) => {
-            const next = { ...local, birthDate: e.target.value };
+          className="search-input birth-compact-input"
+          inputMode="numeric"
+          autoComplete="bday"
+          maxLength={8}
+          placeholder="19780225"
+          value={birthDraft}
+          onChange={(e) => setBirthDraft(sanitizeBirthDateCompactInput(e.target.value))}
+          onBlur={() => {
+            const iso = normalizeBirthDateForStorage(birthDraft);
+            if (birthDraft.trim() && !iso) {
+              setBirthDraft(birthDateStoredToCompact(local.birthDate));
+              return;
+            }
+            const next = { ...local, birthDate: iso };
             setLocal(next);
             persist(next);
+            setBirthDraft(birthDateStoredToCompact(iso));
           }}
         />
-        <p className="field-hint">학생·청년 태그 자동 매칭에 사용됩니다.</p>
+        <p className="field-hint">
+          예: 1978년 2월 25일 → <code>19780225</code>. 저장 시 내부에는 표준형(YYYY-MM-DD)으로만 맞춥니다. 연령·청년/노인 태그
+          자동 매칭에 씁니다.
+        </p>
       </div>
 
       <div className="field">
@@ -409,6 +500,22 @@ export function MemberDetailPage() {
 
       <div className="field">
         <label htmlFor="m-job">직무·직장·학과 상세</label>
+        <div className="tag-presets-row" style={{ marginBottom: 8 }} aria-label="직무 빠른 선택">
+          {OCCUPATION_DETAIL_PRESETS.map((p) => (
+            <button
+              key={p}
+              type="button"
+              className="btn secondary btn--compact tag-preset-btn"
+              onClick={() => {
+                const next = { ...local, occupation: local.occupation.trim() ? `${local.occupation}, ${p}` : p };
+                setLocal(next);
+                persist(next);
+              }}
+            >
+              {p}
+            </button>
+          ))}
+        </div>
         <input
           id="m-job"
           value={local.occupation}
@@ -419,7 +526,7 @@ export function MemberDetailPage() {
             setLocal(next);
             persist(next);
           }}
-          placeholder="예: 3D 디자이너, 삼성전자 사무, 백석예대 실용음악"
+          placeholder="버튼 선택 또는 직접 입력 (최소화 권장)"
         />
         <p className="field-hint">모든 활동 상태에서 매칭 태그로 반영됩니다. 쉼표·슬래시로 여러 키워드를 넣을 수 있습니다.</p>
       </div>
@@ -781,6 +888,90 @@ export function MemberDetailPage() {
         </div>
       </details>
 
+      <details className="card" style={{ marginBottom: 16 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+          생계·농어업·돌봄 (매칭 정밀도 — 카탈로그 태그와 직접 연결)
+        </summary>
+        <p className="muted" style={{ marginTop: 8 }}>
+          채울수록 「기초생활」「차상위」「농촌」「돌봄」 등 공고 태그와 겹침이 커져, 혜택 목록에서{' '}
+          <strong>약한 일치(스팸 느낌)</strong>이 줄어듭니다.
+        </p>
+        <div className="field">
+          <label htmlFor="m-livelihood">기초생계·차상위 해당</label>
+          <select
+            id="m-livelihood"
+            value={local.livelihoodSupportTier}
+            onChange={(e) => {
+              const livelihoodSupportTier = e.target.value as LivelihoodSupportTier;
+              const next = { ...local, livelihoodSupportTier };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {LIVELIHOOD_TIER_CHOICES.map((o) => (
+              <option key={o.value || '_liv'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="m-sector">농·어업 생계 힌트</label>
+          <select
+            id="m-sector"
+            value={local.primarySectorContext}
+            onChange={(e) => {
+              const primarySectorContext = e.target.value as PrimarySectorContext;
+              const next = { ...local, primarySectorContext };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {PRIMARY_SECTOR_CHOICES.map((o) => (
+              <option key={o.value || '_sec'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              className="input-checkbox"
+              checked={local.unpaidFamilyCaregiver}
+              onChange={(e) => {
+                const next = { ...local, unpaidFamilyCaregiver: e.target.checked };
+                setLocal(next);
+                persist(next);
+              }}
+            />
+            <span className="switch-row__body">
+              <span className="switch-row__title">가족 요양·돌봄 부담이 큼 (무급 돌봄 등)</span>
+              <span className="switch-row__hint">「돌봄」 태그 공고와 맞춥니다.</span>
+            </span>
+          </label>
+        </div>
+        <div className="field">
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              className="input-checkbox"
+              checked={local.energyOrHousingVulnerable}
+              onChange={(e) => {
+                const next = { ...local, energyOrHousingVulnerable: e.target.checked };
+                setLocal(next);
+                persist(next);
+              }}
+            />
+            <span className="switch-row__body">
+              <span className="switch-row__title">에너지·주거 비용 부담이 큼</span>
+              <span className="switch-row__hint">「에너지」「취약계층」류 태그와 맞춥니다.</span>
+            </span>
+          </label>
+        </div>
+      </details>
+
       <div className="field">
         <label className="switch-row">
           <input
@@ -800,6 +991,40 @@ export function MemberDetailPage() {
         </label>
       </div>
 
+      <details className="card" style={{ marginBottom: 16 }} open>
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>
+          관심 복지 영역 (복지로·보건복지부·정부24 분류 참고, 8개)
+        </summary>
+        <p className="muted" style={{ marginTop: 8 }}>
+          체크만으로 대표 키워드가 프로필에 붙어, 혜택 목록 <strong>100% 태그 일치</strong> 판별에 반영됩니다. 타이핑
+          최소화용입니다.
+        </p>
+        <div className="stack" style={{ marginTop: 12, gap: 10 }}>
+          {WELFARE_INTEREST_CATEGORY_DEFS.map((c) => (
+            <label key={c.id} className="switch-row" style={{ cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                className="input-checkbox"
+                checked={local.welfareInterestCategoryIds.includes(c.id)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  const nextIds = checked
+                    ? [...local.welfareInterestCategoryIds, c.id]
+                    : local.welfareInterestCategoryIds.filter((x) => x !== c.id);
+                  const next = { ...local, welfareInterestCategoryIds: nextIds };
+                  setLocal(next);
+                  persist(next);
+                }}
+              />
+              <span className="switch-row__body">
+                <span className="switch-row__title">{c.label}</span>
+                <span className="switch-row__hint">{c.hint}</span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </details>
+
       <div className="field">
         <label>포함 태그 (추가 조건)</label>
         <TagsEditor
@@ -809,7 +1034,8 @@ export function MemberDetailPage() {
             setLocal(next);
             persist(next);
           }}
-          placeholder="예: 청년"
+          placeholder="필요할 때만 직접 입력"
+          presets={INCLUDE_TAG_PRESETS}
         />
       </div>
 
@@ -822,7 +1048,8 @@ export function MemberDetailPage() {
             setLocal(next);
             persist(next);
           }}
-          placeholder="예: 차상위, 장애인"
+          placeholder="필요할 때만 직접 입력"
+          presets={EXCLUDE_TAG_PRESETS}
         />
         <p className="field-hint">
           혜택 탭 목록·맞춤 추천·숨은 복지 찾기에서 비슷한 표현까지 묶어서 빼 줍니다.

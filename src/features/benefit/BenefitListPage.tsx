@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import {
+  compareWelfareForBenefitListSort,
   filterWelfareByText,
-  recommendForProfile,
+  MIN_PROFILE_LIST_JACCARD_01,
+  profileToDerivedTags,
   welfareBlockedByMemberProfile,
+  welfareMeetsMinProfileOverlap,
   welfareProfileTagMatchScore01,
+  welfareStrictFullCatalogTagCoverage,
+  welfareStrictMissingCatalogTags,
 } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired, sortWelfareForDiscovery } from '@/core/welfare/welfareLifecycle';
@@ -25,6 +30,7 @@ import type { WelfareRecord } from '@/types/benefit';
 import type { FamilyMember } from '@/types/family';
 import type { HouseholdDefaults } from '@/types/household';
 import { ApplicationDeadlineBadge } from '@/components/ApplicationDeadlineBadge';
+import { WelfareTagChips } from '@/components/WelfareTagChips';
 
 type StatusFilter = 'all' | WelfareTrackingStatus;
 
@@ -50,21 +56,6 @@ function filterOutProfileExcluded(
   return sorted.filter((w) => !welfareBlockedByMemberProfile(w, eff));
 }
 
-/** Optional: only rows that recommendForProfile would surface (지역·포함 태그 등이 맞는 항목). */
-function filterToProfileRecommendations(
-  sorted: WelfareRecord[],
-  memberId: string,
-  members: FamilyMember[],
-  household: HouseholdDefaults,
-  catalog: WelfareRecord[]
-): WelfareRecord[] {
-  const m = members.find((x) => x.id === memberId);
-  if (!m) return sorted;
-  const eff = getEffectiveProfile(m, household);
-  const allowed = new Set(recommendForProfile(catalog, eff).map((w) => w.id));
-  return sorted.filter((w) => allowed.has(w.id));
-}
-
 function filterRowsForMemberView(
   sorted: WelfareRecord[],
   memberId: string,
@@ -79,20 +70,28 @@ function filterRowsForMemberView(
   return sorted.filter((w) => !hiddenByDefaultForMember(w, memberId, tracking));
 }
 
-function memberVisibleCount(
-  sorted: WelfareRecord[],
+/** Per-member strict/loose pool so grid counts stay correct when switching tabs. */
+function visibleCountForMember(
+  pool: WelfareRecord[],
   memberId: string,
-  tracking: WelfareTrackingEntry[],
-  statusFilter: StatusFilter,
   members: FamilyMember[],
   household: HouseholdDefaults,
-  profileFitOnly: boolean,
-  catalog: WelfareRecord[]
+  tracking: WelfareTrackingEntry[],
+  statusFilter: StatusFilter,
+  relaxStrictMatch: boolean
 ): number {
-  let base = filterOutProfileExcluded(sorted, memberId, members, household);
-  if (profileFitOnly) {
-    base = filterToProfileRecommendations(base, memberId, members, household, catalog);
+  const m = members.find((x) => x.id === memberId);
+  if (!m) return 0;
+  const eff = getEffectiveProfile(m, household);
+  let rows = pool;
+  if (profileToDerivedTags(eff).length > 0) {
+    if (!relaxStrictMatch) {
+      rows = pool.filter((w) => welfareStrictFullCatalogTagCoverage(w, eff));
+    } else {
+      rows = pool.filter((w) => welfareMeetsMinProfileOverlap(w, eff));
+    }
   }
+  const base = filterOutProfileExcluded(rows, memberId, members, household);
   return filterRowsForMemberView(base, memberId, tracking, statusFilter).length;
 }
 
@@ -102,12 +101,14 @@ export function BenefitListPage() {
   const [q, setQ] = useState('');
   const [sortPopular, setSortPopular] = useState(false);
   const [showEnded, setShowEnded] = useState(false);
+  /** Off = 혜택 태그 전부가 프로필로 설명될 때만 표시(기본). On = 일부 겹침·자카드 완화. */
+  const [relaxStrictMatch, setRelaxStrictMatch] = useState(false);
+  /** 엄격 매칭에서 빠진 항목 + 부족한 태그 안내. */
+  const [showUnmatchedReasons, setShowUnmatchedReasons] = useState(false);
   const [memberId, setMemberId] = useState(state.members[0]?.id ?? '');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   /** Portal / 종합 안내 행(복지로 메인, 시·도 총괄 안내 등) — 기본 숨김 */
   const [showPortalRows, setShowPortalRows] = useState(false);
-  /** Narrow list to recommendForProfile (reacts to 포함·제외·지역·학생 등 프로필 변경). */
-  const [profileFitOnly, setProfileFitOnly] = useState(false);
 
   useEffect(() => {
     if (state.members.length === 0) return;
@@ -130,29 +131,84 @@ export function BenefitListPage() {
     return map;
   }, [memberId, state.members, state.household, list]);
 
-  const sortedBase = useMemo(() => {
+  /** For highlighting catalog tags that intersect the selected member profile. */
+  const profileDerivedSet = useMemo(() => {
+    if (!memberId || state.members.length === 0) return null;
+    const m = state.members.find((x) => x.id === memberId);
+    if (!m) return null;
+    const eff = getEffectiveProfile(m, state.household);
+    const arr = profileToDerivedTags(eff);
+    return arr.length > 0 ? new Set(arr) : null;
+  }, [memberId, state.members, state.household]);
+
+  const poolFiltered = useMemo(() => {
     const textFiltered = filterWelfareByText(list, q);
     const visibility = showEnded
       ? textFiltered
       : textFiltered.filter((w) => !isWelfareEffectivelyExpired(w));
-    const noPortals = showPortalRows ? visibility : visibility.filter((w) => !w.hide_from_main_list);
-    return sortPopular
-      ? [...noPortals].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0))
-      : sortWelfareForDiscovery(noPortals);
-  }, [list, q, sortPopular, showEnded, showPortalRows]);
+    return showPortalRows ? visibility : visibility.filter((w) => !w.hide_from_main_list);
+  }, [list, q, showEnded, showPortalRows]);
+
+  const sortedBase = useMemo(() => {
+    const mSel = state.members.find((x) => x.id === memberId);
+    const effProf = mSel ? getEffectiveProfile(mSel, state.household) : null;
+    const derivedTags = effProf != null && profileToDerivedTags(effProf).length > 0;
+
+    let rows = poolFiltered;
+    if (effProf && derivedTags) {
+      if (!relaxStrictMatch) {
+        rows = poolFiltered.filter((w) => welfareStrictFullCatalogTagCoverage(w, effProf));
+      } else {
+        rows = poolFiltered.filter((w) => welfareMeetsMinProfileOverlap(w, effProf));
+      }
+    }
+
+    const now = new Date();
+    if (sortPopular) {
+      if (effProf && derivedTags) {
+        return [...rows].sort((a, b) => {
+          const pop = (b.popularity ?? 0) - (a.popularity ?? 0);
+          if (pop !== 0) return pop;
+          return compareWelfareForBenefitListSort(a, b, effProf, now);
+        });
+      }
+      return [...rows].sort((a, b) => (b.popularity ?? 0) - (a.popularity ?? 0));
+    }
+    if (effProf && derivedTags) {
+      return [...rows].sort((a, b) => compareWelfareForBenefitListSort(a, b, effProf, now));
+    }
+    return sortWelfareForDiscovery(rows);
+  }, [
+    poolFiltered,
+    relaxStrictMatch,
+    sortPopular,
+    memberId,
+    state.members,
+    state.household,
+  ]);
+
+  const strictUnmatchedSamples = useMemo(() => {
+    if (relaxStrictMatch || !memberId || state.members.length === 0) return [];
+    const m = state.members.find((x) => x.id === memberId);
+    if (!m) return [];
+    const eff = getEffectiveProfile(m, state.household);
+    if (profileToDerivedTags(eff).length === 0) return [];
+    let cand = filterOutProfileExcluded(poolFiltered, memberId, state.members, state.household);
+    cand = cand.filter((w) => !welfareStrictFullCatalogTagCoverage(w, eff));
+    cand = cand.filter((w) => (w.tags?.length ?? 0) > 0);
+    return cand.slice(0, 50).map((w) => ({ w, missing: welfareStrictMissingCatalogTags(w, eff) }));
+  }, [poolFiltered, memberId, state.members, state.household, relaxStrictMatch]);
 
   const filtered = useMemo(() => {
-    let base = filterOutProfileExcluded(sortedBase, memberId, state.members, state.household);
-    if (profileFitOnly) {
-      base = filterToProfileRecommendations(base, memberId, state.members, state.household, list);
-    }
+    const base = filterOutProfileExcluded(sortedBase, memberId, state.members, state.household);
     return filterRowsForMemberView(base, memberId, state.welfareTracking, statusFilter);
-  }, [sortedBase, memberId, state.members, state.household, state.welfareTracking, statusFilter, profileFitOnly, list]);
+  }, [sortedBase, memberId, state.members, state.household, state.welfareTracking, statusFilter]);
 
   if (loading) return <p className="muted">복지 데이터를 불러오는 중…</p>;
   if (error) return <p role="alert">{error}</p>;
 
   const accentMember = state.members.find((m) => m.id === memberId);
+  const selectedEffProfile = accentMember ? getEffectiveProfile(accentMember, state.household) : null;
 
   return (
     <div>
@@ -163,8 +219,9 @@ export function BenefitListPage() {
             🎁
           </span>
           <span>
-            구성원 박스를 눌러 목록을 바꿉니다. <strong>제외 태그</strong>는 항상 반영되고, 아래 「프로필에 맞는 항목만」을
-            켜면 포함 태그·지역·학생 등이 바뀔 때마다 목록이 좁혀집니다. 제외함·나중에 볼게요는 추가로 숨깁니다.
+            기본은 <strong>프로필 태그로 혜택의 모든 키워드(태그)를 설명할 수 있을 때만</strong> 목록에 나옵니다(100% 태그
+            정합). 프로필을 꼼꼼할수록 맞는 항목만 남습니다. <strong>제외 태그</strong>는 항상 반영되며, 아래에서
+            「완화 매칭」이나 「매칭 실패 사유」를 켤 수 있습니다.
           </span>
         </p>
       </div>
@@ -172,15 +229,14 @@ export function BenefitListPage() {
       {state.members.length > 0 && (
         <div className="benefit-member-grid" role="tablist" aria-label="가족 구성원별 혜택">
           {state.members.map((m) => {
-            const n = memberVisibleCount(
-              sortedBase,
+            const n = visibleCountForMember(
+              poolFiltered,
               m.id,
-              state.welfareTracking,
-              statusFilter,
               state.members,
               state.household,
-              profileFitOnly,
-              list
+              state.welfareTracking,
+              statusFilter,
+              relaxStrictMatch
             );
             const selected = m.id === memberId;
             return (
@@ -269,20 +325,65 @@ export function BenefitListPage() {
             />
             <span>포털·종합 안내 항목 포함</span>
           </label>
-          {state.members.length > 0 && (
-            <label className="filter-panel__option" htmlFor="profile-fit-only">
+          {state.members.length > 0 && memberId && (
+            <label className="filter-panel__option" htmlFor="relax-strict">
               <input
-                id="profile-fit-only"
+                id="relax-strict"
                 className="input-checkbox"
                 type="checkbox"
-                checked={profileFitOnly}
-                onChange={(e) => setProfileFitOnly(e.target.checked)}
+                checked={relaxStrictMatch}
+                onChange={(e) => setRelaxStrictMatch(e.target.checked)}
               />
-              <span>프로필에 맞는 항목만 (포함·지역·직업 등)</span>
+              <span>
+                완화 매칭 — 태그 일부만 겹쳐도 표시 (자카드 약 {Math.round(MIN_PROFILE_LIST_JACCARD_01 * 100)}% 이상,
+                기본 끔)
+              </span>
+            </label>
+          )}
+          {state.members.length > 0 && memberId && (
+            <label className="filter-panel__option" htmlFor="show-unmatched">
+              <input
+                id="show-unmatched"
+                className="input-checkbox"
+                type="checkbox"
+                checked={showUnmatchedReasons}
+                onChange={(e) => setShowUnmatchedReasons(e.target.checked)}
+              />
+              <span>매칭 실패 항목·부족한 태그 보기 (참고, 기본 목록과 별도)</span>
             </label>
           )}
         </div>
+        {state.members.length > 0 && memberId && (
+          <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem' }}>
+            기본은 혜택 각 행의 <strong>모든 태그가</strong> 이 구성원 프로필에서 나온 키워드와 맞을 때만 표시합니다. 「전국」
+            태그는 <strong>거주 지역만 있으면</strong> 통과로 봅니다. 프로필의 <strong>관심 복지 영역</strong>·포함 태그를
+            늘리면 여기에 나오는 항목이 늘어납니다.
+          </p>
+        )}
       </div>
+      {showUnmatchedReasons && strictUnmatchedSamples.length > 0 && memberId && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <p className="filter-panel__title" style={{ marginTop: 0 }}>
+            엄격 기준에서 빠진 항목 (프로필에 없는 혜택 태그)
+          </p>
+          <p className="muted" style={{ marginTop: 0, fontSize: '0.9rem' }}>
+            아래 태그를 프로필(관심 영역·포함 태그·지역·직업 등)에 맞게 채우면 위 목록으로 올라올 수 있습니다. 법적
+            자격과 다를 수 있습니다.
+          </p>
+          <div className="stack" style={{ marginTop: 12 }}>
+            {strictUnmatchedSamples.map(({ w, missing }) => (
+              <div key={`un-${w.id}`} className="card benefit-card benefit-card--unmatched">
+                <Link to={`/benefits/${w.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                  <h3 style={{ margin: '0 0 6px', fontSize: '1rem' }}>{w.title}</h3>
+                  <p className="muted" style={{ margin: 0, fontSize: '0.88rem' }}>
+                    <strong>프로필에 없는 태그:</strong> {missing.join(', ') || '—'}
+                  </p>
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="stack">
         {filtered.map((w) => {
           const entry = memberId
@@ -321,19 +422,28 @@ export function BenefitListPage() {
                     <strong>신청 서류</strong> {docs.length > 120 ? `${docs.slice(0, 120)}…` : docs}
                   </p>
                 )}
-                <p className="muted" style={{ marginTop: 6 }}>
-                  {w.tags.join(' · ')}
+                <p className="muted welfare-card-tags-line" style={{ marginTop: 6 }}>
+                  <WelfareTagChips record={w} profileDerived={profileDerivedSet} />
                   {state.members.length > 0 &&
                     memberId &&
                     (() => {
                       const s01 = profileMatch01ByWelfareId.get(w.id);
                       if (s01 == null) return null;
-                      const pct = Math.round(s01 * 100);
+                      const pct = relaxStrictMatch
+                        ? Math.round(s01 * 100)
+                        : selectedEffProfile &&
+                            welfareStrictFullCatalogTagCoverage(w, selectedEffProfile)
+                          ? 100
+                          : Math.round(s01 * 100);
                       return (
                         <span
                           className="score-pill"
                           style={{ marginLeft: 8 }}
-                          title="프로필에서 만든 연관 태그와 이 항목 태그의 겹침(자카드, 참고). 공고 자격 판정이 아닙니다."
+                          title={
+                            relaxStrictMatch
+                              ? '완화 모드: 태그 자카드 겹침(참고).'
+                              : '엄격 모드: 혜택의 모든 태그가 프로필 키워드로 설명되면 100%로 표시합니다.'
+                          }
                         >
                           프로필 매칭 {pct}%
                         </span>

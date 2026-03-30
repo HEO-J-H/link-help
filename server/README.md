@@ -6,8 +6,11 @@
 - `POST /welfare/analyze` — 공고문 텍스트 → 한 건 `WelfareRecord` (환경에 `OPENAI_API_KEY` 있으면 LLM, 없으면 휴리스틱).
 - `POST /welfare/contribute` — 클라이언트가 보낸 복지 메타 배열을 SQLite에 upsert (가족 프로필 없음).
 - `POST /welfare/discover-web` — 포함 키워드로 **Google 맞춤 검색**(웹 후보). `GOOGLE_SEARCH_API_KEY`·`GOOGLE_SEARCH_ENGINE_ID` 필요. `OPENAI_API_KEY`가 있으면 스니펫 기반 참고 요약만 추가(링크 내용을 가져오지 않음).
+- `POST /welfare/collect/public` — **API 키 없이** RSS·공식 사이트 링크 후보를 자동 수집해 후보 큐에 적재.
+- `POST /welfare/candidate/submit`, `/welfare/candidate/bulk` — 북마클릿/CSV로 링크 후보 적재.
+- `POST /welfare/candidate/promote` — 후보를 최소 스키마 복지 행으로 승격(후속 검수 권장).
 
-`API_SHARED_TOKEN`을 설정하면 `analyze`/`contribute`/`discover-web`에 `Authorization: Bearer <token>` 또는 `X-Link-Help-Api-Token`이 필요합니다. 비우면 **로컬 개발만** 권장(공개 엔드포인트).
+`API_SHARED_TOKEN`을 설정하면 `analyze`/`contribute`/`discover-web`/`collect`/`candidate*`에 `Authorization: Bearer <token>` 또는 `X-Link-Help-Api-Token`이 필요합니다. 비우면 **로컬 개발만** 권장(공개 엔드포인트).
 
 **Web Push**는 `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`가 **둘 다** 있을 때만 활성화됩니다. 없으면 `/push/*`는 503입니다.
 
@@ -44,10 +47,15 @@ npx web-push generate-vapid-keys
 
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/health` | `welfare_rows`, `push_enabled`, `api_token_required`, `openai_configured`, `google_search_configured` |
+| GET | `/health` | `welfare_rows`, `candidate_rows`, `push_enabled`, `api_token_required`, `openai_configured`, `google_search_configured` |
 | GET | `/welfare` | 전체 복지 JSON 배열 |
+| GET | `/welfare/candidates?status=pending&limit=100` | 외부 수집 후보 큐 조회 |
 | POST | `/welfare/analyze` | `{ "text": "…" }` → `{ record, analysis_source }` |
 | POST | `/welfare/discover-web` | `{ "query": "…", "regionHint?": "…", "limit?": 8 }` → `{ items[], source, llm_summary? }` |
+| POST | `/welfare/collect/public` | `{ "limitPerSource?": 40 }` → RSS/공식 페이지 링크 후보 자동 수집 |
+| POST | `/welfare/candidate/submit` | `{ "url": "...", "title?": "...", "regionHint?": "..." }` |
+| POST | `/welfare/candidate/bulk` | `{ "items": [{ "url": "...", "title?": "...", "regionHint?": "..." }] }` (CSV 파싱 결과) |
+| POST | `/welfare/candidate/promote` | `{ "ids?": [...], "limit?": 50 }` → 후보를 `welfare_items`로 승격 |
 | POST | `/welfare/contribute` | `{ "records": [ … ] }` → `{ accepted, skipped }` |
 | POST | `/smart-match` | (선택) 서버 측 매칭·부스트·이력 |
 | POST | `/push/subscribe`, `/push/send` | Push (VAPID 설정 시만) |

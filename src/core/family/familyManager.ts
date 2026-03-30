@@ -6,9 +6,11 @@ import type {
   FamilyState,
   HealthInsuranceKind,
   HousingTenure,
+  LivelihoodSupportTier,
   MemberProfile,
   OccupationKind,
   ParentingStage,
+  PrimarySectorContext,
   Relationship,
   StudentLevel,
 } from '@/types/family';
@@ -59,6 +61,11 @@ export function emptyProfile(): MemberProfile {
     employmentInsurance: 'unknown',
     nationalPension: 'unknown',
     healthInsurance: '',
+    livelihoodSupportTier: '',
+    primarySectorContext: '',
+    unpaidFamilyCaregiver: false,
+    energyOrHousingVulnerable: false,
+    welfareInterestCategoryIds: [],
     extraIncludeTags: [],
     extraExcludeTags: [],
   };
@@ -140,6 +147,29 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
       ? (o.healthInsurance as HealthInsuranceKind)
       : e.healthInsurance;
 
+  const livelihoodVals: LivelihoodSupportTier[] = ['', 'none', 'basic_livelihood', 'near_poverty'];
+  const livelihoodSupportTier: LivelihoodSupportTier =
+    typeof o.livelihoodSupportTier === 'string' &&
+    livelihoodVals.includes(o.livelihoodSupportTier as LivelihoodSupportTier)
+      ? (o.livelihoodSupportTier as LivelihoodSupportTier)
+      : e.livelihoodSupportTier;
+
+  const sectorVals: PrimarySectorContext[] = ['', 'none', 'agriculture', 'fishery'];
+  const primarySectorContext: PrimarySectorContext =
+    typeof o.primarySectorContext === 'string' &&
+    sectorVals.includes(o.primarySectorContext as PrimarySectorContext)
+      ? (o.primarySectorContext as PrimarySectorContext)
+      : e.primarySectorContext;
+
+  const unpaidFamilyCaregiver =
+    typeof o.unpaidFamilyCaregiver === 'boolean' ? o.unpaidFamilyCaregiver : e.unpaidFamilyCaregiver;
+  const energyOrHousingVulnerable =
+    typeof o.energyOrHousingVulnerable === 'boolean' ? o.energyOrHousingVulnerable : e.energyOrHousingVulnerable;
+
+  const welfareInterestCategoryIds = Array.isArray(o.welfareInterestCategoryIds)
+    ? (o.welfareInterestCategoryIds as unknown[]).filter((x): x is string => typeof x === 'string')
+    : e.welfareInterestCategoryIds;
+
   return {
     birthDate: typeof o.birthDate === 'string' ? o.birthDate : e.birthDate,
     useHouseholdRegionIncome,
@@ -175,6 +205,11 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
     employmentInsurance: normAsset(o.employmentInsurance),
     nationalPension: normAsset(o.nationalPension),
     healthInsurance,
+    livelihoodSupportTier,
+    primarySectorContext,
+    unpaidFamilyCaregiver,
+    energyOrHousingVulnerable,
+    welfareInterestCategoryIds,
     extraIncludeTags: Array.isArray(o.extraIncludeTags)
       ? o.extraIncludeTags.filter((x): x is string => typeof x === 'string')
       : e.extraIncludeTags,
