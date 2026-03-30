@@ -6,6 +6,7 @@ import {
   filterWelfareByText,
   recommendForProfile,
   welfareBlockedByMemberProfile,
+  welfareProfileTagMatchScore01,
 } from '@/core/filter/filterEngine';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired, sortWelfareForDiscovery } from '@/core/welfare/welfareLifecycle';
@@ -115,6 +116,20 @@ export function BenefitListPage() {
     }
   }, [state.members, memberId]);
 
+  /** Selected member's profile-tag overlap (0–1) per welfare row; drives "프로필 매칭 %" pills. */
+  const profileMatch01ByWelfareId = useMemo(() => {
+    const map = new Map<string, number>();
+    if (!memberId || state.members.length === 0) return map;
+    const m = state.members.find((x) => x.id === memberId);
+    if (!m) return map;
+    const eff = getEffectiveProfile(m, state.household);
+    for (const w of list) {
+      const s = welfareProfileTagMatchScore01(w, eff);
+      if (s != null) map.set(w.id, s);
+    }
+    return map;
+  }, [memberId, state.members, state.household, list]);
+
   const sortedBase = useMemo(() => {
     const textFiltered = filterWelfareByText(list, q);
     const visibility = showEnded
@@ -142,15 +157,17 @@ export function BenefitListPage() {
   return (
     <div>
       <h1 className="page-title">혜택</h1>
-      <p className="page-lead-graphic" style={{ marginTop: -6, marginBottom: 14 }}>
-        <span className="page-lead-graphic__icon" aria-hidden>
-          🎁
-        </span>
-        <span className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.5 }}>
-          구성원 박스를 눌러 목록을 바꿉니다. <strong>제외 태그</strong>는 항상 반영되고, 아래「프로필에 맞는 항목만」을
-          켜면 포함 태그·지역·학생 등이 바뀔 때마다 목록이 좁혀집니다. 제외함·나중에 볼게요는 추가로 숨깁니다.
-        </span>
-      </p>
+      <div className="page-lead card card--soft">
+        <p className="page-lead__row">
+          <span className="page-lead__icon" aria-hidden>
+            🎁
+          </span>
+          <span>
+            구성원 박스를 눌러 목록을 바꿉니다. <strong>제외 태그</strong>는 항상 반영되고, 아래 「프로필에 맞는 항목만」을
+            켜면 포함 태그·지역·학생 등이 바뀔 때마다 목록이 좁혀집니다. 제외함·나중에 볼게요는 추가로 숨깁니다.
+          </span>
+        </p>
+      </div>
 
       {state.members.length > 0 && (
         <div className="benefit-member-grid" role="tablist" aria-label="가족 구성원별 혜택">
@@ -191,9 +208,12 @@ export function BenefitListPage() {
       )}
 
       {state.members.length > 0 && (
-        <div className="card" style={{ marginBottom: 14, padding: '12px 14px' }}>
+        <div className="card filter-panel">
+          <p className="filter-panel__title">신청 상태로 보기</p>
           <div className="field" style={{ marginBottom: 0 }}>
-            <label htmlFor="ben-list-status">보기</label>
+            <label className="visually-hidden" htmlFor="ben-list-status">
+              신청 상태 필터
+            </label>
             <select
               id="ben-list-status"
               value={statusFilter}
@@ -216,45 +236,52 @@ export function BenefitListPage() {
         onChange={(e) => setQ(e.target.value)}
         aria-label="혜택 검색"
       />
-      <div className="field-row" style={{ marginBottom: 10, flexWrap: 'wrap', gap: '8px 16px' }}>
-        <span className="field-row" style={{ marginBottom: 0 }}>
-          <input
-            id="sort-pop"
-            type="checkbox"
-            checked={sortPopular}
-            onChange={(e) => setSortPopular(e.target.checked)}
-          />
-          <label htmlFor="sort-pop">인기도(참고) 순 정렬</label>
-        </span>
-        <span className="field-row" style={{ marginBottom: 0 }}>
-          <input
-            id="show-ended"
-            type="checkbox"
-            checked={showEnded}
-            onChange={(e) => setShowEnded(e.target.checked)}
-          />
-          <label htmlFor="show-ended">종료·기간 만료 항목 보기</label>
-        </span>
-        <span className="field-row" style={{ marginBottom: 0 }}>
-          <input
-            id="show-portals"
-            type="checkbox"
-            checked={showPortalRows}
-            onChange={(e) => setShowPortalRows(e.target.checked)}
-          />
-          <label htmlFor="show-portals">포털·종합 안내 항목 포함</label>
-        </span>
-        {state.members.length > 0 && (
-          <span className="field-row" style={{ marginBottom: 0 }}>
+      <div className="card filter-panel">
+        <p className="filter-panel__title">목록·정렬 옵션</p>
+        <div className="filter-panel__options">
+          <label className="filter-panel__option" htmlFor="sort-pop">
             <input
-              id="profile-fit-only"
+              id="sort-pop"
+              className="input-checkbox"
               type="checkbox"
-              checked={profileFitOnly}
-              onChange={(e) => setProfileFitOnly(e.target.checked)}
+              checked={sortPopular}
+              onChange={(e) => setSortPopular(e.target.checked)}
             />
-            <label htmlFor="profile-fit-only">프로필에 맞는 항목만 (포함·지역·직업 등)</label>
-          </span>
-        )}
+            <span>정렬 참고 점수 순 (카탈로그 메타)</span>
+          </label>
+          <label className="filter-panel__option" htmlFor="show-ended">
+            <input
+              id="show-ended"
+              className="input-checkbox"
+              type="checkbox"
+              checked={showEnded}
+              onChange={(e) => setShowEnded(e.target.checked)}
+            />
+            <span>종료·기간 만료 항목 보기</span>
+          </label>
+          <label className="filter-panel__option" htmlFor="show-portals">
+            <input
+              id="show-portals"
+              className="input-checkbox"
+              type="checkbox"
+              checked={showPortalRows}
+              onChange={(e) => setShowPortalRows(e.target.checked)}
+            />
+            <span>포털·종합 안내 항목 포함</span>
+          </label>
+          {state.members.length > 0 && (
+            <label className="filter-panel__option" htmlFor="profile-fit-only">
+              <input
+                id="profile-fit-only"
+                className="input-checkbox"
+                type="checkbox"
+                checked={profileFitOnly}
+                onChange={(e) => setProfileFitOnly(e.target.checked)}
+              />
+              <span>프로필에 맞는 항목만 (포함·지역·직업 등)</span>
+            </label>
+          )}
+        </div>
       </div>
       <div className="stack">
         {filtered.map((w) => {
@@ -296,11 +323,22 @@ export function BenefitListPage() {
                 )}
                 <p className="muted" style={{ marginTop: 6 }}>
                   {w.tags.join(' · ')}
-                  {typeof w.popularity === 'number' && (
-                    <span className="score-pill" style={{ marginLeft: 8 }}>
-                      인기 {w.popularity}
-                    </span>
-                  )}
+                  {state.members.length > 0 &&
+                    memberId &&
+                    (() => {
+                      const s01 = profileMatch01ByWelfareId.get(w.id);
+                      if (s01 == null) return null;
+                      const pct = Math.round(s01 * 100);
+                      return (
+                        <span
+                          className="score-pill"
+                          style={{ marginLeft: 8 }}
+                          title="프로필에서 만든 연관 태그와 이 항목 태그의 겹침(자카드, 참고). 공고 자격 판정이 아닙니다."
+                        >
+                          프로필 매칭 {pct}%
+                        </span>
+                      );
+                    })()}
                 </p>
                 {entry?.status === 'excluded' && entry.excludeReason && (
                   <p className="muted" style={{ marginTop: 8, fontSize: '0.85rem' }}>

@@ -3,6 +3,8 @@ import { Link, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import { useWelfare } from '@/context/WelfareContext';
 import { suggestTagsFromText } from '@/core/ai/suggestTags';
+import { welfareProfileTagMatchScore01 } from '@/core/filter/filterEngine';
+import { getEffectiveProfile } from '@/core/family/effectiveProfile';
 import { isWelfareEffectivelyExpired } from '@/core/welfare/welfareLifecycle';
 import { googleCalendarUrlForApplicationPeriod } from '@/core/calendar/googleCalendar';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
@@ -45,6 +47,16 @@ export function BenefitDetailPage() {
       setTrackMemberId(defaultTrackMemberId);
     }
   }, [state.members, trackMemberId, defaultTrackMemberId]);
+
+  const profileMatchDetail = useMemo(() => {
+    if (!w) return { kind: 'no-row' as const };
+    if (!trackMemberId || state.members.length === 0) return { kind: 'no-row' as const };
+    const m = state.members.find((x) => x.id === trackMemberId);
+    if (!m) return { kind: 'no-row' as const };
+    const s01 = welfareProfileTagMatchScore01(w, getEffectiveProfile(m, state.household));
+    if (s01 === null) return { kind: 'empty-profile' as const };
+    return { kind: 'ok' as const, pct: Math.round(s01 * 100) };
+  }, [w, trackMemberId, state.members, state.household]);
 
   if (loading) return <p className="muted">불러오는 중…</p>;
   if (!w) {
@@ -151,9 +163,18 @@ export function BenefitDetailPage() {
         <p>
           <strong>태그</strong> {w.tags.join(', ')}
         </p>
-        {typeof w.popularity === 'number' && (
+        {state.members.length > 0 && profileMatchDetail.kind === 'ok' && (
           <p className="muted" style={{ marginTop: 8 }}>
-            인기도(참고) {w.popularity}
+            <strong>프로필 매칭</strong> {profileMatchDetail.pct}%{' '}
+            <span style={{ fontSize: '0.92em' }}>
+              — 아래에서 고른 구성원의 연관 태그와 이 항목 태그의 겹침(참고). 공고 자격 판정이 아닙니다.
+            </span>
+          </p>
+        )}
+        {state.members.length > 0 && profileMatchDetail.kind === 'empty-profile' && (
+          <p className="muted" style={{ marginTop: 8 }}>
+            프로필에서 연관 태그를 만들 정보가 없어 <strong>프로필 매칭</strong> %를 표시하지 않습니다. 가족 탭에서 지역·직업 등을
+            채우면 여기와 혜택 목록에 나타납니다.
           </p>
         )}
         <p className="muted" style={{ marginTop: 12 }}>
