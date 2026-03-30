@@ -1,7 +1,7 @@
 import type { UiTheme } from '@/types/appSettings';
 
 const THEME_META_COLORS: Record<UiTheme, string> = {
-  dark: '#0f1814',
+  dark: '#050b18',
   light: '#157a5f',
 };
 

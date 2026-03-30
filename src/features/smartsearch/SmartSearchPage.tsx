@@ -19,15 +19,15 @@ import {
   appendKeywordToDraft,
   fallbackChipsForEmpty,
 } from '@/features/smartsearch/smartSearchAssist';
-import {
-  BOKJI_PORTAL_URL,
-  buildWelfareWebQuery,
-  daumWebSearchUrl,
-  googleWebSearchUrl,
-  naverWebSearchUrl,
-} from '@/features/smartsearch/publicWelfareSearch';
+import { buildWelfareWebQuery, googleWebSearchUrl } from '@/features/smartsearch/publicWelfareSearch';
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
-import { contributeRecords, discoverWebWelfare, type WebDiscoverResult } from '@/core/api/linkHelpServer';
+import {
+  bulkCandidateUrls,
+  collectPublicCandidates,
+  contributeRecords,
+  discoverWebWelfare,
+  type WebDiscoverResult,
+} from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 import { findWelfareTracking } from '@/core/family/welfareTracking';
@@ -74,6 +74,9 @@ export function SmartSearchPage() {
   const [webDiscoverBusy, setWebDiscoverBusy] = useState(false);
   const [webDiscoverData, setWebDiscoverData] = useState<WebDiscoverResult | null>(null);
   const [webDiscoverErr, setWebDiscoverErr] = useState<string | null>(null);
+  const [collectNote, setCollectNote] = useState<string | null>(null);
+  const [collectBusy, setCollectBusy] = useState(false);
+  const [csvBusy, setCsvBusy] = useState(false);
   /** When several include keywords, require every keyword to match (Gemini-style combined query). */
   const [includeMatchAll, setIncludeMatchAll] = useState(false);
   const skipNextPersistRef = useRef(true);
@@ -389,40 +392,21 @@ export function SmartSearchPage() {
       </div>
 
       <div className="card smart-find-public-web">
-        <h2 className="subsection-title smart-find-public-web__title">인터넷에서 더 찾기</h2>
+        <h2 className="subsection-title smart-find-public-web__title">Google에서 더 찾기</h2>
         <p className="muted smart-find-public-web__lead">
-          별도 앱 키 없이, 익숙한 검색 사이트가 새 탭으로 열립니다. 위에 적은 말과 거주 지역이 검색어에 섞입니다.
+          로그인 없이 새 탭에서 Google 검색이 열립니다. 위에 적은 말과 거주 지역이 검색어에 섞입니다.
         </p>
         <p className="smart-find-public-web__query" aria-live="polite">
           검색어: <strong>{publicWebQuery}</strong>
         </p>
-        <div className="smart-find-public-grid">
+        <div className="smart-find-public-grid smart-find-public-grid--single">
           <a
-            className="btn secondary smart-find-public-btn"
-            href={naverWebSearchUrl(publicWebQuery)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            네이버에서 검색
-          </a>
-          <a
-            className="btn secondary smart-find-public-btn"
+            className="btn smart-find-public-btn smart-find-google-btn"
             href={googleWebSearchUrl(publicWebQuery)}
             target="_blank"
             rel="noopener noreferrer"
           >
             Google에서 검색
-          </a>
-          <a
-            className="btn secondary smart-find-public-btn"
-            href={daumWebSearchUrl(publicWebQuery)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Daum에서 검색
-          </a>
-          <a className="btn secondary smart-find-public-btn" href={BOKJI_PORTAL_URL} target="_blank" rel="noopener noreferrer">
-            복지로(정부 맞춤 복지)
           </a>
         </div>
         <p className="muted smart-find-public-web__helplines" style={{ marginBottom: 0 }}>
@@ -473,6 +457,79 @@ export function SmartSearchPage() {
           <p className="muted" style={{ fontSize: '0.9rem', lineHeight: 1.55, marginTop: 12 }}>
             자가 호스팅 API와 Google 검색 키가 있을 때만 동작합니다. 일반 사용자는 위의 네이버·Google 버튼만 쓰면 됩니다.
           </p>
+          <div className="smart-find-ops-grid">
+            <button
+              type="button"
+              className="btn secondary"
+              disabled={collectBusy}
+              onClick={async () => {
+                const base = state.appSettings.linkHelpApiBaseUrl.trim();
+                setCollectBusy(true);
+                setCollectNote(null);
+                try {
+                  const r = await collectPublicCandidates(base, state.appSettings.linkHelpApiToken, 40);
+                  setCollectNote(`자동 수집 완료: 가져옴 ${r.fetched}건 / 신규 ${r.inserted}건 / 갱신 ${r.touched}건`);
+                } catch (e) {
+                  setCollectNote(e instanceof Error ? e.message : '자동 수집 실패');
+                } finally {
+                  setCollectBusy(false);
+                }
+              }}
+            >
+              {collectBusy ? '수집 중…' : 'RSS·공식사이트 자동 수집 (키 없음)'}
+            </button>
+
+            <label className="btn secondary" style={{ textAlign: 'center', cursor: csvBusy ? 'not-allowed' : 'pointer' }}>
+              {csvBusy ? '업로드 중…' : 'CSV 링크 업로드 (키 없음)'}
+              <input
+                type="file"
+                accept=".csv,text/csv"
+                style={{ display: 'none' }}
+                disabled={csvBusy}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.currentTarget.value = '';
+                  if (!file) return;
+                  const base = state.appSettings.linkHelpApiBaseUrl.trim();
+                  setCsvBusy(true);
+                  setCollectNote(null);
+                  try {
+                    const text = await file.text();
+                    const rows = text
+                      .split(/\r?\n/)
+                      .map((line) => line.trim())
+                      .filter(Boolean)
+                      .slice(0, 2000);
+                    const items = rows.map((line) => {
+                      const [url, title = '', regionHint = ''] = line.split(',').map((x) => x.trim());
+                      return { url, title, regionHint };
+                    });
+                    const out = await bulkCandidateUrls(base, items, state.appSettings.linkHelpApiToken);
+                    setCollectNote(`CSV 반영: 총 ${out.total}행 / 신규 ${out.inserted}건 / 갱신 ${out.touched}건`);
+                  } catch (err) {
+                    setCollectNote(err instanceof Error ? err.message : 'CSV 업로드 실패');
+                  } finally {
+                    setCsvBusy(false);
+                  }
+                }}
+              />
+            </label>
+          </div>
+          <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.86rem', lineHeight: 1.5 }}>
+            북마클릿(즐겨찾기)로 현재 페이지 URL을 후보 DB에 저장할 수 있습니다:{' '}
+            <a
+              href={`${state.appSettings.linkHelpApiBaseUrl.replace(/\/+$/, '')}/welfare/bookmarklet.js`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              북마클릿 스크립트 보기
+            </a>
+          </p>
+          {collectNote && (
+            <p className="muted" style={{ marginTop: 8, marginBottom: 0, fontSize: '0.88rem' }}>
+              {collectNote}
+            </p>
+          )}
           <button
             type="button"
             className="btn secondary input-touch-wide"
@@ -632,8 +689,11 @@ export function SmartSearchPage() {
                     {w.title}
                     {entry && <WelfareStatusPill status={entry.status} />}
                   </h3>
-                  <span className="score-pill" title="매칭 점수">
-                    {w.smartScore}
+                  <span
+                    className="score-pill"
+                    title="키워드·프로필을 반영한 스마트 매칭 점수(참고). 공고 자격 판정이 아닙니다."
+                  >
+                    매칭 {w.smartScore}
                   </span>
                 </div>
                 <p className="smart-find-result-card__benefit">{w.benefit}</p>
