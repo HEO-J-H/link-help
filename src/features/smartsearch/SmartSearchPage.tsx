@@ -20,7 +20,7 @@ import {
   fallbackChipsForEmpty,
 } from '@/features/smartsearch/smartSearchAssist';
 import { upsertWelfareRecords } from '@/core/storage/welfareIndexedDb';
-import { contributeRecords } from '@/core/api/linkHelpServer';
+import { contributeRecords, discoverWebWelfare, type WebDiscoverResult } from '@/core/api/linkHelpServer';
 import type { WelfareRecord } from '@/types/benefit';
 import { GoogleCalendarPeriodButton } from '@/components/GoogleCalendarPeriodButton';
 import { findWelfareTracking } from '@/core/family/welfareTracking';
@@ -64,6 +64,9 @@ export function SmartSearchPage() {
   const [persistNote, setPersistNote] = useState<string | null>(null);
   const [contribBusy, setContribBusy] = useState(false);
   const [contribNote, setContribNote] = useState<string | null>(null);
+  const [webDiscoverBusy, setWebDiscoverBusy] = useState(false);
+  const [webDiscoverData, setWebDiscoverData] = useState<WebDiscoverResult | null>(null);
+  const [webDiscoverErr, setWebDiscoverErr] = useState<string | null>(null);
   /** When several include keywords, require every keyword to match (Gemini-style combined query). */
   const [includeMatchAll, setIncludeMatchAll] = useState(false);
   const skipNextPersistRef = useRef(true);
@@ -279,6 +282,12 @@ export function SmartSearchPage() {
 
       <p className="muted smart-find-meta">
         통합 카탈로그 <strong>{list.length}</strong>건
+        {!state.appSettings.linkHelpApiBaseUrl.trim() && (
+          <>
+            {' '}
+            · <strong>웹 검색</strong>은 설정에 Link-Help API 주소가 있을 때만 씁니다(서버에 Google 검색 키 필요).
+          </>
+        )}
       </p>
 
       <div className="card smart-find-card">
@@ -411,6 +420,106 @@ export function SmartSearchPage() {
           </div>
         )}
       {!running && persistNote && <p className="muted smart-find-note">{persistNote}</p>}
+
+      {!running && state.appSettings.linkHelpApiBaseUrl.trim() && (
+        <div className="card smart-find-web-discover" style={{ marginBottom: 16 }}>
+          <h2 className="subsection-title" style={{ marginTop: 0 }}>
+            웹에서 후보 찾기
+          </h2>
+          <p className="muted" style={{ fontSize: '0.92rem', lineHeight: 1.55, marginTop: -6 }}>
+            자가 호스팅 API가 <strong>Google 맞춤 검색</strong>으로 공개 웹에서 관련 페이지를 찾습니다.{' '}
+            <strong>OpenAI</strong>가 서버에 설정된 경우 제목·스니펫만 보고 참고 요약을 덧붙입니다. 자격·기한은 링크의 공식
+            공고로 반드시 확인하세요.
+          </p>
+          <button
+            type="button"
+            className="btn secondary input-touch-wide"
+            style={{ width: '100%' }}
+            disabled={webDiscoverBusy}
+            onClick={async () => {
+              const q = includeRaw.trim();
+              if (!q) {
+                window.alert('포함 키워드 칸에 검색할 말을 적은 뒤 눌러 주세요.');
+                return;
+              }
+              const base = state.appSettings.linkHelpApiBaseUrl.trim();
+              setWebDiscoverBusy(true);
+              setWebDiscoverErr(null);
+              try {
+                const eff = member ? getEffectiveProfile(member, state.household) : null;
+                const data = await discoverWebWelfare(
+                  base,
+                  q,
+                  { regionHint: eff?.region?.trim() || undefined, limit: 8 },
+                  state.appSettings.linkHelpApiToken
+                );
+                setWebDiscoverData(data);
+              } catch (e) {
+                setWebDiscoverErr(e instanceof Error ? e.message : '웹 검색 실패');
+                setWebDiscoverData(null);
+              } finally {
+                setWebDiscoverBusy(false);
+              }
+            }}
+          >
+            {webDiscoverBusy ? '웹 검색 중…' : '포함 키워드로 웹 검색'}
+          </button>
+          {webDiscoverErr && (
+            <p className="muted" role="alert" style={{ marginTop: 12, marginBottom: 0 }}>
+              {webDiscoverErr}
+            </p>
+          )}
+          {webDiscoverData?.hint && (
+            <p className="muted" style={{ marginTop: 12, marginBottom: 0, fontSize: '0.9rem' }}>
+              {webDiscoverData.hint}
+            </p>
+          )}
+          {webDiscoverData?.source === 'google_cse' && webDiscoverData.query_used && (
+            <p className="muted" style={{ marginTop: 10, marginBottom: 0, fontSize: '0.85rem' }}>
+              조합 검색어: {webDiscoverData.query_used}
+            </p>
+          )}
+          {webDiscoverData?.llm_summary && (
+            <div
+              className="card"
+              style={{
+                marginTop: 14,
+                padding: '12px 14px',
+                background: 'var(--color-surface-alt, rgba(0,0,0,0.04))',
+              }}
+            >
+              <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>LLM 참고 요약</p>
+              <p className="muted" style={{ margin: '8px 0 0', fontSize: '0.9rem', whiteSpace: 'pre-wrap', lineHeight: 1.55 }}>
+                {webDiscoverData.llm_summary}
+              </p>
+            </div>
+          )}
+          {webDiscoverData && webDiscoverData.items.length > 0 && (
+            <ul className="smart-find-web-list" style={{ listStyle: 'none', padding: 0, margin: '14px 0 0' }}>
+              {webDiscoverData.items.map((it, idx) => (
+                <li key={`${it.link}-${idx}`} className="card smart-find-web-item" style={{ marginBottom: 10, padding: '12px 14px' }}>
+                  <a href={it.link} target="_blank" rel="noopener noreferrer" style={{ fontWeight: 700, fontSize: '1rem' }}>
+                    {it.title || it.link}
+                  </a>
+                  <p className="muted" style={{ margin: '6px 0 0', fontSize: '0.82rem' }}>
+                    {it.displayLink}
+                  </p>
+                  {it.snippet && (
+                    <p className="muted" style={{ margin: '8px 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                      {it.snippet}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+          {webDiscoverData && webDiscoverData.source === 'google_cse' && webDiscoverData.items.length === 0 && (
+            <p className="muted" style={{ marginTop: 12 }}>
+              검색 결과가 없습니다. 키워드를 바꿔 보세요.
+            </p>
+          )}
+        </div>
+      )}
 
       {!running && results.length > 0 && state.appSettings.linkHelpApiBaseUrl.trim() && (
         <div className="card" style={{ marginBottom: 16 }}>

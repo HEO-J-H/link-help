@@ -72,3 +72,45 @@ export async function analyzeNoticeOnServer(
   }
   return (await res.json()) as AnalyzeResult;
 }
+
+export type WebDiscoverItem = {
+  title: string;
+  link: string;
+  snippet: string;
+  displayLink: string;
+};
+
+export type WebDiscoverResult = {
+  ok: true;
+  source: 'google_cse' | 'disabled';
+  items: WebDiscoverItem[];
+  llm_summary?: string | null;
+  hint?: string | null;
+  query_used?: string;
+};
+
+export async function discoverWebWelfare(
+  baseUrl: string,
+  query: string,
+  opts?: { regionHint?: string; limit?: number },
+  token?: string
+): Promise<WebDiscoverResult> {
+  const base = normalizeApiBase(baseUrl);
+  if (!base) throw new Error('missing_base_url');
+  const res = await fetch(`${base}/welfare/discover-web`, {
+    method: 'POST',
+    headers: buildApiHeaders(token),
+    body: JSON.stringify({
+      query: query.trim(),
+      regionHint: opts?.regionHint?.trim(),
+      limit: opts?.limit,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = typeof (err as { error?: string }).error === 'string' ? (err as { error: string }).error : '';
+    const detail = typeof (err as { detail?: string }).detail === 'string' ? (err as { detail: string }).detail : '';
+    throw new Error(detail ? `${msg}: ${detail}` : msg || `discover_http_${res.status}`);
+  }
+  return (await res.json()) as WebDiscoverResult;
+}

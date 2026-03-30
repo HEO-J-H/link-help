@@ -14,6 +14,7 @@ import crypto from 'node:crypto';
 import { runSmartMatch } from './smartMatchCore.mjs';
 import { parseContributionPayload } from './contributeValidate.mjs';
 import { analyzeNoticeToRecord } from './analyzeNotice.mjs';
+import { discoverWelfareOnWeb } from './webDiscovery.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 dotenv.config({ path: path.join(__dirname, '.env') });
@@ -179,6 +180,9 @@ app.get('/health', (_req, res) => {
     push_enabled: PUSH_ENABLED,
     api_token_required: Boolean(API_SHARED_TOKEN),
     openai_configured: Boolean(process.env.OPENAI_API_KEY?.trim()),
+    google_search_configured: Boolean(
+      process.env.GOOGLE_SEARCH_API_KEY?.trim() && process.env.GOOGLE_SEARCH_ENGINE_ID?.trim()
+    ),
   });
 });
 
@@ -200,6 +204,28 @@ app.post('/welfare/analyze', requireApiToken, async (req, res) => {
     if (msg === 'empty_text') return res.status(400).json({ error: msg });
     console.error('[link-help-api] /welfare/analyze', e);
     res.status(500).json({ error: msg });
+  }
+});
+
+/**
+ * POST body: { query: string, regionHint?: string, limit?: number }
+ * Google Custom Search (keys in .env) + optional OpenAI summary of snippets.
+ */
+app.post('/welfare/discover-web', requireApiToken, async (req, res) => {
+  try {
+    const query = String(req.body?.query ?? '').trim();
+    if (!query) return res.status(400).json({ error: 'query_required' });
+    const regionHint =
+      typeof req.body?.regionHint === 'string' ? req.body.regionHint.trim().slice(0, 120) : '';
+    const limit = req.body?.limit;
+
+    const out = await discoverWelfareOnWeb(query, regionHint, limit, process.env);
+    res.json(out);
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'discover_failed';
+    console.error('[link-help-api] /welfare/discover-web', e);
+    const detail = e instanceof Error && 'detail' in e ? String(e.detail) : '';
+    res.status(502).json({ error: msg, detail: detail.slice(0, 500) });
   }
 });
 
@@ -344,12 +370,12 @@ app.use((_req, res) => {
 app.listen(PORT, () => {
   console.log(`[link-help-api] http://localhost:${PORT}`);
   console.log(
-    '[link-help-api] GET /health  GET /welfare  POST /welfare/analyze  POST /welfare/contribute  POST /smart-match  POST /push/*'
+    '[link-help-api] GET /health  GET /welfare  POST /welfare/analyze  POST /welfare/discover-web  POST /welfare/contribute  POST /smart-match  POST /push/*'
   );
   if (API_SHARED_TOKEN) {
     console.log('[link-help-api] API_SHARED_TOKEN set — /welfare/analyze and /welfare/contribute require auth');
   } else {
-    console.warn('[link-help-api] API_SHARED_TOKEN unset — analyze/contribute are open (set token for production)');
+    console.warn('[link-help-api] API_SHARED_TOKEN unset — analyze/contribute/discover-web are open (set token for production)');
   }
   if (process.env.ADMIN_PUSH_SECRET) {
     console.log('[link-help-api] POST /push/send requires header X-Link-Help-Admin');

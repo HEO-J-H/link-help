@@ -5,8 +5,9 @@
 - `GET /welfare` — 공용 카탈로그(JSON 배열). 앱이 가져와 IndexedDB에 합칩니다.
 - `POST /welfare/analyze` — 공고문 텍스트 → 한 건 `WelfareRecord` (환경에 `OPENAI_API_KEY` 있으면 LLM, 없으면 휴리스틱).
 - `POST /welfare/contribute` — 클라이언트가 보낸 복지 메타 배열을 SQLite에 upsert (가족 프로필 없음).
+- `POST /welfare/discover-web` — 포함 키워드로 **Google 맞춤 검색**(웹 후보). `GOOGLE_SEARCH_API_KEY`·`GOOGLE_SEARCH_ENGINE_ID` 필요. `OPENAI_API_KEY`가 있으면 스니펫 기반 참고 요약만 추가(링크 내용을 가져오지 않음).
 
-`API_SHARED_TOKEN`을 설정하면 `analyze`/`contribute`에 `Authorization: Bearer <token>` 또는 `X-Link-Help-Api-Token`이 필요합니다. 비우면 **로컬 개발만** 권장(공개 엔드포인트).
+`API_SHARED_TOKEN`을 설정하면 `analyze`/`contribute`/`discover-web`에 `Authorization: Bearer <token>` 또는 `X-Link-Help-Api-Token`이 필요합니다. 비우면 **로컬 개발만** 권장(공개 엔드포인트).
 
 **Web Push**는 `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY`가 **둘 다** 있을 때만 활성화됩니다. 없으면 `/push/*`는 503입니다.
 
@@ -35,16 +36,18 @@ npx web-push generate-vapid-keys
 저장소 루트: `npm run server` 또는 `cd server && npm start`
 
 - `PORT` 기본 `8787`
-- `OPENAI_API_KEY` — 공고 분석 품질 향상(선택)
+- `OPENAI_API_KEY` — 공고 분석·웹 검색 결과 요약(선택)
+- `GOOGLE_SEARCH_API_KEY`, `GOOGLE_SEARCH_ENGINE_ID` — 숨은 복지 화면「웹에서 후보 찾기」(Programmable Search Engine, 전체 웹 검색 허용으로 생성)
 - `ADMIN_PUSH_SECRET` — 설정 시 `POST /push/send`에 `X-Link-Help-Admin` 필요
 
 ## 엔드포인트 요약
 
 | 메서드 | 경로 | 설명 |
 |--------|------|------|
-| GET | `/health` | `welfare_rows`, `push_enabled`, `api_token_required`, `openai_configured` |
+| GET | `/health` | `welfare_rows`, `push_enabled`, `api_token_required`, `openai_configured`, `google_search_configured` |
 | GET | `/welfare` | 전체 복지 JSON 배열 |
 | POST | `/welfare/analyze` | `{ "text": "…" }` → `{ record, analysis_source }` |
+| POST | `/welfare/discover-web` | `{ "query": "…", "regionHint?": "…", "limit?": 8 }` → `{ items[], source, llm_summary? }` |
 | POST | `/welfare/contribute` | `{ "records": [ … ] }` → `{ accepted, skipped }` |
 | POST | `/smart-match` | (선택) 서버 측 매칭·부스트·이력 |
 | POST | `/push/subscribe`, `/push/send` | Push (VAPID 설정 시만) |
