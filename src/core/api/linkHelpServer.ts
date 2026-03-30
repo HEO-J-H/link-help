@@ -114,3 +114,74 @@ export async function discoverWebWelfare(
   }
   return (await res.json()) as WebDiscoverResult;
 }
+
+export type CandidateIngestItem = {
+  url: string;
+  title?: string;
+  snippet?: string;
+  regionHint?: string;
+};
+
+export async function collectPublicCandidates(
+  baseUrl: string,
+  token?: string,
+  limitPerSource = 40
+): Promise<{ ok: true; fetched: number; inserted: number; touched: number }> {
+  const base = normalizeApiBase(baseUrl);
+  if (!base) throw new Error('missing_base_url');
+  const res = await fetch(`${base}/welfare/collect/public`, {
+    method: 'POST',
+    headers: buildApiHeaders(token),
+    body: JSON.stringify({ limitPerSource }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = typeof (err as { error?: string }).error === 'string' ? (err as { error: string }).error : '';
+    throw new Error(msg || `collect_public_http_${res.status}`);
+  }
+  return (await res.json()) as { ok: true; fetched: number; inserted: number; touched: number };
+}
+
+export async function submitCandidateUrl(
+  baseUrl: string,
+  item: CandidateIngestItem,
+  token?: string,
+  sourceType = 'manual'
+): Promise<{ ok: true; inserted: boolean; url: string }> {
+  const base = normalizeApiBase(baseUrl);
+  if (!base) throw new Error('missing_base_url');
+  const res = await fetch(`${base}/welfare/candidate/submit`, {
+    method: 'POST',
+    headers: buildApiHeaders(token),
+    body: JSON.stringify({
+      ...item,
+      sourceType,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = typeof (err as { error?: string }).error === 'string' ? (err as { error: string }).error : '';
+    throw new Error(msg || `candidate_submit_http_${res.status}`);
+  }
+  return (await res.json()) as { ok: true; inserted: boolean; url: string };
+}
+
+export async function bulkCandidateUrls(
+  baseUrl: string,
+  items: CandidateIngestItem[],
+  token?: string
+): Promise<{ ok: true; total: number; inserted: number; touched: number }> {
+  const base = normalizeApiBase(baseUrl);
+  if (!base) throw new Error('missing_base_url');
+  const res = await fetch(`${base}/welfare/candidate/bulk`, {
+    method: 'POST',
+    headers: buildApiHeaders(token),
+    body: JSON.stringify({ items }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const msg = typeof (err as { error?: string }).error === 'string' ? (err as { error: string }).error : '';
+    throw new Error(msg || `candidate_bulk_http_${res.status}`);
+  }
+  return (await res.json()) as { ok: true; total: number; inserted: number; touched: number };
+}
