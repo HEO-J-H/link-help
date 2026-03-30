@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { WelfareRecord } from '@/types/benefit';
 import type { MemberProfile } from '@/types/family';
+import { emptyProfile } from './familyManager';
 import { deriveAutoExcludeReason, upsertWelfareTracking } from './welfareTracking';
 
 function welfare(partial: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 'title'>): WelfareRecord {
@@ -22,23 +23,7 @@ function welfare(partial: Partial<WelfareRecord> & Pick<WelfareRecord, 'id' | 't
 }
 
 function profile(extraExclude: string[]): MemberProfile {
-  return {
-    birthDate: '',
-    useHouseholdRegionIncome: true,
-    regionSido: '',
-    regionSigungu: '',
-    region: '',
-    occupationKind: '',
-    occupation: '',
-    hasCar: 'unknown',
-    ownsHome: 'unknown',
-    incomeBand: '',
-    annualIncomeMemoManwon: '',
-    studentLevel: 'none',
-    hasDisability: false,
-    extraIncludeTags: [],
-    extraExcludeTags: extraExclude,
-  };
+  return { ...emptyProfile(), extraExcludeTags: extraExclude };
 }
 
 describe('deriveAutoExcludeReason', () => {

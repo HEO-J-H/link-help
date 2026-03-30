@@ -2,8 +2,19 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useFamily } from '@/context/FamilyContext';
 import type { HouseholdDefaults } from '@/types/household';
-import type { AssetAnswer, MemberProfile, Relationship, StudentLevel } from '@/types/family';
+import type {
+  AssetAnswer,
+  EmploymentContractKind,
+  EnrollmentStatus,
+  HealthInsuranceKind,
+  HousingTenure,
+  MemberProfile,
+  ParentingStage,
+  Relationship,
+  StudentLevel,
+} from '@/types/family';
 import { getEffectiveProfile } from '@/core/family/effectiveProfile';
+import { profileMatchReadiness } from '@/core/family/profileMatchReadiness';
 import { ASSET_CHOICES, INCOME_CHOICES, OCCUPATION_KIND_CHOICES } from '@/features/family/formConstants';
 import { HouseholdFormFields } from '@/features/family/HouseholdFormFields';
 import { useRegionCatalog } from '@/features/family/useRegionCatalog';
@@ -29,6 +40,45 @@ const STUDENT_CHOICES: { value: StudentLevel; title: string; hint: string }[] = 
     title: '대학·대학원 재학',
     hint: '고등교육기관. 복지 DB에 「대학생」 태그로 맞춥니다(나이·공고 기준).',
   },
+];
+
+const EMPLOYMENT_CONTRACT_CHOICES: { value: EmploymentContractKind; label: string }[] = [
+  { value: '', label: '선택 (근로·육아휴직일 때 권장)' },
+  { value: 'regular', label: '정규직' },
+  { value: 'contract', label: '계약직·기간제' },
+  { value: 'daily', label: '일용·단기' },
+  { value: 'special', label: '특수형태·프리랜서 등' },
+  { value: 'unknown', label: '잘 모름' },
+];
+
+const ENROLLMENT_CHOICES: { value: EnrollmentStatus; label: string }[] = [
+  { value: '', label: '선택 (학생일 때)' },
+  { value: 'enrolled', label: '재학' },
+  { value: 'on_leave', label: '휴학' },
+  { value: 'expected_graduate', label: '졸업 예정' },
+];
+
+const PARENTING_CHOICES: { value: ParentingStage; label: string }[] = [
+  { value: 'none', label: '해당 없음' },
+  { value: 'pregnancy', label: '임신 중' },
+  { value: 'infant', label: '영유아 양육' },
+  { value: 'school_age', label: '취학 자녀 양육' },
+];
+
+const HOUSING_CHOICES: { value: HousingTenure; label: string }[] = [
+  { value: '', label: '선택' },
+  { value: 'owned', label: '자가' },
+  { value: 'jeonse', label: '전세' },
+  { value: 'monthly', label: '월세' },
+  { value: 'free', label: '무상거주 등' },
+  { value: 'other', label: '기타' },
+];
+
+const HEALTH_CHOICES: { value: HealthInsuranceKind; label: string }[] = [
+  { value: '', label: '선택' },
+  { value: 'employee', label: '직장·직종 가입' },
+  { value: 'local', label: '지역 가입' },
+  { value: 'medical_aid', label: '의료급여' },
 ];
 
 function composeRegion(sido: string, sigungu: string): string {
@@ -161,6 +211,7 @@ export function MemberDetailPage() {
 
   const effective = getEffectiveProfile(member, state.household);
   const incomeHint = INCOME_CHOICES.find((c) => c.value === local.incomeBand)?.hint ?? '';
+  const readiness = profileMatchReadiness(member, state.household);
 
   const memberGeoIncomeValue: HouseholdDefaults = {
     sido: local.regionSido,
@@ -185,6 +236,29 @@ export function MemberDetailPage() {
         data-visible={snackbar ? 'true' : 'false'}
       >
         저장했습니다
+      </div>
+
+      <div className="card" style={{ marginBottom: 16 }}>
+        <p style={{ marginTop: 0, fontWeight: 600 }}>매칭 100% 목표 — 프로필 완성도 (참고)</p>
+        <p className="muted" style={{ marginBottom: 0 }}>
+          공고 자격을 대신 판정하지는 않지만, 채울수록 「연관 태그」가 늘어 추천·숨은 복지 찾기 정밀도가 올라갑니다.
+        </p>
+        <p style={{ marginTop: 10, marginBottom: 0, fontSize: '1.1rem', fontWeight: 700 }}>
+          {readiness.percent}% <span className="muted">({readiness.filled}/{readiness.total} 항목)</span>
+        </p>
+        {readiness.missing.length > 0 && (
+          <div style={{ marginTop: 8 }}>
+            <p className="muted" style={{ margin: 0 }}>
+              다음을 보완하면 좋습니다:
+            </p>
+            <ul className="muted" style={{ margin: '6px 0 0', paddingLeft: 18 }}>
+              {readiness.missing.slice(0, 12).map((m) => (
+                <li key={m}>{m}</li>
+              ))}
+              {readiness.missing.length > 12 && <li>… 외 {readiness.missing.length - 12}개</li>}
+            </ul>
+          </div>
+        )}
       </div>
 
       <div className="field">
@@ -333,23 +407,86 @@ export function MemberDetailPage() {
         </p>
       </div>
 
-      {local.occupationKind === 'other' && (
+      <div className="field">
+        <label htmlFor="m-job">직무·직장·학과 상세</label>
+        <input
+          id="m-job"
+          value={local.occupation}
+          onChange={(e) => setLocal({ ...local, occupation: e.target.value })}
+          onBlur={(e) => {
+            const occ = e.target.value;
+            const next = { ...local, occupation: occ };
+            setLocal(next);
+            persist(next);
+          }}
+          placeholder="예: 3D 디자이너, 삼성전자 사무, 백석예대 실용음악"
+        />
+        <p className="field-hint">모든 활동 상태에서 매칭 태그로 반영됩니다. 쉼표·슬래시로 여러 키워드를 넣을 수 있습니다.</p>
+      </div>
+
+      {(local.occupationKind === 'salaried' || local.occupationKind === 'parental_leave') && (
         <div className="field">
-          <label htmlFor="m-job">기타 (직접 입력)</label>
-          <input
-            id="m-job"
-            value={local.occupation}
-            onChange={(e) => setLocal({ ...local, occupation: e.target.value })}
-            onBlur={(e) => {
-              const occ = e.target.value;
-              const next = { ...local, occupation: occ };
+          <label htmlFor="m-contract">고용 형태</label>
+          <select
+            id="m-contract"
+            value={local.employmentContract}
+            onChange={(e) => {
+              const employmentContract = e.target.value as EmploymentContractKind;
+              const next = { ...local, employmentContract };
               setLocal(next);
               persist(next);
             }}
-            placeholder="예: 공무원, 예술인"
-          />
-          <p className="field-hint">「기타」일 때만 매칭 태그로 넣습니다.</p>
+          >
+            {EMPLOYMENT_CONTRACT_CHOICES.map((o) => (
+              <option key={o.value || '_ec'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
         </div>
+      )}
+
+      {(local.occupationKind === 'salaried' || local.occupationKind === 'parental_leave') && (
+        <>
+          <div className="field">
+            <label htmlFor="m-ei">고용보험</label>
+            <select
+              id="m-ei"
+              value={local.employmentInsurance}
+              onChange={(e) => {
+                const employmentInsurance = e.target.value as AssetAnswer;
+                const next = { ...local, employmentInsurance };
+                setLocal(next);
+                persist(next);
+              }}
+            >
+              {ASSET_CHOICES.map((o) => (
+                <option key={`ei-${o.value}`} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="field">
+            <label htmlFor="m-np">국민연금</label>
+            <select
+              id="m-np"
+              value={local.nationalPension}
+              onChange={(e) => {
+                const nationalPension = e.target.value as AssetAnswer;
+                const next = { ...local, nationalPension };
+                setLocal(next);
+                persist(next);
+              }}
+            >
+              {ASSET_CHOICES.map((o) => (
+                <option key={`np-${o.value}`} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
       )}
 
       <fieldset className="field fieldset-plain">
@@ -378,6 +515,44 @@ export function MemberDetailPage() {
           })}
         </div>
       </fieldset>
+
+      {local.occupationKind === 'student' && local.studentLevel !== 'none' && (
+        <>
+          <div className="field">
+            <label htmlFor="m-school">학교명</label>
+            <input
+              id="m-school"
+              value={local.schoolName}
+              onChange={(e) => setLocal({ ...local, schoolName: e.target.value })}
+              onBlur={(e) => {
+                const next = { ...local, schoolName: e.target.value };
+                setLocal(next);
+                persist(next);
+              }}
+              placeholder="예: ○○대학교"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="m-enroll">재학 상태</label>
+            <select
+              id="m-enroll"
+              value={local.enrollmentStatus}
+              onChange={(e) => {
+                const enrollmentStatus = e.target.value as EnrollmentStatus;
+                const next = { ...local, enrollmentStatus };
+                setLocal(next);
+                persist(next);
+              }}
+            >
+              {ENROLLMENT_CHOICES.map((o) => (
+                <option key={o.value || '_en'} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </>
+      )}
 
       <div className="field">
         <label htmlFor="m-car">자동차 보유</label>
@@ -422,6 +597,189 @@ export function MemberDetailPage() {
           무주택·유주택 공고 태그 힌트에만 씁니다. 가구 대표만 채워도 됩니다.
         </p>
       </div>
+
+      <details className="card" style={{ marginBottom: 16 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600 }}>가구·주거·건강보험 (매칭 정밀도 확장)</summary>
+        <p className="muted" style={{ marginTop: 8 }}>
+          선택 사항이지만, 주거·의료급여·한부모 등 공고 태그와 연결됩니다.
+        </p>
+        <div className="field">
+          <label htmlFor="m-hh">세대주 여부</label>
+          <select
+            id="m-hh"
+            value={local.isHouseholdHead}
+            onChange={(e) => {
+              const isHouseholdHead = e.target.value as AssetAnswer;
+              const next = { ...local, isHouseholdHead };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {ASSET_CHOICES.map((o) => (
+              <option key={`hh-${o.value}`} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="m-hmc">가구 인원 수 (본인 포함)</label>
+          <input
+            id="m-hmc"
+            inputMode="numeric"
+            value={local.householdMemberCount}
+            onChange={(e) => setLocal({ ...local, householdMemberCount: e.target.value })}
+            onBlur={(e) => {
+              const next = { ...local, householdMemberCount: e.target.value.trim() };
+              setLocal(next);
+              persist(next);
+            }}
+            placeholder="예: 4"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="m-dcc">동거·부양 중인 미성년 자녀 수</label>
+          <input
+            id="m-dcc"
+            inputMode="numeric"
+            value={local.dependentsChildrenCount}
+            onChange={(e) => setLocal({ ...local, dependentsChildrenCount: e.target.value })}
+            onBlur={(e) => {
+              const next = { ...local, dependentsChildrenCount: e.target.value.trim() };
+              setLocal(next);
+              persist(next);
+            }}
+            placeholder="없으면 0"
+          />
+        </div>
+        <div className="field">
+          <label htmlFor="m-par">출산·육아 단계</label>
+          <select
+            id="m-par"
+            value={local.parentingStage}
+            onChange={(e) => {
+              const parentingStage = e.target.value as ParentingStage;
+              const next = { ...local, parentingStage };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {PARENTING_CHOICES.map((o) => (
+              <option key={o.value} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="m-ten">주거 형태</label>
+          <select
+            id="m-ten"
+            value={local.housingTenure}
+            onChange={(e) => {
+              const housingTenure = e.target.value as HousingTenure;
+              const next = { ...local, housingTenure };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {HOUSING_CHOICES.map((o) => (
+              <option key={o.value || '_ho'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label htmlFor="m-hi">건강보험 유형</label>
+          <select
+            id="m-hi"
+            value={local.healthInsurance}
+            onChange={(e) => {
+              const healthInsurance = e.target.value as HealthInsuranceKind;
+              const next = { ...local, healthInsurance };
+              setLocal(next);
+              persist(next);
+            }}
+          >
+            {HEALTH_CHOICES.map((o) => (
+              <option key={o.value || '_hi'} value={o.value}>
+                {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="field">
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              className="input-checkbox"
+              checked={local.singleParentHousehold}
+              onChange={(e) => {
+                const next = { ...local, singleParentHousehold: e.target.checked };
+                setLocal(next);
+                persist(next);
+              }}
+            />
+            <span className="switch-row__body">
+              <span className="switch-row__title">한부모 가구에 해당</span>
+              <span className="switch-row__hint">「한부모」 태그 공고와 맞춥니다.</span>
+            </span>
+          </label>
+        </div>
+        <div className="field">
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              className="input-checkbox"
+              checked={local.multiculturalFamily}
+              onChange={(e) => {
+                const next = { ...local, multiculturalFamily: e.target.checked };
+                setLocal(next);
+                persist(next);
+              }}
+            />
+            <span className="switch-row__body">
+              <span className="switch-row__title">다문화 가정</span>
+              <span className="switch-row__hint">「다문화」 태그 공고와 맞춥니다.</span>
+            </span>
+          </label>
+        </div>
+        <div className="field">
+          <label className="switch-row">
+            <input
+              type="checkbox"
+              className="input-checkbox"
+              checked={local.veteranOrMeritRelated}
+              onChange={(e) => {
+                const next = { ...local, veteranOrMeritRelated: e.target.checked };
+                setLocal(next);
+                persist(next);
+              }}
+            />
+            <span className="switch-row__body">
+              <span className="switch-row__title">보훈·국가유공 등 해당</span>
+              <span className="switch-row__hint">보훈·유공 관련 공고 태그 힌트에 씁니다.</span>
+            </span>
+          </label>
+        </div>
+        <div className="field">
+          <label htmlFor="m-dd">장애 관련 메모 (등록 장애인일 때)</label>
+          <textarea
+            id="m-dd"
+            className="search-input"
+            style={{ minHeight: 72, width: '100%', resize: 'vertical' }}
+            value={local.disabilityDetail}
+            onChange={(e) => setLocal({ ...local, disabilityDetail: e.target.value })}
+            onBlur={(e) => {
+              const next = { ...local, disabilityDetail: e.target.value };
+              setLocal(next);
+              persist(next);
+            }}
+            placeholder="정도·유형 등 (기기에만 저장)"
+          />
+        </div>
+      </details>
 
       <div className="field">
         <label className="switch-row">

@@ -65,4 +65,27 @@ describe('filterEngine profile tags', () => {
     const rec = recommendForProfile([disability, youth], p);
     expect(rec.map((w) => w.id)).toEqual(['y']);
   });
+
+  it('adds 직무 상세 텍스트를 파생 태그로 넣는다', () => {
+    const p = emptyProfile();
+    p.region = '전국';
+    p.occupationKind = 'salaried';
+    p.occupation = '3D 디자인, 그래픽';
+    const tags = profileToDerivedTags(p);
+    expect(tags.some((t) => t.includes('3D') || t.includes('디자인'))).toBe(true);
+  });
+
+  it('한부모·다문화·보훈 스위치로 태그를 붙인다', () => {
+    const p = emptyProfile();
+    p.region = '경기도';
+    p.birthDate = '1990-01-01';
+    p.occupationKind = 'salaried';
+    p.singleParentHousehold = true;
+    p.multiculturalFamily = true;
+    p.veteranOrMeritRelated = true;
+    const tags = profileToDerivedTags(p);
+    expect(tags).toContain('한부모');
+    expect(tags).toContain('다문화');
+    expect(tags).toContain('보훈');
+  });
 });

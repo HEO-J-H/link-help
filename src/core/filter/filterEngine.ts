@@ -18,12 +18,54 @@ const OCC_KIND_TAGS: Partial<Record<OccupationKind, readonly string[]>> = {
 function addOccupationAndAssetTags(tags: Set<string>, p: MemberProfile) {
   const kindTags = p.occupationKind ? OCC_KIND_TAGS[p.occupationKind] : undefined;
   if (kindTags) for (const t of kindTags) tags.add(t);
-  if (p.occupationKind === 'other' && p.occupation.trim()) tags.add(p.occupation.trim());
-  if (!p.occupationKind && p.occupation.trim()) tags.add(p.occupation.trim());
+  if (p.occupation.trim()) {
+    const raw = p.occupation.trim();
+    tags.add(raw);
+    for (const part of raw.split(/[,/|]/).map((s) => s.trim()).filter((s) => s.length >= 2)) {
+      if (part !== raw) tags.add(part);
+    }
+  }
 
   if (p.hasCar === 'yes') tags.add('자동차');
   if (p.ownsHome === 'yes') tags.add('유주택');
   if (p.ownsHome === 'no') tags.add('무주택');
+}
+
+function addExtendedProfileTags(tags: Set<string>, p: MemberProfile) {
+  if (p.employmentContract === 'regular') tags.add('정규직');
+  if (p.employmentContract === 'contract') tags.add('계약직');
+  if (p.employmentContract === 'daily') tags.add('일용직');
+  if (p.employmentContract === 'special') tags.add('특고');
+
+  if (p.schoolName.trim()) {
+    const s = p.schoolName.trim();
+    tags.add(s);
+  }
+
+  if (p.enrollmentStatus === 'on_leave') tags.add('휴학');
+  if (p.enrollmentStatus === 'expected_graduate') tags.add('졸업예정');
+
+  if (p.singleParentHousehold) tags.add('한부모');
+  if (p.multiculturalFamily) tags.add('다문화');
+  if (p.veteranOrMeritRelated) {
+    tags.add('보훈');
+    tags.add('국가유공자');
+  }
+
+  if (p.parentingStage === 'pregnancy') tags.add('임신');
+  if (p.parentingStage === 'infant') tags.add('영유아');
+  if (p.parentingStage === 'school_age') {
+    tags.add('아동');
+    tags.add('자녀');
+  }
+
+  if (p.housingTenure === 'jeonse') tags.add('전세');
+  if (p.housingTenure === 'monthly') tags.add('월세');
+  if (p.housingTenure === 'owned') tags.add('자가');
+
+  if (p.healthInsurance === 'medical_aid') tags.add('의료급여');
+  if (p.healthInsurance === 'employee') tags.add('직장가입자');
+  if (p.healthInsurance === 'local') tags.add('지역가입자');
 }
 
 function baseProfileTags(p: MemberProfile, age: number | null): string[] {
@@ -35,6 +77,7 @@ function baseProfileTags(p: MemberProfile, age: number | null): string[] {
     }
   }
   addOccupationAndAssetTags(tags, p);
+  addExtendedProfileTags(tags, p);
   for (const t of ageCategory(age)) tags.add(t);
   if (p.hasDisability) tags.add('장애인');
   if (p.studentLevel === 'university' && age != null && age >= 18 && age <= 39) tags.add('대학생');

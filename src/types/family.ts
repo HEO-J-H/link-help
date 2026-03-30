@@ -24,6 +24,21 @@ export type OccupationKind =
 /** For car / home hints: unknown = do not filter or add asset tags. */
 export type AssetAnswer = 'unknown' | 'yes' | 'no';
 
+/** 재학 상태 (학생일 때 매칭 정밀도). */
+export type EnrollmentStatus = '' | 'enrolled' | 'on_leave' | 'expected_graduate';
+
+/** 임신·영유아·취학 자녀 등 복지 공고 힌트. */
+export type ParentingStage = '' | 'none' | 'pregnancy' | 'infant' | 'school_age';
+
+/** 주거 형태 힌트. */
+export type HousingTenure = '' | 'owned' | 'jeonse' | 'monthly' | 'free' | 'other';
+
+/** 근로 형태 세부. */
+export type EmploymentContractKind = '' | 'regular' | 'contract' | 'daily' | 'special' | 'unknown';
+
+/** 건강보험·의료급여 구분(참고용). */
+export type HealthInsuranceKind = '' | 'employee' | 'local' | 'medical_aid';
+
 export interface MemberProfile {
   birthDate: string;
   /** When false, use regionSido/regionSigungu (or legacy region) instead of 가구 기본. */
@@ -47,6 +62,30 @@ export interface MemberProfile {
   annualIncomeMemoManwon: string;
   studentLevel: StudentLevel;
   hasDisability: boolean;
+
+  /** 정규직·계약직 등 (근로·육아휴직 복지 정밀도). */
+  employmentContract: EmploymentContractKind;
+  /** 재학·휴학 등 (학생). */
+  enrollmentStatus: EnrollmentStatus;
+  /** 학교명 (학생). */
+  schoolName: string;
+  /** 세대주 여부. */
+  isHouseholdHead: AssetAnswer;
+  /** 가구 전체 인원(본인 포함), 숫자 문자열. */
+  householdMemberCount: string;
+  /** 동거·부양 미성년 자녀 수, 숫자 문자열. */
+  dependentsChildrenCount: string;
+  parentingStage: ParentingStage;
+  housingTenure: HousingTenure;
+  singleParentHousehold: boolean;
+  multiculturalFamily: boolean;
+  veteranOrMeritRelated: boolean;
+  /** 장애 정도·유형 메모(로컬만). */
+  disabilityDetail: string;
+  employmentInsurance: AssetAnswer;
+  nationalPension: AssetAnswer;
+  healthInsurance: HealthInsuranceKind;
+
   extraIncludeTags: string[];
   extraExcludeTags: string[];
 }

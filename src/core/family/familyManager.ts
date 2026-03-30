@@ -1,9 +1,14 @@
 import type {
   AssetAnswer,
+  EmploymentContractKind,
+  EnrollmentStatus,
   FamilyMember,
   FamilyState,
+  HealthInsuranceKind,
+  HousingTenure,
   MemberProfile,
   OccupationKind,
+  ParentingStage,
   Relationship,
   StudentLevel,
 } from '@/types/family';
@@ -39,6 +44,21 @@ export function emptyProfile(): MemberProfile {
     annualIncomeMemoManwon: '',
     studentLevel: 'none',
     hasDisability: false,
+    employmentContract: '',
+    enrollmentStatus: '',
+    schoolName: '',
+    isHouseholdHead: 'unknown',
+    householdMemberCount: '',
+    dependentsChildrenCount: '',
+    parentingStage: 'none',
+    housingTenure: '',
+    singleParentHousehold: false,
+    multiculturalFamily: false,
+    veteranOrMeritRelated: false,
+    disabilityDetail: '',
+    employmentInsurance: 'unknown',
+    nationalPension: 'unknown',
+    healthInsurance: '',
     extraIncludeTags: [],
     extraExcludeTags: [],
   };
@@ -83,6 +103,43 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
     return 'unknown';
   };
 
+  const contractVals: EmploymentContractKind[] = [
+    '',
+    'regular',
+    'contract',
+    'daily',
+    'special',
+    'unknown',
+  ];
+  const employmentContract: EmploymentContractKind =
+    typeof o.employmentContract === 'string' && contractVals.includes(o.employmentContract as EmploymentContractKind)
+      ? (o.employmentContract as EmploymentContractKind)
+      : e.employmentContract;
+
+  const enrollVals: EnrollmentStatus[] = ['', 'enrolled', 'on_leave', 'expected_graduate'];
+  const enrollmentStatus: EnrollmentStatus =
+    typeof o.enrollmentStatus === 'string' && enrollVals.includes(o.enrollmentStatus as EnrollmentStatus)
+      ? (o.enrollmentStatus as EnrollmentStatus)
+      : e.enrollmentStatus;
+
+  const parentingVals: ParentingStage[] = ['', 'none', 'pregnancy', 'infant', 'school_age'];
+  const parentingStage: ParentingStage =
+    typeof o.parentingStage === 'string' && parentingVals.includes(o.parentingStage as ParentingStage)
+      ? (o.parentingStage as ParentingStage)
+      : e.parentingStage;
+
+  const housingVals: HousingTenure[] = ['', 'owned', 'jeonse', 'monthly', 'free', 'other'];
+  const housingTenure: HousingTenure =
+    typeof o.housingTenure === 'string' && housingVals.includes(o.housingTenure as HousingTenure)
+      ? (o.housingTenure as HousingTenure)
+      : e.housingTenure;
+
+  const healthVals: HealthInsuranceKind[] = ['', 'employee', 'local', 'medical_aid'];
+  const healthInsurance: HealthInsuranceKind =
+    typeof o.healthInsurance === 'string' && healthVals.includes(o.healthInsurance as HealthInsuranceKind)
+      ? (o.healthInsurance as HealthInsuranceKind)
+      : e.healthInsurance;
+
   return {
     birthDate: typeof o.birthDate === 'string' ? o.birthDate : e.birthDate,
     useHouseholdRegionIncome,
@@ -98,6 +155,26 @@ export function normalizeMemberProfile(raw: unknown): MemberProfile {
       typeof o.annualIncomeMemoManwon === 'string' ? o.annualIncomeMemoManwon : e.annualIncomeMemoManwon,
     studentLevel,
     hasDisability: typeof o.hasDisability === 'boolean' ? o.hasDisability : e.hasDisability,
+    employmentContract,
+    enrollmentStatus,
+    schoolName: typeof o.schoolName === 'string' ? o.schoolName : e.schoolName,
+    isHouseholdHead: normAsset(o.isHouseholdHead),
+    householdMemberCount:
+      typeof o.householdMemberCount === 'string' ? o.householdMemberCount : e.householdMemberCount,
+    dependentsChildrenCount:
+      typeof o.dependentsChildrenCount === 'string' ? o.dependentsChildrenCount : e.dependentsChildrenCount,
+    parentingStage,
+    housingTenure,
+    singleParentHousehold:
+      typeof o.singleParentHousehold === 'boolean' ? o.singleParentHousehold : e.singleParentHousehold,
+    multiculturalFamily:
+      typeof o.multiculturalFamily === 'boolean' ? o.multiculturalFamily : e.multiculturalFamily,
+    veteranOrMeritRelated:
+      typeof o.veteranOrMeritRelated === 'boolean' ? o.veteranOrMeritRelated : e.veteranOrMeritRelated,
+    disabilityDetail: typeof o.disabilityDetail === 'string' ? o.disabilityDetail : e.disabilityDetail,
+    employmentInsurance: normAsset(o.employmentInsurance),
+    nationalPension: normAsset(o.nationalPension),
+    healthInsurance,
     extraIncludeTags: Array.isArray(o.extraIncludeTags)
       ? o.extraIncludeTags.filter((x): x is string => typeof x === 'string')
       : e.extraIncludeTags,
