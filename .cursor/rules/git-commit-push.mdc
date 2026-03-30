@@ -1,0 +1,11 @@
+---
+description: After git commits in this repo, push to origin unless user opts out
+alwaysApply: true
+---
+
+# Git: commit and push together
+
+When you create a **git commit** for this project (Link-Help), **always run `git push`** to the appropriate remote/branch immediately after a successful commit**, unless the user explicitly says not to push (e.g. offline, WIP, or force strategy discussion).
+
+- Prefer: `git push origin <current-branch>` after `git commit`.
+- If push fails, report the error and suggest next steps (auth, upstream, conflicts).
