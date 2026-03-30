@@ -8,6 +8,19 @@ describe('normalizeImportedWelfare', () => {
     expect(normalizeImportedWelfare({ id: 'a', title: '' })).toBeNull();
   });
 
+  it('strips (샘플)/(예시) markers from title·description·benefit', () => {
+    const w = normalizeImportedWelfare({
+      id: 'd',
+      title: '용인시 대학생 장학(샘플)',
+      description: '설명(예시) 입니다',
+      benefit: '등록금 일부 지원(예시)',
+    });
+    expect(w).not.toBeNull();
+    expect(w!.title).toBe('용인시 대학생 장학');
+    expect(w!.description).toBe('설명 입니다');
+    expect(w!.benefit).toBe('등록금 일부 지원');
+  });
+
   it('fills defaults and preserves catalog fields', () => {
     const w = normalizeImportedWelfare({
       id: 'x1',

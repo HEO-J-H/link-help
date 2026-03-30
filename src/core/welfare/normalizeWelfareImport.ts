@@ -1,4 +1,5 @@
 import type { WelfareCatalogOrigin, WelfareRecord, WelfareStatus } from '@/types/benefit';
+import { stripWelfareDemoMarkers } from '@/core/welfare/welfareDemoMarkers';
 
 function strArr(v: unknown): string[] {
   if (!Array.isArray(v)) return [];
@@ -26,14 +27,14 @@ export function normalizeImportedWelfare(raw: unknown): WelfareRecord | null {
   const today = new Date().toISOString().slice(0, 10);
   const base: WelfareRecord = {
     id: o.id.trim(),
-    title: o.title.trim(),
-    description: typeof o.description === 'string' ? o.description : '',
+    title: stripWelfareDemoMarkers(o.title.trim()),
+    description: typeof o.description === 'string' ? stripWelfareDemoMarkers(o.description) : '',
     region: strArr(o.region),
     target: strArr(o.target),
     age: strArr(o.age),
     income: strArr(o.income),
     tags: strArr(o.tags),
-    benefit: typeof o.benefit === 'string' ? o.benefit : '',
+    benefit: typeof o.benefit === 'string' ? stripWelfareDemoMarkers(o.benefit) : '',
     period: typeof o.period === 'string' ? o.period : '',
     apply_url: typeof o.apply_url === 'string' ? o.apply_url : '',
     created_at: typeof o.created_at === 'string' ? o.created_at : today,

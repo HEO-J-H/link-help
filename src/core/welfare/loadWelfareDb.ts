@@ -2,6 +2,7 @@ import type { WelfareRecord } from '@/types/benefit';
 import { publicAsset } from '@/utils/publicAsset';
 import { getAllCachedWelfareRecords } from '@/core/storage/welfareIndexedDb';
 import { mergeWelfareById } from '@/core/welfare/mergeWelfareCatalog';
+import { sanitizeWelfareDemoMarkers } from '@/core/welfare/welfareDemoMarkers';
 
 const WELFARE_FILES = [
   'welfare-db/welfare/national.json',
@@ -25,5 +26,5 @@ export async function loadBundledWelfare(): Promise<WelfareRecord[]> {
 /** Bundled + IndexedDB cache (smart-match hits, future imports). */
 export async function loadMergedWelfareCatalog(): Promise<WelfareRecord[]> {
   const [bundled, cached] = await Promise.all([loadBundledWelfare(), getAllCachedWelfareRecords()]);
-  return mergeWelfareById(bundled, cached);
+  return mergeWelfareById(bundled, cached).map(sanitizeWelfareDemoMarkers);
 }
