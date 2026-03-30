@@ -166,20 +166,11 @@ function TagsEditor({
       )}
       <div className="field-row field-row--wrap">
         {value.map((t) => (
-          <span
-            key={t}
-            style={{
-              background: '#e8f0ec',
-              padding: '6px 10px',
-              borderRadius: 8,
-              fontSize: '0.9rem',
-            }}
-          >
+          <span key={t} className="member-tag-chip">
             {t}
             <button
               type="button"
-              className="btn ghost btn--compact"
-              style={{ marginLeft: 6 }}
+              className="member-tag-chip__remove"
               onClick={() => onChange(value.filter((x) => x !== t))}
               aria-label={`${t} 제거`}
             >
